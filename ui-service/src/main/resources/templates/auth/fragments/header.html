@@ -1,0 +1,19 @@
+<header th:fragment="header" class="admin-header" xmlns:th="http://www.thymeleaf.org">
+    <div class="header-left">
+        <h1 th:text="${pageTitle != null ? pageTitle : 'Quản Lý Check-in/Check-out'}"></h1>
+        <p>Thực hiện thủ tục nhận và trả xe</p>
+    </div>
+    <div class="header-right">
+        <div class="notification">
+            <i class="fas fa-bell"></i>
+            <span class="badge">3</span>
+        </div>
+        <div class="user-profile">
+            <img src="https://via.placeholder.com/40x40/4F46E5/FFFFFF?text=AD" alt="Admin">
+            <span th:text="${adminName != null ? adminName : 'Admin'}">Admin</span>
+            <button onclick="logout()" class="btn-logout" style="margin-left: 10px;">
+                <i class="fas fa-sign-out-alt"></i> Đăng Xuất
+            </button>
+        </div>
+    </div>
+</header>

@@ -1,0 +1,51 @@
+<aside th:fragment="sidebar-user(currentPage)" class="sidebar" xmlns:th="http://www.thymeleaf.org">
+    <div class="sidebar-header">
+        <div class="logo">
+            <i class="fas fa-car"></i>
+            <span>Co-Owner Dashboard</span>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="/user/onboarding" class="nav-item" th:classappend="${currentPage == 'onboarding'} ? 'active' : ''">
+            <i class="fas fa-user-check"></i>
+            <span>Đăng ký & Xác thực</span>
+        </a>
+
+        <a href="/user/profile-status" class="nav-item" th:classappend="${currentPage == 'status'} ? 'active' : ''">
+            <i class="fas fa-file-signature"></i>
+            <span>Tình trạng Hồ sơ</span>
+        </a>
+        <a href="/user/contracts" class="nav-item" th:classappend="${currentPage == 'hop-dong'} ? 'active' : ''">
+            <i class="fas fa-file-contract"></i>
+            <span>Hợp Đồng</span>
+        </a>
+        <a href="/user/ty-le" class="nav-item" th:classappend="${currentPage == 'ty-le'} ? 'active' : ''">
+            <i class="fas fa-chart-pie"></i>
+            <span>Quản Lý Tỷ Lệ</span>
+        </a>
+        <a href="/user/hop-dong" class="nav-item" th:classappend="${currentPage == 'hop-dong'} ? 'active' : ''">
+            <i class="fas fa-file-contract"></i>
+            <span>Hợp Đồng</span>
+        </a>
+        <a href="/user/dat-xe" class="nav-item" th:classappend="${currentPage == 'dat-xe'} ? 'active' : ''">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Đặt Lịch Xe</span>
+        </a>
+        <a href="/user/thanh-toan" class="nav-item" th:classappend="${currentPage == 'thanh-toan'} ? 'active' : ''">
+            <i class="fas fa-money-check-alt"></i>
+            <span>Chi Phí & Thanh Toán</span>
+        </a>
+        <a href="/user/lich-su" class="nav-item" th:classappend="${currentPage == 'lich-su'} ? 'active' : ''">
+            <i class="fas fa-history"></i>
+            <span>Lịch Sử & Phân Tích</span>
+        </a>
+        <a href="/user/quan-ly-nhom" class="nav-item" th:classappend="${currentPage == 'quan-ly-nhom'} ? 'active' : ''">
+            <i class="fas fa-users"></i>
+            <span>Quản Lý Nhóm</span>
+        </a>
+        <a href="/user/goi-y" class="nav-item" th:classappend="${currentPage == 'goi-y'} ? 'active' : ''">
+            <i class="fas fa-lightbulb"></i>
+            <span>AI Gợi Ý</span>
+        </a>
+    </nav>
+</aside>

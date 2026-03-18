@@ -1,0 +1,55 @@
+<!-- HOME PAGE (Nhóm của tôi) -->
+<div th:fragment="home-page">
+    <div id="home-page" class="page" th:classappend="${activePage == 'home'} ? 'active'">
+        <div class="page-header">
+            <h1><i class="fas fa-users"></i> Nhóm của tôi</h1>
+            <p>Quản lý các nhóm sở hữu chung xe điện mà bạn tham gia</p>
+        </div>
+
+        <!-- Groups Section -->
+        <div class="section-card">
+            <div class="card-header">
+                <h2><i class="fas fa-users"></i> Danh sách nhóm</h2>
+            </div>
+            <div class="card-body">
+                <div class="groups-list" id="my-groups-list">
+                    <!-- Groups loaded dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Browse Groups Section (Tìm nhóm để tham gia) -->
+        <div class="section-card">
+            <div class="card-header">
+                <h2><i class="fas fa-search"></i> Tìm nhóm để tham gia</h2>
+                <button class="btn btn-secondary btn-sm" id="toggle-browse-groups" onclick="toggleBrowseGroups()">
+                    <i class="fas fa-chevron-down"></i> Hiển thị
+                </button>
+            </div>
+            <div class="card-body" id="browse-groups-section" style="display: none;">
+                <!-- Search and Filter -->
+                <div class="filter-bar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="group-search" placeholder="Tìm kiếm nhóm theo tên...">
+                    </div>
+                    <select id="group-status-filter">
+                        <option value="all">Tất cả nhóm</option>
+                        <option value="Active">Đang hoạt động</option>
+                        <option value="Inactive">Tạm ngưng</option>
+                    </select>
+                </div>
+
+                <!-- Groups Grid -->
+                <div class="groups-grid" id="browse-groups-grid">
+                    <!-- Groups loaded dynamically -->
+                    <div class="loading-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Đang tải danh sách nhóm...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

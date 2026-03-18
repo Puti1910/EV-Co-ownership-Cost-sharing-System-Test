@@ -1,0 +1,70 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar">
+    <aside class="admin-sidebar">
+        <div class="admin-brand">
+            <div class="brand-logo">
+                <i class="fas fa-car"></i>
+            </div>
+            <div class="brand-text">
+                <div class="brand-title">CarShare</div>
+                <div class="brand-subtitle">MANAGER</div>
+            </div>
+        </div>
+        
+        <nav class="admin-nav">
+            <a th:href="@{/admin}" class="nav-link" th:classappend="${activePage == 'overview'} ? 'active'">
+                <i class="fas fa-chart-line"></i>
+                <span>Tổng quan</span>
+            </a>
+            <a th:href="@{/admin/costs}" class="nav-link" th:classappend="${activePage == 'costs'} ? 'active'">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>Quản lý chi phí</span>
+            </a>
+            <a th:href="@{/admin/auto-split}" class="nav-link" th:classappend="${activePage == 'auto-split'} ? 'active'">
+                <i class="fas fa-calculator"></i>
+                <span>Chia tự động</span>
+            </a>
+            <a th:href="@{/admin/payments}" class="nav-link" th:classappend="${activePage == 'payments'} ? 'active'">
+                <i class="fas fa-credit-card"></i>
+                <span>Theo dõi thanh toán</span>
+            </a>
+            <a th:href="@{/admin/groups}" class="nav-link" th:classappend="${activePage == 'groups'} ? 'active'">
+                <i class="fas fa-users"></i>
+                <span>Quản lý nhóm</span>
+            </a>
+            <a th:href="@{/admin/profile-approval}" class="nav-link" th:classappend="${activePage == 'profile-approval'} ? 'active'">
+                <i class="fas fa-user-check"></i>
+                <span>Duyệt hồ sơ KYC</span>
+            </a>
+            <a th:href="@{/admin/vehicle-services}" class="nav-link" th:classappend="${activePage == 'vehicle-services'} ? 'active'">
+                <i class="fas fa-tools"></i>
+                <span>Quản lý dịch vụ xe</span>
+            </a>
+            <a th:href="@{/admin/reservations}" class="nav-link" th:classappend="${activePage == 'reservations'} ? 'active'">
+                <i class="fas fa-calendar-check"></i>
+                <span>Quản lý đặt lịch</span>
+            </a>
+            <a th:href="@{/admin/legal-contracts}" class="nav-link" th:classappend="${activePage == 'legal-contracts'} ? 'active'">
+                <i class="fas fa-file-contract"></i>
+                <span>Hợp đồng pháp lý</span>
+            </a>
+            <a th:href="@{/admin/disputes}" class="nav-link" th:classappend="${activePage == 'disputes'} ? 'active'">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Quản lý tranh chấp</span>
+            </a>
+        </nav>
+        
+        <div class="admin-user">
+            <div class="user-avatar">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <div class="user-info">
+                <div class="user-name">Admin</div>
+                <div class="user-role">Quản trị viên</div>
+            </div>
+            <a href="/" class="logout-btn" title="Đăng xuất">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
+    </aside>
+</div>
+

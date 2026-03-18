@@ -1,0 +1,175 @@
+/* profile-approval.css */
+
+.table-container {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.profile-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.profile-table th, .profile-table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.profile-table th {
+    background-color: #F9FAFB;
+    font-size: 0.9rem;
+    color: #6B7280;
+    font-weight: 600;
+}
+
+.profile-table td {
+    color: #374151;
+    font-size: 0.95rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* NÂNG CẤP: Style chung cho các nút icon */
+.action-buttons button {
+    color: white;
+    border: none;
+    padding: 8px 10px; /* Chỉnh lại padding cho icon */
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: opacity 0.2s;
+}
+.action-buttons button:hover {
+    opacity: 0.8;
+}
+
+/* Nút XEM (Mới) */
+.btn-view {
+    background-color: #3B82F6; /* Xanh dương */
+}
+
+.btn-approve {
+    background-color: #10B981; /* Xanh lá */
+}
+
+.btn-reject {
+    background-color: #EF4444; /* Đỏ */
+}
+
+
+/* --- NÂNG CẤP: STYLE CHO MODAL --- */
+
+.modal-backdrop {
+    display: none; /* Mặc định bị ẩn */
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Lớp nền mờ */
+    overflow: auto;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 700px; /* Kích thước Modal */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    animation: fadeIn 0.3s;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #E5E7EB;
+    color: #111827;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.modal-close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.modal-close:hover {
+    color: #000;
+}
+
+.modal-body {
+    padding: 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* Style cho nội dung bên trong modal */
+.detail-group {
+    margin-bottom: 20px;
+}
+.detail-group h3 {
+    font-size: 1.1rem;
+    color: #4F46E5;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 cột */
+    gap: 15px;
+}
+.detail-item p {
+    margin: 0 0 5px 0;
+    font-size: 0.9rem;
+    color: #6B7280;
+}
+.detail-item span {
+    font-size: 1rem;
+    color: #1F2937;
+    font-weight: 500;
+}
+
+/* Style cho ảnh trong modal */
+.image-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.image-item label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #374151;
+}
+.image-item img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    margin-top: 5px;
+}
+.image-item a {
+    color: #3B82F6;
+    font-size: 0.9rem;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0; transform: scale(0.95);}
+    to {opacity: 1; transform: scale(1);}
+}

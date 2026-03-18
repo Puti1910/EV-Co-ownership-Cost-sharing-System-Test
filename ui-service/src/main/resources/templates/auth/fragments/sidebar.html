@@ -1,0 +1,39 @@
+<aside th:fragment="sidebar" class="sidebar" xmlns:th="http://www.thymeleaf.org">
+    <div class="sidebar-header">
+        <div class="logo">
+            <i class="fas fa-car"></i>
+            <span>CarRental</span>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="/admin/dashboard" class="nav-item">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="/admin/profile-approval" class="nav-item active">
+            <i class="fas fa-user-shield"></i>
+            <span>Duyệt Hồ Sơ</span>
+        </a>
+        <a href="/admin/vehicles" class="nav-item">
+            <i class="fas fa-car"></i>
+            <span>Xe</span>
+        </a>
+        <a href="/admin/checkinout" class="nav-item">
+            <i class="fas fa-clipboard-check"></i>
+            <span>Check-in/Check-out</span>
+        </a>
+        <a href="/admin/customers" class="nav-item">
+            <i class="fas fa-users"></i>
+            <span>Khách hàng</span>
+        </a>
+        <a href="/admin/invoices" class="nav-item">
+            <i class="fas fa-file-invoice"></i>
+            <span>Hóa đơn</span>
+        </a>
+        <a href="/admin/settings" class="nav-item">
+            <i class="fas fa-cog"></i>
+            <span>Cài đặt</span>
+        </a>
+    </nav>
+</aside>

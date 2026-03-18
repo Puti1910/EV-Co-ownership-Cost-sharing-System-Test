@@ -1,0 +1,387 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # DATABASES
+  # ============================================
+  
+  # MySQL Database for Cost Payment Service
+  payment-mysql:
+    image: mysql:8.0
+    container_name: payment-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: Cost_Payment_DB
+    ports:
+      - "3305:3306"
+    volumes:
+      - payment_mysql_data:/var/lib/mysql
+      - ./cost_database_setup.sql:/docker-entrypoint-initdb.d/01-setup.sql
+    networks:
+      - ev-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MySQL Database for Group Management Service
+  group-mysql:
+    image: mysql:8.0
+    container_name: group-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: Group_Management_DB
+    ports:
+      - "3307:3306"
+    volumes:
+      - group_mysql_data:/var/lib/mysql
+      - ./group_database_setup.sql:/docker-entrypoint-initdb.d/01-setup.sql
+    networks:
+      - ev-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MySQL Database for User Account Service
+  user-mysql:
+    image: mysql:8.0
+    container_name: user-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: CoOwnershipDB
+    ports:
+      - "3308:3306"
+    volumes:
+      - user_mysql_data:/var/lib/mysql
+      - ./user_account_database_setup.sql:/docker-entrypoint-initdb.d/01-setup.sql
+    networks:
+      - ev-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MySQL Database for Vehicle Service
+  vehicle-mysql:
+    image: mysql:8.0
+    container_name: vehicle-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: vehicle_management
+    ports:
+      - "3309:3306"
+    volumes:
+      - vehicle_mysql_data:/var/lib/mysql
+      - ./vehicle_management_database_setup.sql:/docker-entrypoint-initdb.d/01-setup.sql
+    networks:
+      - ev-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MySQL Database for Reservation Service (Booking)
+  reservation-mysql:
+    image: mysql:8.0
+    container_name: reservation-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: co_ownership_booking
+    ports:
+      - "3310:3306"
+    volumes:
+      - reservation_mysql_data:/var/lib/mysql
+      - ./reservation_services_complete_setup.sql:/docker-entrypoint-initdb.d/01-setup.sql
+    networks:
+      - ev-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MySQL Database for Reservation Admin Service
+  reservation-admin-mysql:
+    image: mysql:8.0
+    container_name: reservation-admin-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: co_ownership_booking_admin
+    ports:
+      - "3311:3306"
+    volumes:
+      - reservation_admin_mysql_data:/var/lib/mysql
+    networks:
+      - ev-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MySQL Database for Legal Contract Service
+  legal-mysql:
+    image: mysql:8.0
+    container_name: legal-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: legal_contract
+    ports:
+      - "3313:3306"
+    volumes:
+      - legal_mysql_data:/var/lib/mysql
+      - ./legal_contract_database_setup.sql:/docker-entrypoint-initdb.d/01-setup.sql
+    networks:
+      - ev-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MySQL Database for Dispute Management Service
+  dispute-mysql:
+    image: mysql:8.0
+    container_name: dispute-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: Dispute_Management_DB
+    ports:
+      - "3314:3306"
+    volumes:
+      - dispute_mysql_data:/var/lib/mysql
+      - ./dispute_database_setup.sql:/docker-entrypoint-initdb.d/01-setup.sql
+    networks:
+      - ev-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # MICROSERVICES
+  # ============================================
+
+  # Cost Payment Service
+  cost-payment-service:
+    build: ./cost-payment-service
+    container_name: cost-payment-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://payment-mysql:3306/Cost_Payment_DB?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
+    depends_on:
+      payment-mysql:
+        condition: service_healthy
+    networks:
+      - ev-network
+    restart: unless-stopped
+
+  # Group Management Service
+  group-management-service:
+    build: ./group-management-service
+    container_name: group-management-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://group-mysql:3306/Group_Management_DB?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
+    depends_on:
+      group-mysql:
+        condition: service_healthy
+    networks:
+      - ev-network
+    restart: unless-stopped
+
+  # User Account Service
+  user-account-service:
+    build: ./user-account-service
+    container_name: user-account-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://user-mysql:3306/CoOwnershipDB?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
+    depends_on:
+      user-mysql:
+        condition: service_healthy
+    networks:
+      - ev-network
+    restart: unless-stopped
+
+  # Vehicle Service
+  vehicle-service:
+    build: ./VehicleServiceManagementService
+    container_name: vehicle-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://vehicle-mysql:3306/vehicle_management?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
+    depends_on:
+      vehicle-mysql:
+        condition: service_healthy
+    networks:
+      - ev-network
+    restart: unless-stopped
+
+  # Reservation Service
+  reservation-service:
+    build: ./ReservationService
+    container_name: reservation-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://reservation-mysql:3306/co_ownership_booking?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
+      - ADMIN_SERVICE_URL=http://reservation-admin-service:8087
+    depends_on:
+      reservation-mysql:
+        condition: service_healthy
+    networks:
+      - ev-network
+    restart: unless-stopped
+
+  # Reservation Admin Service
+  reservation-admin-service:
+    build: ./ReservationAdminService
+    container_name: reservation-admin-service
+    ports:
+      - "8087:8087"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://reservation-admin-mysql:3306/co_ownership_booking_admin?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_DATASOURCE_ADMIN_URL=jdbc:mysql://reservation-admin-mysql:3306/co_ownership_booking_admin?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_ADMIN_USERNAME=root
+      - SPRING_DATASOURCE_ADMIN_PASSWORD=password
+      - SPRING_DATASOURCE_BOOKING_URL=jdbc:mysql://reservation-mysql:3306/co_ownership_booking?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_BOOKING_USERNAME=root
+      - SPRING_DATASOURCE_BOOKING_PASSWORD=password
+      - RESERVATION_SERVICE_URL=http://reservation-service:8086
+    depends_on:
+      reservation-admin-mysql:
+        condition: service_healthy
+      reservation-mysql:
+        condition: service_healthy
+    networks:
+      - ev-network
+    restart: unless-stopped
+
+  # Legal Contract Service
+  legal-contract-service:
+    build: ./LegalContractService
+    container_name: legal-contract-service
+    ports:
+      - "8089:8089"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://legal-mysql:3306/legal_contract?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
+    depends_on:
+      legal-mysql:
+        condition: service_healthy
+    networks:
+      - ev-network
+    restart: unless-stopped
+
+  # Dispute Management Service
+  dispute-management-service:
+    build: ./dispute-management-service
+    container_name: dispute-management-service
+    ports:
+      - "8090:8090"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://dispute-mysql:3306/Dispute_Management_DB?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
+    depends_on:
+      dispute-mysql:
+        condition: service_healthy
+    networks:
+      - ev-network
+    restart: unless-stopped
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8084:8084"
+    environment:
+      # Override service URLs to use Docker service names
+      - COST_PAYMENT_SERVICE_URL=http://cost-payment-service:8081
+      - GROUP_MANAGEMENT_SERVICE_URL=http://group-management-service:8082
+      - USER_ACCOUNT_SERVICE_URL=http://user-account-service:8083
+      - VEHICLE_SERVICE_URL=http://vehicle-service:8085
+      - RESERVATION_SERVICE_URL=http://reservation-service:8086
+      - RESERVATION_ADMIN_SERVICE_URL=http://reservation-admin-service:8087
+      - LEGAL_CONTRACT_SERVICE_URL=http://legal-contract-service:8089
+      - DISPUTE_MANAGEMENT_SERVICE_URL=http://dispute-management-service:8090
+    depends_on:
+      - cost-payment-service
+      - group-management-service
+      - user-account-service
+      - vehicle-service
+      - reservation-service
+      - reservation-admin-service
+      - legal-contract-service
+      - dispute-management-service
+    networks:
+      - ev-network
+    restart: unless-stopped
+
+  # UI Service
+  ui-service:
+    build: ./ui-service
+    container_name: ui-service
+    ports:
+      - "8080:8080"
+    environment:
+      # All services go through API Gateway
+      - API_GATEWAY_URL=http://api-gateway:8084
+      - MICROSERVICES_COST_PAYMENT_URL=http://api-gateway:8084
+      - MICROSERVICES_GROUP_MANAGEMENT_URL=http://api-gateway:8084
+      - GROUP_MANAGEMENT_SERVICE_URL=http://api-gateway:8084
+      - COST_PAYMENT_SERVICE_URL=http://api-gateway:8084
+      - USER_ACCOUNT_SERVICE_URL=http://api-gateway:8084
+      - USER_ACCOUNT_SERVICE_API_BASE_URL=http://api-gateway:8084/api/auth/users
+      - EXTERNAL_VEHICLES_BASE_URL=http://api-gateway:8084/api/vehicles
+      - EXTERNAL_CONTRACTS_BASE_URL=http://api-gateway:8084/api/contracts
+      - EXTERNAL_SERVICES_BASE_URL=http://api-gateway:8084/api/services
+      - EXTERNAL_VEHICLESERVICES_BASE_URL=http://api-gateway:8084/api/vehicle-services
+      - RESERVATION_SERVICE_URL=http://api-gateway:8084
+      - RESERVATION_ADMIN_SERVICE_URL=http://api-gateway:8084
+      - EXTERNAL_LEGAL_CONTRACTS_BASE_URL=http://api-gateway:8084/api/legalcontracts
+      - EXTERNAL_DISPUTES_BASE_URL=http://api-gateway:8084/api/disputes
+    depends_on:
+      - api-gateway
+    networks:
+      - ev-network
+    restart: unless-stopped
+
+volumes:
+  payment_mysql_data:
+  group_mysql_data:
+  user_mysql_data:
+  vehicle_mysql_data:
+  reservation_mysql_data:
+  reservation_admin_mysql_data:
+  legal_mysql_data:
+  dispute_mysql_data:
+
+networks:
+  ev-network:
+    driver: bridge

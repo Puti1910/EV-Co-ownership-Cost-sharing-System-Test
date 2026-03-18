@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Chi Phí Tự Động - CarShare Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/layout.css}" rel="stylesheet">
+    <link th:href="@{/css/cost-management.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Layout Container -->
+    <div class="layout-container">
+        <!-- Include Sidebar -->
+        <div th:replace="fragments/sidebar :: sidebar"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-info">
+                        <h1 class="page-title">🤖 Tạo Chi Phí Tự Động</h1>
+                        <p class="page-subtitle">Hệ thống sẽ tự động chia chi phí theo phương thức bạn chọn</p>
+                    </div>
+                </div>
+                <div class="top-bar-actions">
+                    <a href="/costs/usage-tracking" class="btn btn-outline">
+                        <i class="fas fa-road"></i>
+                        Nhập km
+                    </a>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Info Cards -->
+                <div class="content-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+                    <div class="card info-card">
+                        <div class="card-content">
+                            <div class="info-icon" style="color: #3b82f6;">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <h4>Theo Sở Hữu</h4>
+                            <p>Chia theo % góp vốn. Phù hợp: Bảo hiểm, đăng kiểm, bảo dưỡng</p>
+                            <small>Ví dụ: 50%, 30%, 20%</small>
+                        </div>
+                    </div>
+                    <div class="card info-card">
+                        <div class="card-content">
+                            <div class="info-icon" style="color: #10b981;">
+                                <i class="fas fa-road"></i>
+                            </div>
+                            <h4>Theo Km Đã Chạy</h4>
+                            <p>Chia theo mức độ sử dụng. Phù hợp: Sạc điện, thay lốp</p>
+                            <small>Ví dụ: 600km, 300km, 100km</small>
+                        </div>
+                    </div>
+                    <div class="card info-card">
+                        <div class="card-content">
+                            <div class="info-icon" style="color: #f59e0b;">
+                                <i class="fas fa-equals"></i>
+                            </div>
+                            <h4>Chia Đều</h4>
+                            <p>Chia đều cho tất cả. Phù hợp: Rửa xe, phụ kiện chung</p>
+                            <small>Ví dụ: 33.33% mỗi người</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Create Cost Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-plus-circle"></i>
+                            Thông tin chi phí
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <form id="costForm">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="vehicleId">Xe *</label>
+                                    <select id="vehicleId" class="form-control" required>
+                                        <option value="">-- Chọn xe --</option>
+                                        <option value="1">Vehicle 1 - Tesla Model 3</option>
+                                        <option value="2">Vehicle 2 - BMW i3</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="costType">Loại chi phí *</label>
+                                    <select id="costType" class="form-control" required onchange="suggestSplitMethod()">
+                                        <option value="">-- Chọn loại --</option>
+                                        <option value="ElectricCharge">⚡ Sạc điện</option>
+                                        <option value="Maintenance">🔧 Bảo dưỡng</option>
+                                        <option value="Insurance">🛡️ Bảo hiểm</option>
+                                        <option value="Inspection">📋 Đăng kiểm</option>
+                                        <option value="Cleaning">🧽 Vệ sinh xe</option>
+                                        <option value="Other">📦 Khác</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="amount">Số tiền (VNĐ) *</label>
+                                    <input type="number" id="amount" class="form-control" 
+                                           min="0" step="1000" required 
+                                           placeholder="Nhập số tiền"
+                                           onchange="updatePreview()">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="splitMethod">Phương thức chia *</label>
+                                    <select id="splitMethod" class="form-control" required onchange="updatePreview()">
+                                        <option value="">-- Chọn phương thức --</option>
+                                        <option value="BY_OWNERSHIP">📊 Theo tỉ lệ sở hữu</option>
+                                        <option value="BY_USAGE">🛣️ Theo km đã chạy</option>
+                                        <option value="EQUAL">➗ Chia đều</option>
+                                    </select>
+                                    <small class="form-text" id="splitMethodHint"></small>
+                                </div>
+
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label for="description">Mô tả</label>
+                                    <textarea id="description" class="form-control" rows="2" 
+                                              placeholder="Mô tả chi tiết về chi phí..."></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Preview Result -->
+                            <div id="previewSection" class="preview-section" style="display: none;">
+                                <h4>
+                                    <i class="fas fa-eye"></i>
+                                    Xem trước kết quả chia
+                                </h4>
+                                <div class="preview-content">
+                                    <div class="preview-stats">
+                                        <div class="preview-stat">
+                                            <span class="label">Tổng chi phí:</span>
+                                            <span class="value" id="previewTotal">0 VNĐ</span>
+                                        </div>
+                                        <div class="preview-stat">
+                                            <span class="label">Số người chia:</span>
+                                            <span class="value" id="previewMembers">0</span>
+                                        </div>
+                                        <div class="preview-stat">
+                                            <span class="label">Phương thức:</span>
+                                            <span class="value" id="previewMethod">-</span>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Thành viên</th>
+                                                    <th>Phần trăm</th>
+                                                    <th>Số tiền</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="previewTableBody">
+                                                <!-- Will be populated by JS -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check"></i>
+                                    Tạo chi phí & Tự động chia
+                                </button>
+                                <button type="button" class="btn btn-outline" onclick="resetForm()">
+                                    <i class="fas fa-redo"></i>
+                                    Làm mới
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Recent Auto-Split Costs -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-history"></i>
+                            Chi phí đã chia gần đây
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Loại</th>
+                                        <th>Mô tả</th>
+                                        <th>Số tiền</th>
+                                        <th>Phương thức</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Chi tiết</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentCostsBody">
+                                    <!-- Sample data -->
+                                    <tr>
+                                        <td><span class="badge badge-info">⚡ Sạc điện</span></td>
+                                        <td>Chi phí sạc điện tháng 10/2024</td>
+                                        <td><strong>500,000 VNĐ</strong></td>
+                                        <td><span class="badge badge-success">🛣️ Theo km</span></td>
+                                        <td>2024-10-31</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline" onclick="viewCostDetail(1)">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script th:src="@{/js/layout.js}"></script>
+    <script th:src="@{/js/auto-split.js}"></script>
+
+    <style>
+        .info-card {
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .info-card:hover {
+            transform: translateY(-5px);
+        }
+        .info-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .info-card h4 {
+            margin: 0.5rem 0;
+            color: var(--text-primary);
+        }
+        .info-card p {
+            color: var(--text-secondary);
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+        .info-card small {
+            color: var(--text-tertiary);
+            font-size: 0.85rem;
+        }
+        .preview-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--surface-secondary);
+            border-radius: 8px;
+        }
+        .preview-section h4 {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        .preview-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .preview-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .preview-stat .label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .preview-stat .value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+    </style>
+</body>
+</html>
+

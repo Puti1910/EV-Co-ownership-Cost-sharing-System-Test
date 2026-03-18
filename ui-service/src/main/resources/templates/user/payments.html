@@ -1,0 +1,50 @@
+<!-- PAYMENTS PAGE -->
+<div th:fragment="payments-page">
+    <div id="payments-page" class="page" th:classappend="${activePage == 'payments'} ? 'active'">
+        <div class="page-header">
+            <h1><i class="fas fa-credit-card"></i> Thanh toán</h1>
+            <p>Thanh toán các khoản chi phí của bạn</p>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="payment-methods">
+            <div class="method-card active" data-method="ewallet">
+                <i class="fas fa-mobile-alt"></i>
+                <span>Ví điện tử</span>
+            </div>
+            <div class="method-card" data-method="banking">
+                <i class="fas fa-university"></i>
+                <span>Chuyển khoản</span>
+            </div>
+            <div class="method-card" data-method="cash">
+                <i class="fas fa-money-bill"></i>
+                <span>Tiền mặt</span>
+            </div>
+        </div>
+
+        <!-- Pending Payments -->
+        <div class="section-card">
+            <div class="card-header">
+                <h2><i class="fas fa-exclamation-circle"></i> Cần thanh toán</h2>
+            </div>
+            <div class="card-body">
+                <div class="payment-list" id="pending-payments-list">
+                    <!-- Pending payments loaded dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="section-card">
+            <div class="card-header">
+                <h2><i class="fas fa-history"></i> Lịch sử thanh toán</h2>
+            </div>
+            <div class="card-body">
+                <div class="payment-history" id="payment-history-list">
+                    <!-- Payment history loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

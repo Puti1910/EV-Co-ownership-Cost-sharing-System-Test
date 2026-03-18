@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Error - Reservation Service</title>
+</head>
+<body>
+    <h1>Error in Reservation Service</h1>
+    <p th:if="${error}" th:text="${error}"></p>
+    <p th:if="${message}" th:text="${message}"></p>
+    <p th:if="${status}" th:text="'Status: ' + ${status}"></p>
+    <p th:if="${trace}" th:text="${trace}"></p>
+    <a href="/">Back to Home</a>
+</body>
+</html>
+

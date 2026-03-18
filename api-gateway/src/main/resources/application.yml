@@ -1,0 +1,105 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        # Cost Payment Service Routes
+        - id: cost-payment-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/costs/**, /api/payments/**, /api/shares/**, /api/cost-shares/**, /api/auto-split/**, /api/usage-tracking/**, /api/funds/**, /api/my-vehicles, /api/auth/logout
+        
+        # Group Management Service Routes
+        - id: group-management-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/groups/**, /api/votes/**, /api/admin/auth/login
+        
+        # Reservation Service Routes (phải đặt trước user-account-service để match /api/users/*/vehicles trước)
+        - id: reservation-service
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/reservations/**, /api/users/*/vehicles, /api/fairness/**, /api/vehicles/*/reservations/**, /api/vehicles/*/group
+        
+        # User Account Service Routes
+        - id: user-account-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/auth/**, /api/users/**, /api/my-vehicles
+        
+        # User uploads (images, documents)
+        - id: user-account-uploads
+          uri: http://localhost:8083
+          predicates:
+            - Path=/uploads/**
+        
+        # Vehicle Service Routes
+        - id: vehicle-service
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/vehicles/**, /api/vehicle-services/**, /api/vehicle-groups/**, /api/services/**
+        
+        # Reservation Admin Service Routes
+        - id: reservation-admin-service
+          uri: http://localhost:8087
+          predicates:
+            - Path=/api/admin/reservations/**
+        
+        # Legal Contract Service Routes
+        - id: legal-contract-service
+          uri: http://localhost:8089
+          predicates:
+            - Path=/api/contracts/**, /api/legalcontracts/**
+        
+        # Dispute Management Service Routes
+        - id: dispute-management-service
+          uri: http://localhost:8090
+          predicates:
+            - Path=/api/disputes/**
+      
+      # Global CORS Configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: 
+              - "http://localhost:8080"
+              - "http://localhost:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      
+      # Default Filters - Remove duplicate CORS headers from downstream services
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin Access-Control-Allow-Headers Access-Control-Allow-Methods
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web: INFO
+
+jwt:
+  secret:
+    key: RjlaYTRjY2RmYS04NjcwLTRkMDMtYmI1OS02ZmMxNmIzNjAwYmY=
+

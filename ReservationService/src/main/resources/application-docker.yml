@@ -1,0 +1,78 @@
+# Application Settings
+spring:
+  application:
+    name: reservation-service
+  server:
+    port: 8086
+
+  # Database Configuration
+  datasource:
+    url: jdbc:mysql://reservation-mysql:3306/co_ownership_booking?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA/Hibernate Settings
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: false
+        temp:
+          use_jdbc_metadata_defaults: false
+        hbm2ddl:
+          auto: none
+        jpa:
+          compliance:
+            query: false
+            list: false
+    packages-to-scan: com.example.reservationservice.model
+    defer-datasource-initialization: true
+
+  # Disable DevTools
+  devtools:
+    restart:
+      enabled: false
+
+  # SQL Init
+  sql:
+    init:
+      mode: always
+
+  # Spring Security - Disable default security
+  security:
+    user:
+      name: user
+      password: ""
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+
+# Admin Service URL (Reservation Admin Service) - via API Gateway
+admin:
+  service:
+    url: http://api-gateway:8084
+
+# Group Management Service URL (để lấy thông tin user và group) - via API Gateway
+group-management:
+  service:
+    url: http://api-gateway:8084
+
+# User Account Service URL - via API Gateway
+user-account:
+  service:
+    url: http://api-gateway:8084
+
+# Vehicle Service URL - via API Gateway
+vehicle:
+  service:
+    url: http://api-gateway:8084
+
+# Server Settings
+server:
+  error:
+    whitelabel:
+      enabled: false
+

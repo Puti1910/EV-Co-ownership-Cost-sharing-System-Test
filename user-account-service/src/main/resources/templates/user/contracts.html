@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Quản lý Hợp đồng</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: #9C27B0;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .content {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .btn {
+            background: #9C27B0;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #7B1FA2;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 th:text="${pageTitle}">Quản lý Hợp đồng</h1>
+        <p>Xin chào, <span th:text="${userName}">User</span>!</p>
+    </div>
+    
+    <div class="content">
+        <div class="user-info">
+            <p><strong>Email:</strong> <span th:text="${userEmail}">user@example.com</span></p>
+        </div>
+        
+        <p>Trang quản lý hợp đồng đang được phát triển. Vui lòng quay lại sau.</p>
+        
+        <div style="margin-top: 20px;">
+            <a th:href="@{/user/home}" class="btn">Về trang chủ</a>
+            <a th:href="@{/user/profile-status}" class="btn">Xem tình trạng hồ sơ</a>
+        </div>
+    </div>
+</body>
+</html>
+

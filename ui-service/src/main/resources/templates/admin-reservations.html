@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Quản Lý Đặt Lịch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/admin-layout.css" rel="stylesheet">
+    <th:block th:replace="fragments/admin-guard :: scripts"></th:block>
+    <style>
+        body {
+            background: #F9FAFB;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+        }
+
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        body.modal-open {
+            overflow: hidden !important;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            padding: 0;
+        }
+
+        .content-wrapper {
+            padding: 24px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            background: white;
+            border-bottom: 2px solid #f1f5f9;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            margin: 0;
+            font-weight: 700;
+            color: #1a202c;
+            font-size: 1.5rem;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .btn-success-gradient {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            color: white;
+        }
+
+        .btn-success-gradient:hover {
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+            color: white;
+        }
+
+        .btn-danger-gradient {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border: none;
+            color: white;
+        }
+
+        .btn-danger-gradient:hover {
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+            color: white;
+        }
+
+        .badge {
+            padding: 0.4em 0.8em;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.75em;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .badge-green {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-red {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-yellow {
+            background-color: #fffbeb;
+            color: #92400e;
+        }
+
+        .badge-blue {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .table thead th {
+            border-bottom: 2px solid #e2e8f0;
+            padding: 1rem 1.5rem;
+            font-weight: 700;
+            color: #4a5568;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            background-color: #f8fafc;
+        }
+
+        .table tbody td {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+            border-top: 1px solid #e2e8f0;
+            color: #4a5568;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f0f4f8;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+
+        /* Modal Styles */
+        /* Override global admin CSS that redefines Bootstrap modal */
+        body .modal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: auto !important;
+            max-width: none !important;
+            height: auto !important;
+            max-height: none !important;
+            background: transparent !important;
+            transform: none !important;
+            opacity: 1 !important;
+            display: none;
+            z-index: 1055 !important;
+        }
+
+        body .modal.show {
+            display: block !important;
+        }
+
+        body .modal-dialog {
+            margin: 1.75rem auto !important;
+            max-width: 800px;
+            pointer-events: none;
+        }
+
+        body .modal.show .modal-dialog {
+            pointer-events: auto;
+        }
+
+        body .modal-backdrop {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            z-index: 1050 !important;
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.5rem;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e2e8f0;
+            padding: 1rem 1.5rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+    </style>
+</head>
+<body>
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <div th:replace="fragments/admin-sidebar :: sidebar"
+         th:with="activePage='reservations'"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header Fragment -->
+        <div th:replace="fragments/admin-header :: header"></div>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- Success/Error Messages -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Admin Card -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="bi bi-calendar-event me-2"></i>Quản Lý Đặt Lịch
+                    </h3>
+                    <button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#createModal">
+                        <i class="bi bi-plus-circle me-2"></i>Tạo Mới
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Người Dùng</th>
+                                <th>Xe</th>
+                                <th>Thời Gian</th>
+                                <th>Ghi Chú</th>
+                                <th>Trạng Thái</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${reservations == null or #lists.isEmpty(reservations)}">
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="bi bi-inbox" style="font-size: 3rem; color: #cbd5e0;"></i>
+                                    <p class="mt-3 text-muted">Không có lịch đặt nào</p>
+                                </td>
+                            </tr>
+                            <tr th:each="r : ${reservations}" th:if="${reservations != null and !#lists.isEmpty(reservations)}">
+                                <td>
+                                    <span class="fw-bold" th:text="'#' + ${r.get('reservationId')}"></span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold"
+                                         th:text="${r.get('userName') != null ? r.get('userName') : 'User #' + (r.get('userId') != null ? r.get('userId') : 'N/A')}"></div>
+                                    <small class="text-muted" th:text="'ID: ' + ${r.get('userId')}"></small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold"
+                                         th:text="${r.get('vehicleName') != null ? r.get('vehicleName') : 'Vehicle #' + (r.get('vehicleId') != null ? r.get('vehicleId') : 'N/A')}">
+                                    </div>
+                                    <small class="text-muted" th:text="'ID: ' + ${r.get('vehicleId')}"></small>
+                                </td>
+                                <td>
+                                    <div th:text="${r.get('startDatetime')}"></div>
+                                    <div class="text-muted" th:text="'→ ' + ${r.get('endDatetime')}"></div>
+                                </td>
+                                <td>
+                                    <span th:text="${r.get('purpose') != null ? r.get('purpose') : 'Không có'}"></span>
+                                </td>
+                                <td>
+                                        <span th:if="${r.get('status') == 'BOOKED'}"
+                                              class="badge badge-green" th:text="'Đã đặt'"></span>
+                                    <span th:if="${r.get('status') == 'IN_USE'}"
+                                          class="badge badge-blue" th:text="'Đang sử dụng'"></span>
+                                    <span th:if="${r.get('status') == 'COMPLETED'}"
+                                          class="badge badge-yellow" th:text="'Hoàn thành'"></span>
+                                    <span th:if="${r.get('status') == 'CANCELLED'}"
+                                          class="badge badge-red" th:text="'Đã hủy'"></span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-sm btn-primary auth-action"
+                                                th:if="${r.get('status') == 'BOOKED'}"
+                                                th:data-reservation-id="${r.get('reservationId')}"
+                                                data-action="checkin">
+                                            <i class="bi bi-check-circle me-1"></i>Check-in
+                                        </button>
+                                        <button class="btn btn-sm btn-success-gradient auth-action"
+                                                th:if="${r.get('status') == 'IN_USE'}"
+                                                th:data-reservation-id="${r.get('reservationId')}"
+                                                data-action="checkout">
+                                            <i class="bi bi-flag me-1"></i>Check-out
+                                        </button>
+                                        <button class="btn btn-sm btn-success-gradient"
+                                                th:onclick="'openEditModal(' + ${r.get('reservationId')} + ')'">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger-gradient"
+                                                th:onclick="'openDeleteModal(' + ${r.get('reservationId')} + ')'">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="bi bi-pencil me-2"></i>Chỉnh Sửa Lịch Đặt
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editForm" method="post" action="">
+                <div th:if="${_csrf != null}" class="d-none">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Người Dùng ID</label>
+                            <input type="number" class="form-control" name="userId" id="editUserId" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Xe ID</label>
+                            <input type="number" class="form-control" name="vehicleId" id="editVehicleId" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Thời Gian Bắt Đầu</label>
+                            <input type="datetime-local" class="form-control" name="startDate" id="editStartDate" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Thời Gian Kết Thúc</label>
+                            <input type="datetime-local" class="form-control" name="endDate" id="editEndDate" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi Chú</label>
+                        <textarea class="form-control" name="note" id="editNote" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Trạng Thái</label>
+                        <select class="form-select" name="status" id="editStatus" required>
+                            <option value="BOOKED">Đã đặt</option>
+                            <option value="IN_USE">Đang sử dụng</option>
+                            <option value="COMPLETED">Hoàn thành</option>
+                            <option value="CANCELLED">Đã hủy</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="bi bi-trash me-2"></i>Xác Nhận Xóa
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="deleteForm" method="post" action="">
+                <div th:if="${_csrf != null}" class="d-none">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">Bạn có chắc chắn muốn xóa lịch đặt này không?</p>
+                    <p class="text-danger mb-0"><strong>Hành động này không thể hoàn tác!</strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- CSRF info for JS -->
+<meta th:if="${_csrf != null}" th:name="_csrf" th:content="${_csrf.token}"/>
+<meta th:if="${_csrf != null}" th:name="_csrf_header" th:content="${_csrf.headerName}"/>
+<script th:inline="javascript">
+    window._csrfMeta = {
+        parameterName: /*[[${_csrf != null ? _csrf.parameterName : '_csrf'}]]*/ '_csrf',
+        headerName: /*[[${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}]]*/ 'X-CSRF-TOKEN',
+        token: /*[[${_csrf != null ? _csrf.token : null}]]*/ null
+    };
+    console.log('🔐 CSRF Meta initialized:', window._csrfMeta);
+</script>
+
+<script th:src="@{/js/admin-reservations.js}"></script>
+
+<!-- JavaScript Functions -->
+<script th:inline="javascript">
+    // Lấy dữ liệu reservations từ Thymeleaf
+    window.reservations = /*[[${reservations}]]*/[];
+    console.log('📋 Reservations loaded:', window.reservations);
+
+    // Function để mở edit modal
+    window.openEditModal = function(id) {
+        console.log('🔍 Opening edit modal for reservation ID:', id);
+
+        const reservations = window.reservations || [];
+        const reservation = reservations.find(r => {
+            const reservationId = r.reservationId || r.id ||
+                (r.get && typeof r.get === 'function' ? r.get('reservationId') : null);
+            return reservationId != null && (reservationId == id || reservationId === id);
+        });
+
+        if (!reservation) {
+            console.error('❌ Reservation not found with ID:', id);
+            alert('Không tìm thấy lịch đặt với ID: ' + id);
+            return;
+        }
+
+        console.log('✅ Found reservation:', reservation);
+
+        // Lấy các elements
+        const editUserId = document.getElementById('editUserId');
+        const editVehicleId = document.getElementById('editVehicleId');
+        const editStartDate = document.getElementById('editStartDate');
+        const editEndDate = document.getElementById('editEndDate');
+        const editNote = document.getElementById('editNote');
+        const editStatus = document.getElementById('editStatus');
+        const editForm = document.getElementById('editForm');
+        const editModal = document.getElementById('editModal');
+
+        // Lấy giá trị từ reservation
+        const userId = reservation.userId || (reservation.get && typeof reservation.get === 'function' ? reservation.get('userId') : null);
+        const vehicleId = reservation.vehicleId || (reservation.get && typeof reservation.get === 'function' ? reservation.get('vehicleId') : null);
+        const startDatetime = reservation.startDatetime || (reservation.get && typeof reservation.get === 'function' ? reservation.get('startDatetime') : null);
+        const endDatetime = reservation.endDatetime || (reservation.get && typeof reservation.get === 'function' ? reservation.get('endDatetime') : null);
+        const purpose = reservation.purpose || (reservation.get && typeof reservation.get === 'function' ? reservation.get('purpose') : '');
+        const status = reservation.status || (reservation.get && typeof reservation.get === 'function' ? reservation.get('status') : 'BOOKED');
+
+        // Set values
+        if (editUserId) editUserId.value = userId || '';
+        if (editVehicleId) editVehicleId.value = vehicleId || '';
+        if (editStartDate && startDatetime) {
+            editStartDate.value = formatDateTimeLocal(startDatetime);
+        }
+        if (editEndDate && endDatetime) {
+            editEndDate.value = formatDateTimeLocal(endDatetime);
+        }
+        if (editNote) editNote.value = purpose || '';
+        if (editStatus) editStatus.value = status || 'BOOKED';
+        if (editForm) editForm.action = `/admin/reservations/${id}/update`;
+
+        // Hiển thị modal
+        if (editModal) {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                try {
+                    // Sử dụng Bootstrap Modal API
+                    const modalInstance = bootstrap.Modal.getOrCreateInstance(editModal);
+                    modalInstance.show();
+                    console.log('✅ Modal shown using Bootstrap API');
+                } catch (e) {
+                    console.error('❌ Error showing modal:', e);
+                    alert('Không thể mở cửa sổ chỉnh sửa. Vui lòng thử lại.');
+                }
+            } else {
+                console.error('❌ Bootstrap not available');
+            }
+        }
+    };
+
+    // Function để mở delete modal
+    window.openDeleteModal = function(id) {
+        console.log('🗑️ Opening delete modal for reservation ID:', id);
+
+        const deleteForm = document.getElementById('deleteForm');
+        const deleteModal = document.getElementById('deleteModal');
+
+        if (deleteForm) {
+            deleteForm.action = `/admin/reservations/${id}/delete`;
+        }
+
+        if (deleteModal) {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                try {
+                    // Sử dụng Bootstrap Modal API
+                    const modalInstance = bootstrap.Modal.getOrCreateInstance(deleteModal);
+                    modalInstance.show();
+                    console.log('✅ Delete modal shown using Bootstrap API');
+                } catch (e) {
+                    console.error('❌ Error showing delete modal:', e);
+                    alert('Không thể mở cửa sổ xác nhận. Vui lòng thử lại.');
+                }
+            } else {
+                console.error('❌ Bootstrap not available');
+            }
+        }
+    };
+
+    // Function để format datetime cho input datetime-local
+    window.formatDateTimeLocal = function(dateStr) {
+        if (!dateStr) return '';
+
+        let date = dateStr;
+        // Nếu là ISO string như "2024-11-15T15:00:00"
+        if (date.includes('T')) {
+            date = date.substring(0, 16); // Lấy "2024-11-15T15:00"
+        } else if (date.includes(' ')) {
+            // Nếu là "2025-01-15 10:30:00"
+            date = date.replace(' ', 'T').substring(0, 16);
+        }
+        return date;
+    };
+
+    // Kiểm tra khi DOM load
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('✅ DOM loaded');
+        console.log('✅ Bootstrap available:', typeof bootstrap !== 'undefined');
+        console.log('✅ Reservations count:', window.reservations ? window.reservations.length : 0);
+    });
+</script>
+</body>
+</html>

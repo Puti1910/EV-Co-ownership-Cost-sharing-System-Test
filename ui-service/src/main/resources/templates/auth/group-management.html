@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script th:src="@{/js/auth/admin/admin-guard.js}"></script>
+    <title th:text="${pageTitle} + ' - CarShare'"></title>
+
+    <link rel="stylesheet" th:href="@{/css/auth/admin-layout.css}">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+<div class="admin-layout-container">
+
+    <div th:replace="auth/fragments/sidebar :: sidebar"></div>
+
+    <main class="main-content">
+
+        <div th:replace="auth/fragments/header :: header"></div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fas fa-user-check"></i></div>
+                <div class="stat-info">
+                    <h3>Tổng nhóm</h3>
+                    <span class="stat-number" th:text="${totalGroups}">12</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <h3>Nhóm đang hoạt động</h3>
+                    <span class="stat-number" th:text="${activeGroups}">8</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon yellow"><i class="fas fa-car"></i></div>
+                <div class="stat-info">
+                    <h3>Xe gặp sự cố</h3>
+                    <span class="stat-number" th:text="${brokenCars}">5</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple"><i class="fas fa-file-invoice"></i></div>
+                <div class="stat-info">
+                    <h3>Host đang hoạt động</h3>
+                    <span class="stat-number" th:text="${activeHosts}">10</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-card">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Danh sách nhóm</label>
+                        <select th:value="${groupFilter}">
+                            <option>Tất cả</option>
+                            <option>Nhóm A</option>
+                            <option>Nhóm B</option>
+                            <option>Nhóm C</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Tìm nhóm...</label>
+                        <input type="text" th:value="${searchQuery}" placeholder="Nhập tên nhóm...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Từ ngày</label>
+                        <input type="date" th:value="${fromDate}">
+                    </div>
+                    <div class="filter-group">
+                        <label>Trạng thái</label>
+                        <select th:value="${statusFilter}">
+                            <option>Tất cả</option>
+                            <option>Hoạt động</option>
+                            <option>Tạm dừng</option>
+                        </select>
+                    </div>
+                    <button class="btn-filter">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="staff-list">
+            <div class="staff-card" th:each="group : ${groups}">
+                <div class="staff-header">
+                    <div class="staff-status" th:class="${group.active} ? 'active' : 'inactive'"
+                         th:text="${group.active} ? 'Hoạt động' : 'Tạm dừng'">Hoạt động</div>
+                    <div class="staff-avatar-group">
+                        <img th:each="member : ${group.members}" th:src="${member.avatar}" th:alt="${member.name}">
+                    </div>
+                </div>
+                <div class="staff-name" th:text="${group.name}">Nhóm Nguyễn Gia Định</div>
+                <div class="staff-info">
+                    <div class="info-item">
+                        <i class="fas fa-users"></i>
+                        <span th:text="'Số thành viên: ' + ${group.memberCount}">5 thành viên</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-car"></i>
+                        <span th:text="'Xe đang dùng: ' + ${group.vehicleCount}">3 xe</span>
+                    </div>
+                </div>
+                <div class="staff-actions">
+                    <button class="btn-action view" title="Xem chi tiết"><i class="fas fa-eye"></i></button>
+                    <button class="btn-action users" title="Xem thành viên"><i class="fas fa-users"></i></button>
+                    <button class="btn-action car" title="Xem xe"><i class="fas fa-car"></i></button>
+                    <button class="btn-action delete" title="Xóa nhóm"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="pagination">
+            <span th:text="'Hiển thị ' + ${startIndex} + '-' + ${endIndex} + ' của ' + ${totalGroups} + ' nhóm'"></span>
+            <div class="pagination-buttons">
+                <button class="prev" th:disabled="${currentPage == 1}">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="active" th:text="${currentPage}">1</button>
+
+                <button class="next" th:disabled="${currentPage == totalPages}">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/auth/auth-utils.js}"></script>
+<script th:src="@{/js/auth/admin/admin-auth.js}"></script>
+</body>
+</html>

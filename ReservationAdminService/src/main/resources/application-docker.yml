@@ -1,0 +1,60 @@
+server:
+  port: 8087
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://reservation-admin-mysql:3306/co_ownership_booking_admin?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+    admin:
+      url: ${SPRING_DATASOURCE_ADMIN_URL:jdbc:mysql://reservation-admin-mysql:3306/co_ownership_booking_admin?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      username: ${SPRING_DATASOURCE_ADMIN_USERNAME:root}
+      password: ${SPRING_DATASOURCE_ADMIN_PASSWORD:password}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    
+    booking:
+      url: ${SPRING_DATASOURCE_BOOKING_URL:jdbc:mysql://reservation-mysql:3306/co_ownership_booking?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      username: ${SPRING_DATASOURCE_BOOKING_USERNAME:root}
+      password: ${SPRING_DATASOURCE_BOOKING_PASSWORD:password}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  
+  devtools:
+    restart:
+      enabled: false
+
+jwt:
+  secret: SuperSecretKey123
+
+sync:
+  schedule:
+    cron: "0 */5 * * * ?"
+
+reservation:
+  service:
+    url: ${RESERVATION_SERVICE_URL:http://api-gateway:8084}
+
+# User Account Service URL - via API Gateway
+user-account:
+  service:
+    url: http://api-gateway:8084
+
+# Group Management Service URL - via API Gateway
+group-management:
+  service:
+    url: http://api-gateway:8084
+
+# Vehicle Service URL - via API Gateway
+vehicle:
+  service:
+    url: http://api-gateway:8084
+

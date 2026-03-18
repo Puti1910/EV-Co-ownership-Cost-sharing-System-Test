@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: VehicleServiceManagementService
+  
+  # Database Configuration
+  datasource:
+    url: jdbc:mysql://vehicle-mysql:3306/vehicle_management?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&rewriteBatchedStatements=true&useServerPrepStmts=true&cachePrepStmts=true&useLocalSessionState=true
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA/Hibernate Settings
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        id:
+          new_generator_mappings: true
+        jdbc:
+          use_get_generated_keys: true
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+# Server Configuration
+server:
+  port: 8085
+  servlet:
+    context-path: 
+
+# External service URLs - via API Gateway
+group:
+  management:
+    service:
+      url: ${GROUP_MANAGEMENT_DIRECT_URL:http://api-gateway:8084}
+      fallback-url: ${GROUP_MANAGEMENT_DIRECT_URL:http://api-gateway:8084}
+
+reservation:
+  admin:
+    service:
+      url: ${RESERVATION_SERVICE_BASE_URL:http://api-gateway:8084}
+

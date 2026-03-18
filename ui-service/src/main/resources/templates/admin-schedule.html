@@ -1,0 +1,2402 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý lịch xe - Admin</title>
+
+    <!-- CDNs -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4@5/bootstrap-4.min.css" rel="stylesheet">
+    <link href="/css/admin-layout.css" rel="stylesheet">
+    <th:block th:replace="fragments/admin-guard :: scripts"></th:block>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #F9FAFB;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation - Sử dụng admin-sidebar */
+
+        /* Main Content */
+        .main-content {
+            margin-left: 300px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Header */
+        .top-header {
+            background: white;
+            padding: 16px 32px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 32px;
+            flex: 1;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        /* Dashboard Mini Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .stat-icon.blue {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .stat-icon.green {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .stat-icon.purple {
+            background: #e9d5ff;
+            color: #6b21a8;
+        }
+
+        .stat-info h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 4px;
+        }
+
+        .stat-info p {
+            font-size: 13px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Filter Group */
+        .filter-group {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .form-control,
+        .form-select {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-outline-danger {
+            border: 2px solid #ef4444;
+            color: #ef4444;
+            background: white;
+        }
+
+        .btn-outline-danger:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+        }
+
+        .table {
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .table thead th {
+            background: #f8f9fa;
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 16px;
+            border: none;
+            border-bottom: 2px solid #e5e7eb;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .table thead th:hover {
+            background: #f1f5f9;
+        }
+
+        .table thead th.sortable::after {
+            content: ' ↕';
+            opacity: 0.3;
+            font-size: 10px;
+        }
+
+        .table thead th.sort-asc::after {
+            content: ' ↑';
+            opacity: 1;
+            color: #667eea;
+        }
+
+        .table thead th.sort-desc::after {
+            content: ' ↓';
+            opacity: 1;
+            color: #667eea;
+        }
+
+        .table tbody td {
+            padding: 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s;
+        }
+
+        .table tbody tr:hover {
+            background: #f3f4f6;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Status Badge with Icons */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .status-badge.booked {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.completed {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-badge i {
+            font-size: 12px;
+        }
+
+        /* Action Menu (3 dots) */
+        .action-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .action-menu-btn {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            color: #6b7280;
+            font-size: 18px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .action-menu-btn:hover {
+            background: #f3f4f6;
+            color: #1a202c;
+        }
+
+        .action-menu-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            min-width: 160px;
+            z-index: 1000;
+            display: none;
+            margin-top: 4px;
+        }
+
+        .action-menu-dropdown.show {
+            display: block;
+        }
+
+        .action-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            color: #374151;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .action-menu-item:hover {
+            background: #f3f4f6;
+        }
+
+        .action-menu-item.danger {
+            color: #ef4444;
+        }
+
+        .action-menu-item.danger:hover {
+            background: #fee2e2;
+        }
+
+        /* Duration Badge */
+        .duration-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: #f3f4f6;
+            color: #374151;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Pagination */
+        .pagination-container {
+            padding: 16px 24px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+        }
+
+        /* Responsive - Card View for Mobile */
+        .card-view {
+            display: none;
+        }
+
+        .reservation-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+        }
+
+        .reservation-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .reservation-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .reservation-card-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .reservation-card-info-item i {
+            width: 20px;
+            color: #6b7280;
+        }
+
+        .reservation-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        /* Default: show table view, hide card view */
+        .table-view {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .card-view {
+            display: none !important;
+        }
+
+        .table-container {
+            display: block !important;
+            visibility: visible !important;
+        }
+
+        .table-responsive {
+            display: block !important;
+            visibility: visible !important;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .content-area {
+                padding: 16px;
+            }
+
+            .filter-group {
+                flex-direction: column;
+            }
+
+            .table-view {
+                display: none;
+            }
+
+            .card-view {
+                display: block;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner i {
+            font-size: 1.5rem;
+            color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Modal Enhancements */
+        .modal-header {
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+
+<body>
+<!-- Sidebar từ admin-sidebar.html -->
+<div th:replace="fragments/admin-sidebar :: sidebar"
+     th:with="activePage='schedule'"></div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <!-- Header Fragment -->
+    <div th:replace="fragments/admin-header :: header"></div>
+
+    <!-- Content Area -->
+    <div class="content-area" style="padding: 24px;">
+
+        <!-- Dashboard Mini Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalReservations">0</h3>
+                    <p>Tổng lượt đặt tháng này</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalHours">0h</h3>
+                    <p>Tổng giờ sử dụng</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    <i class="bi bi-car-front"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="mostBookedVehicle">-</h3>
+                    <p>Xe được đặt nhiều nhất</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #dbeafe; color: #1e40af;">
+                    <i class="bi bi-car-front-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="activeVehicles">0</h3>
+                    <p>🚗 Xe đang hoạt động (7 ngày tới)</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #e9d5ff; color: #6b21a8;">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="topUser">-</h3>
+                    <p>🧍‍♂️ Người đặt nhiều nhất</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #d1fae5; color: #065f46;">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="completionRate">0%</h3>
+                    <p>⏳ Tỷ lệ hoàn thành</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #fee2e2; color: #991b1b;">
+                    <i class="bi bi-x-circle-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="cancellationRate">0%</h3>
+                    <p>⚠️ Tỷ lệ hủy</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Alerts -->
+        <div id="aiAlertsContainer" style="margin-bottom: 16px;"></div>
+
+        <!-- Toolbar -->
+        <div class="filter-group" style="margin-bottom: 16px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; width: 100%;">
+                <button class="btn btn-success" onclick="showCreateModal()">
+                    <i class="bi bi-plus-circle"></i> Tạo lịch
+                </button>
+                <button class="btn btn-outline-primary" onclick="loadSchedules()">
+                    <i class="bi bi-arrow-clockwise"></i> Làm mới
+                </button>
+                <button class="btn btn-outline-primary" onclick="exportToExcel()">
+                    <i class="bi bi-file-earmark-arrow-down"></i> Xuất Excel
+                </button>
+                <div style="flex: 1;"></div>
+                <button class="btn btn-sm btn-outline-secondary" onclick="saveFilterPreset()"
+                        title="Lưu bộ lọc hiện tại">
+                    <i class="bi bi-bookmark"></i> Lưu bộ lọc
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" id="bulkActionsBtn" onclick="toggleBulkActions()"
+                        style="display: none;">
+                    <i class="bi bi-check-square"></i> Thao tác hàng loạt
+                </button>
+            </div>
+        </div>
+
+        <!-- Bulk Actions Bar -->
+        <div id="bulkActionsBar"
+             style="display: none; background: #f0f9ff; border: 2px solid #3b82f6; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong id="selectedCount">0</strong> lịch đã chọn
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm btn-success" onclick="bulkMarkCompleted()">
+                        <i class="bi bi-check-circle"></i> Đánh dấu Completed
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="bulkCancel()">
+                        <i class="bi bi-x-circle"></i> Hủy hàng loạt
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="bulkExport()">
+                        <i class="bi bi-file-earmark-excel"></i> Xuất Excel
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
+                        <i class="bi bi-x"></i> Bỏ chọn
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-group">
+            <input type="text" id="searchInput" class="form-control" placeholder="🔍 Tìm kiếm xe, người đặt..."
+                   style="flex: 1; min-width: 200px;">
+            <select id="vehicleFilter" class="form-select" style="width: 180px;">
+                <option value="">Tất cả xe</option>
+            </select>
+            <select id="userFilter" class="form-select" style="width: 180px;">
+                <option value="">Tất cả người dùng</option>
+            </select>
+            <select id="statusFilter" class="form-select" style="width: 160px;">
+                <option value="">Tất cả trạng thái</option>
+                <option value="BOOKED">🟢 Đã đặt</option>
+                <option value="COMPLETED">✅ Hoàn thành</option>
+                <option value="CANCELLED">🔴 Đã hủy</option>
+            </select>
+            <select id="timeFilter" class="form-select" style="width: 180px;">
+                <option value="all" selected>Tất cả thời gian</option>
+                <option value="today">Hôm nay</option>
+                <option value="week">Tuần này</option>
+                <option value="month">Tháng này</option>
+                <option value="quarter">Quý này</option>
+                <option value="custom">Tùy chỉnh</option>
+            </select>
+            <div id="customDateRange" style="display: none; gap: 8px; align-items: center;">
+                <input type="date" id="dateFrom" class="form-control" style="width: 150px;">
+                <span>đến</span>
+                <input type="date" id="dateTo" class="form-control" style="width: 150px;">
+            </div>
+        </div>
+
+        <!-- Table View (Desktop) -->
+        <div class="table-view" id="tableView" style="display: block !important; visibility: visible !important;">
+            <div class="table-container" style="display: block !important;">
+                <div class="table-responsive" style="display: block !important;">
+                    <table class="table table-hover align-middle mb-0"
+                           style="display: table !important; visibility: visible !important;">
+                        <thead>
+                        <tr>
+                            <th style="width: 40px;">
+                                <input type="checkbox" id="selectAll" class="bulk-checkbox"
+                                       onchange="toggleSelectAll()">
+                            </th>
+                            <th class="sortable" onclick="sortTable('id')">ID</th>
+                            <th class="sortable" onclick="sortTable('vehicle')">Xe</th>
+                            <th class="sortable" onclick="sortTable('user')">Người đặt</th>
+                            <th class="sortable" onclick="sortTable('startDate')" style="min-width: 200px;">Thời
+                                gian sử dụng</th>
+                            <th class="sortable" onclick="sortTable('status')" style="text-align: center;">Trạng
+                                thái</th>
+                            <th>Ghi chú</th>
+                            <th style="width: 60px; text-align: center;">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody id="scheduleTableBody">
+                        <tr>
+                            <td colspan="9" class="spinner"><i class="bi bi-arrow-repeat"></i></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="text-muted">Hiển thị <span id="paginationInfo"></span> lịch</div>
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <li class="page-item"><a class="page-link" href="#"
+                                                     onclick="changePage(-1); return false;">«</a></li>
+                            <li class="page-item"><a class="page-link" href="#" id="currentPage">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#"
+                                                     onclick="changePage(1); return false;">»</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card View (Mobile) -->
+        <div class="card-view" id="cardViewContainer">
+            <!-- Cards will be rendered here -->
+        </div>
+    </div>
+</div>
+
+<!-- Side Drawer for Details -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="side-drawer" id="sideDrawer">
+    <div class="drawer-header">
+        <div class="drawer-title">Chi tiết lịch đặt</div>
+        <button class="drawer-close" onclick="closeDrawer()">×</button>
+    </div>
+    <div class="drawer-body" id="drawerBody">
+        <!-- Content will be loaded here -->
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết lịch đặt</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailModalBody">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+    const token = localStorage.getItem("token");
+    const API_URL = "http://localhost:8084/api/admin/reservations";
+    let schedules = [];
+    let vehicles = [];
+    let users = [];
+    let currentPage = 1;
+    const pageSize = 10;
+    let sortColumn = null;
+    let sortDirection = 'asc';
+
+    // Get DOM elements (will be available after page loads)
+    function getTableBody() {
+        return document.getElementById("scheduleTableBody");
+    }
+
+    function getCardViewContainer() {
+        return document.getElementById("cardViewContainer");
+    }
+
+    // Kiểm tra đăng nhập (optional - không bắt buộc)
+    const username = localStorage.getItem("username");
+    const displayName = username || "Admin";
+    const initial = displayName.charAt(0).toUpperCase();
+    const userAvatar = document.getElementById("userAvatar");
+    if (userAvatar) {
+        userAvatar.textContent = initial;
+    }
+
+    // Tính thời lượng
+    function calculateDuration(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffMs = end - start;
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+        if (diffHours > 0) {
+            return `${diffHours}h ${diffMinutes}m`;
+        }
+        return `${diffMinutes}m`;
+    }
+
+    // Prevent multiple simultaneous loads
+    let isLoadingSchedules = false;
+
+    // Tải danh sách lịch
+    async function loadSchedules() {
+        // Prevent concurrent loads
+        if (isLoadingSchedules) {
+            console.log('loadSchedules already in progress, skipping...');
+            return;
+        }
+
+        isLoadingSchedules = true;
+        const tableBody = document.getElementById('scheduleTableBody');
+        if (tableBody) {
+            tableBody.innerHTML = '<tr><td colspan="9" class="spinner"><i class="bi bi-arrow-repeat"></i></td></tr>';
+        }
+
+        try {
+            console.log('Loading schedules from:', API_URL);
+            const headers = {};
+            if (token) {
+                headers["Authorization"] = "Bearer " + token;
+            }
+            const res = await fetch(API_URL, {
+                headers: headers
+            });
+
+            console.log('Response status:', res.status, res.statusText);
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error('API Error:', res.status, errorText);
+                if (tableBody) {
+                    tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">
+                            Không thể tải dữ liệu (${res.status}: ${res.statusText})<br>
+                            <small>Vui lòng kiểm tra console để biết thêm chi tiết</small>
+                        </td></tr>`;
+                }
+                return;
+            }
+
+            schedules = await res.json();
+            console.log('Loaded schedules:', schedules.length, 'items');
+            console.log('Sample schedule:', schedules[0]);
+
+            // Ensure schedules is an array
+            if (!Array.isArray(schedules)) {
+                console.error('Schedules is not an array:', schedules);
+                schedules = [];
+            }
+
+            // Load vehicles and users for filters
+            await loadVehicles();
+            await loadUsers();
+
+            updateStats();
+
+            // Call doFilterAndRender directly instead of filterAndRender to avoid debounce delay
+            if (schedules.length > 0) {
+                console.log('Rendering', schedules.length, 'schedules');
+                doFilterAndRender();
+            } else {
+                console.log('No schedules to render');
+                doFilterAndRender(); // Still render to show empty state
+            }
+        } catch (e) {
+            console.error('Error loading schedules:', e);
+            console.error('Error stack:', e.stack);
+            if (tableBody) {
+                tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">
+                        Lỗi kết nối máy chủ: ${e.message}<br>
+                        <small>Vui lòng kiểm tra console để biết thêm chi tiết</small>
+                    </td></tr>`;
+            }
+        } finally {
+            isLoadingSchedules = false;
+        }
+    }
+
+    // Load vehicles
+    async function loadVehicles() {
+        try {
+            const res = await fetch("http://localhost:8084/api/vehicles");
+            if (res.ok) {
+                vehicles = await res.json();
+                const select = document.getElementById('vehicleFilter');
+                select.innerHTML = '<option value="">Tất cả xe</option>';
+                vehicles.forEach(v => {
+                    const option = document.createElement('option');
+                    option.value = v.id;
+                    option.textContent = v.name || `Xe #${v.id}`;
+                    select.appendChild(option);
+                });
+            }
+        } catch (e) {
+            console.error('Error loading vehicles:', e);
+        }
+    }
+
+    // Load users
+    async function loadUsers() {
+        try {
+            const res = await fetch("http://localhost:8084/api/users");
+            if (res.ok) {
+                users = await res.json();
+                const select = document.getElementById('userFilter');
+                select.innerHTML = '<option value="">Tất cả người dùng</option>';
+                users.forEach(u => {
+                    const option = document.createElement('option');
+                    option.value = u.id;
+                    option.textContent = u.name || u.username || `User #${u.id}`;
+                    select.appendChild(option);
+                });
+            }
+        } catch (e) {
+            console.error('Error loading users:', e);
+        }
+    }
+
+    // Update stats with advanced metrics (prevent multiple calls)
+    let statsUpdating = false;
+    function updateStats() {
+        if (statsUpdating) {
+            console.log('Stats already updating, skipping...');
+            return;
+        }
+
+        statsUpdating = true;
+
+        try {
+            const now = new Date();
+            const thisMonth = schedules.filter(s => {
+                const date = new Date(s.startDatetime);
+                return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+            });
+
+            const totalReservationsEl = document.getElementById('totalReservations');
+            if (totalReservationsEl) {
+                totalReservationsEl.textContent = thisMonth.length;
+            }
+
+            // Calculate total hours
+            let totalMinutes = 0;
+            schedules.forEach(s => {
+                const start = new Date(s.startDatetime);
+                const end = new Date(s.endDatetime);
+                totalMinutes += (end - start) / (1000 * 60);
+            });
+            const totalHours = Math.floor(totalMinutes / 60);
+            const totalHoursEl = document.getElementById('totalHours');
+            if (totalHoursEl) {
+                totalHoursEl.textContent = totalHours + 'h';
+            }
+
+            // Find most booked vehicle
+            const vehicleCounts = {};
+            schedules.forEach(s => {
+                const vid = s.vehicleId;
+                vehicleCounts[vid] = (vehicleCounts[vid] || 0) + 1;
+            });
+            const mostBooked = Object.keys(vehicleCounts).reduce((a, b) =>
+                vehicleCounts[a] > vehicleCounts[b] ? a : b, null);
+            if (mostBooked) {
+                const vehicle = vehicles.find(v => v.id == mostBooked);
+                const mostBookedEl = document.getElementById('mostBookedVehicle');
+                if (mostBookedEl) {
+                    mostBookedEl.textContent =
+                        vehicle ? (vehicle.name || `Xe #${mostBooked}`) : `Xe #${mostBooked}`;
+                }
+            }
+
+            // Active vehicles (next 7 days)
+            const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            const activeVehicles = new Set();
+            schedules.forEach(s => {
+                const start = new Date(s.startDatetime);
+                if (start >= now && start <= nextWeek && s.status === 'BOOKED') {
+                    activeVehicles.add(s.vehicleId);
+                }
+            });
+            const activeVehiclesEl = document.getElementById('activeVehicles');
+            if (activeVehiclesEl) {
+                activeVehiclesEl.textContent = activeVehicles.size;
+            }
+
+            // Top user
+            const userCounts = {};
+            schedules.forEach(s => {
+                const uid = s.userId;
+                userCounts[uid] = (userCounts[uid] || 0) + 1;
+            });
+            const topUser = Object.keys(userCounts).reduce((a, b) =>
+                userCounts[a] > userCounts[b] ? a : b, null);
+            if (topUser) {
+                const user = users.find(u => u.id == topUser);
+                const topUserEl = document.getElementById('topUser');
+                if (topUserEl) {
+                    topUserEl.textContent =
+                        user ? (user.name || user.username || `User #${topUser}`) : `User #${topUser}`;
+                }
+            }
+
+            // Completion rate
+            const completed = schedules.filter(s => s.status === 'COMPLETED').length;
+            const completionRate = schedules.length > 0 ? Math.round((completed / schedules.length) * 100) : 0;
+            const completionRateEl = document.getElementById('completionRate');
+            if (completionRateEl) {
+                completionRateEl.textContent = completionRate + '%';
+            }
+
+            // Cancellation rate
+            const cancelled = schedules.filter(s => s.status === 'CANCELLED').length;
+            const cancellationRate = schedules.length > 0 ? Math.round((cancelled / schedules.length) * 100) : 0;
+            const cancellationRateEl = document.getElementById('cancellationRate');
+            if (cancellationRateEl) {
+                cancellationRateEl.textContent = cancellationRate + '%';
+            }
+
+            // Status distribution chart - REMOVED to prevent continuous rendering
+            // renderStatusChart();
+
+            // Load AI alerts
+            loadAIAlerts();
+        } catch (error) {
+            console.error('Error in updateStats:', error);
+        } finally {
+            statsUpdating = false;
+        }
+    }
+
+    // Status distribution chart - REMOVED to prevent continuous rendering issues
+    // Function removed completely
+
+    // Load AI alerts (prevent duplicate processing)
+    let alertsLoading = false;
+    function loadAIAlerts() {
+        if (alertsLoading) {
+            return; // Already processing
+        }
+
+        alertsLoading = true;
+
+        try {
+            const alerts = [];
+            const processedUsers = new Set();
+            const processedVehicles = new Set();
+
+            // Check for users exceeding ownership (only check once per user)
+            schedules.forEach(s => {
+                if (processedUsers.has(s.userId)) return;
+                processedUsers.add(s.userId);
+
+                // TODO: Compare with ownership percentage from AI Service
+                // For now, check if user has too many bookings
+                const userBookings = schedules.filter(s2 => s2.userId === s.userId && s2.status === 'BOOKED').length;
+                if (userBookings > 5) {
+                    const userName = s.userName || `User #${s.userId}`;
+                    alerts.push({
+                        type: 'warning',
+                        message: `⚠️ ${userName} đang có ${userBookings} lịch đặt đang chờ. Cân nhắc kiểm tra quyền sở hữu.`
+                    });
+                }
+            });
+
+            // Check for vehicles with too many bookings (only check once per vehicle)
+            const vehicleCounts = {};
+            schedules.forEach(s => {
+                if (s.status === 'BOOKED') {
+                    vehicleCounts[s.vehicleId] = (vehicleCounts[s.vehicleId] || 0) + 1;
+                }
+            });
+
+            Object.keys(vehicleCounts).forEach(vid => {
+                if (processedVehicles.has(vid)) return;
+                processedVehicles.add(vid);
+
+                if (vehicleCounts[vid] > 10) {
+                    const vehicle = vehicles.find(v => v.id == vid);
+                    const vehicleName = vehicle ? vehicle.name : `Xe #${vid}`;
+                    alerts.push({
+                        type: 'info',
+                        message: `💡 ${vehicleName} được đặt quá nhiều (${vehicleCounts[vid]} lịch). Cân nhắc luân chuyển cho nhóm khác.`
+                    });
+                }
+            });
+
+            const container = document.getElementById('aiAlertsContainer');
+            if (container) {
+                if (alerts.length > 0) {
+                    container.innerHTML = alerts.map(alert => `
+                            <div class="ai-alert ${alert.type === 'warning' ? 'warning' : ''}">
+                                <div class="ai-alert-icon">${alert.type === 'warning' ? '⚠️' : '💡'}</div>
+                                <div class="ai-alert-content">${alert.message}</div>
+                            </div>
+                        `).join('');
+                } else {
+                    container.innerHTML = '';
+                }
+            }
+        } finally {
+            alertsLoading = false;
+        }
+    }
+
+    // Prevent multiple simultaneous renders
+    let isRendering = false;
+    let renderTimeout = null;
+
+    // Lọc và hiển thị bảng với debounce
+    function filterAndRender() {
+        // Clear any pending render
+        if (renderTimeout) {
+            clearTimeout(renderTimeout);
+        }
+
+        // Debounce: wait 100ms before rendering
+        renderTimeout = setTimeout(() => {
+            doFilterAndRender();
+        }, 100);
+    }
+
+    function doFilterAndRender() {
+        // Prevent concurrent renders
+        if (isRendering) {
+            console.log('Render already in progress, skipping...');
+            return;
+        }
+        isRendering = true;
+
+        try {
+            console.log('doFilterAndRender called, schedules count:', schedules.length);
+
+            // Ensure schedules is an array
+            if (!Array.isArray(schedules)) {
+                console.error('Schedules is not an array in doFilterAndRender:', schedules);
+                schedules = [];
+            }
+
+            const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            const status = document.getElementById('statusFilter')?.value || '';
+            const vehicleId = document.getElementById('vehicleFilter')?.value || '';
+            const userId = document.getElementById('userFilter')?.value || '';
+            const timeFilter = document.getElementById('timeFilter')?.value || 'all';
+
+            console.log('Filtering with:', { search, status, vehicleId, userId, timeFilter });
+            console.log('Total schedules before filter:', schedules.length);
+
+            let filtered = schedules.filter(s => {
+                const matchesSearch = !search ||
+                    s.vehicleName?.toLowerCase().includes(search) ||
+                    s.userName?.toLowerCase().includes(search) ||
+                    s.vehicleId?.toString().includes(search) ||
+                    s.userId?.toString().includes(search) ||
+                    s.purpose?.toLowerCase().includes(search);
+
+                const matchesStatus = !status || s.status === status;
+                const matchesVehicle = !vehicleId || s.vehicleId == vehicleId;
+                const matchesUser = !userId || s.userId == userId;
+
+                return matchesSearch && matchesStatus && matchesVehicle && matchesUser;
+            });
+
+            console.log('After basic filters:', filtered.length, 'items');
+
+            // Apply time filter
+            if (timeFilter && timeFilter !== 'all') {
+                const now = new Date();
+                const beforeTimeFilter = filtered.length;
+                filtered = filtered.filter(s => {
+                    if (!s.startDatetime) return false;
+                    const startDate = new Date(s.startDatetime);
+
+                    if (isNaN(startDate.getTime())) {
+                        console.warn('Invalid date:', s.startDatetime);
+                        return false;
+                    }
+
+                    switch (timeFilter) {
+                        case 'today':
+                            return startDate.toDateString() === now.toDateString();
+                        case 'week':
+                            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            return startDate >= weekAgo;
+                        case 'month':
+                            return startDate.getMonth() === now.getMonth() &&
+                                startDate.getFullYear() === now.getFullYear();
+                        case 'quarter':
+                            const quarter = Math.floor(now.getMonth() / 3);
+                            return Math.floor(startDate.getMonth() / 3) === quarter &&
+                                startDate.getFullYear() === now.getFullYear();
+                        case 'custom':
+                            const dateFrom = document.getElementById('dateFrom')?.value;
+                            const dateTo = document.getElementById('dateTo')?.value;
+                            if (dateFrom) {
+                                const from = new Date(dateFrom);
+                                if (startDate < from) return false;
+                            }
+                            if (dateTo) {
+                                const to = new Date(dateTo);
+                                to.setHours(23, 59, 59);
+                                if (startDate > to) return false;
+                            }
+                            return true;
+                        default:
+                            return true;
+                    }
+                });
+                console.log('After time filter:', filtered.length, 'items (removed', beforeTimeFilter - filtered.length, ')');
+            }
+
+            // Sort
+            if (sortColumn) {
+                filtered.sort((a, b) => {
+                    let aVal, bVal;
+                    switch (sortColumn) {
+                        case 'id':
+                            aVal = a.reservationId || a.id;
+                            bVal = b.reservationId || b.id;
+                            break;
+                        case 'vehicle':
+                            aVal = (a.vehicleName || '').toLowerCase();
+                            bVal = (b.vehicleName || '').toLowerCase();
+                            break;
+                        case 'user':
+                            aVal = (a.userName || '').toLowerCase();
+                            bVal = (b.userName || '').toLowerCase();
+                            break;
+                        case 'startDate':
+                            aVal = new Date(a.startDatetime);
+                            bVal = new Date(b.startDatetime);
+                            break;
+                        case 'endDate':
+                            aVal = new Date(a.endDatetime);
+                            bVal = new Date(b.endDatetime);
+                            break;
+                        case 'status':
+                            aVal = a.status;
+                            bVal = b.status;
+                            break;
+                        default:
+                            return 0;
+                    }
+                    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+                    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            const total = filtered.length;
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            filtered = filtered.slice(start, end);
+
+            console.log('About to render table with', filtered.length, 'filtered items (page', currentPage, ')');
+            renderTable(filtered);
+            renderCards(filtered);
+
+            const paginationInfo = document.getElementById('paginationInfo');
+            const currentPageEl = document.getElementById('currentPage');
+            if (paginationInfo) {
+                paginationInfo.textContent = `${start + 1}-${Math.min(end, total)} / ${total}`;
+            }
+            if (currentPageEl) {
+                currentPageEl.textContent = currentPage;
+            }
+
+            console.log('Render completed successfully');
+        } catch (error) {
+            console.error('Error in doFilterAndRender:', error);
+        } finally {
+            isRendering = false;
+        }
+    }
+
+    // Sort table
+    function sortTable(column) {
+        if (sortColumn === column) {
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            sortColumn = column;
+            sortDirection = 'asc';
+        }
+
+        // Update UI
+        document.querySelectorAll('.table thead th').forEach(th => {
+            th.classList.remove('sort-asc', 'sort-desc');
+        });
+        const th = event.target.closest('th');
+        th.classList.add(sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+
+        filterAndRender();
+    }
+
+    // Selected reservations for bulk actions
+    window.selectedReservations = new Set();
+
+    // Hiển thị bảng
+    function renderTable(data) {
+        console.log('renderTable called with', data.length, 'items');
+        const tableBody = getTableBody();
+        if (!tableBody) {
+            console.error('Table body not found - trying to find element...');
+            const alt = document.getElementById("scheduleTableBody");
+            console.error('Direct getElementById result:', alt);
+            return;
+        }
+
+        console.log('Table body found:', tableBody);
+        console.log('Table body parent:', tableBody.parentElement);
+        console.log('Table body display:', window.getComputedStyle(tableBody.parentElement).display);
+
+        if (!data || !data.length) {
+            console.log('No data to render, showing empty state');
+            tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-5"><i class="bi bi-inbox display-1 opacity-25"></i><br>Không có lịch nào</td></tr>';
+            return;
+        }
+
+        console.log('Rendering', data.length, 'rows');
+
+        // Build HTML string first, then set innerHTML once
+        let htmlContent = '';
+        data.forEach((s, index) => {
+            try {
+                if (index === 0) {
+                    console.log('Sample data item:', s);
+                }
+
+                const duration = calculateDuration(s.startDatetime, s.endDatetime);
+                const statusClass = s.status === 'BOOKED' ? 'booked' : s.status === 'COMPLETED' ? 'completed' : 'cancelled';
+                const statusIcon = s.status === 'BOOKED' ? '🟢' : s.status === 'COMPLETED' ? '✅' : '🔴';
+                const reservationId = s.reservationId || s.id;
+
+                const startDate = new Date(s.startDatetime);
+                const endDate = new Date(s.endDatetime);
+                const startStr = startDate.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const endStr = endDate.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+                // Escape special characters to prevent XSS and syntax errors
+                const escapeHtml = (str) => {
+                    if (!str) return '';
+                    return String(str)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                };
+
+                const row = `
+                        <tr onclick="openDrawer(${reservationId})" style="cursor: pointer;">
+                            <td onclick="event.stopPropagation();">
+                                <input type="checkbox" class="bulk-checkbox reservation-checkbox" 
+                                       value="${reservationId}" 
+                                       onchange="updateSelection()"
+                                       onclick="event.stopPropagation();">
+                            </td>
+                            <td>${reservationId || '-'}</td>
+                            <td>${escapeHtml(s.vehicleName || 'Xe #' + s.vehicleId)}</td>
+                            <td>${escapeHtml(s.userName || 'User #' + s.userId)}</td>
+                            <td>
+                                <div class="time-combined">
+                                    <div class="time-range">${startStr} – ${endStr}</div>
+                                    <div class="time-duration">
+                                        <i class="bi bi-clock" style="font-size: 10px;"></i> ${duration}
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="status-badge ${statusClass}">
+                                    ${statusIcon} ${s.status}
+                                </span>
+                            </td>
+                            <td>${escapeHtml(s.purpose || '-')}</td>
+                            <td style="text-align: center;" onclick="event.stopPropagation();">
+                                <div class="action-menu">
+                                    <button class="action-menu-btn" onclick="event.stopPropagation(); toggleActionMenu(${reservationId})">⋮</button>
+                                    <div class="action-menu-dropdown" id="menu-${reservationId}">
+                                        <button class="action-menu-item" onclick="openDrawer(${reservationId})">
+                                            <i class="bi bi-eye"></i> Xem chi tiết
+                                        </button>
+                                        <button class="action-menu-item" onclick="showEditModal(${reservationId})">
+                                            <i class="bi bi-pencil"></i> Sửa
+                                        </button>
+                                        <button class="action-menu-item" onclick="changeStatus(${reservationId}, '${s.status}')">
+                                            <i class="bi bi-arrow-repeat"></i> Đổi trạng thái
+                                        </button>
+                                        <button class="action-menu-item danger" onclick="deleteSchedule(${reservationId})">
+                                            <i class="bi bi-trash"></i> Xóa
+                                        </button>
+                                    </div>
+                                </div>
+                        </td>
+                    </tr>`;
+                htmlContent += row;
+            } catch (error) {
+                console.error('Error rendering row', index, ':', error, s);
+            }
+        });
+
+        // Set innerHTML once after building all rows
+        try {
+            console.log('Setting innerHTML, content length:', htmlContent.length);
+            tableBody.innerHTML = htmlContent;
+            console.log('Successfully set innerHTML with', data.length, 'rows');
+
+            // Verify it was set and check visibility
+            setTimeout(() => {
+                const rows = tableBody.querySelectorAll('tr');
+                console.log('Rows in table after render:', rows.length);
+
+                // Check table visibility
+                const table = tableBody.closest('table');
+                const tableView = tableBody.closest('.table-view');
+                if (table) {
+                    const tableStyle = window.getComputedStyle(table);
+                    console.log('Table display:', tableStyle.display);
+                    console.log('Table visibility:', tableStyle.visibility);
+                    console.log('Table opacity:', tableStyle.opacity);
+                    console.log('Table width:', tableStyle.width);
+                    console.log('Table height:', tableStyle.height);
+                }
+                if (tableView) {
+                    const viewStyle = window.getComputedStyle(tableView);
+                    console.log('Table-view display:', viewStyle.display);
+                    console.log('Table-view visibility:', viewStyle.visibility);
+                }
+
+                if (rows.length === 0) {
+                    console.error('No rows found after setting innerHTML!');
+                    console.log('Table body innerHTML:', tableBody.innerHTML.substring(0, 200));
+                } else {
+                    console.log('✅ Table should be visible with', rows.length, 'rows');
+                    // Force show table
+                    if (tableView) {
+                        tableView.style.display = 'block';
+                        tableView.style.visibility = 'visible';
+                    }
+                }
+            }, 100);
+        } catch (error) {
+            console.error('Error setting innerHTML:', error);
+            console.error('Error stack:', error.stack);
+            tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-danger">Lỗi khi hiển thị dữ liệu: ' + error.message + '</td></tr>';
+        }
+    }
+
+    // Open side drawer
+    async function openDrawer(id) {
+        const schedule = schedules.find(s => (s.reservationId || s.id) === id);
+        if (!schedule) return;
+
+        const drawer = document.getElementById('sideDrawer');
+        const overlay = document.getElementById('drawerOverlay');
+        const drawerBody = document.getElementById('drawerBody');
+
+        // Load timeline/history if available
+        const timeline = await loadReservationTimeline(id);
+
+        drawerBody.innerHTML = `
+                <div class="drawer-section">
+                    <div class="drawer-section-title">Thông tin cơ bản</div>
+                    <div class="drawer-info-item">
+                        <span class="drawer-info-label">ID Lịch đặt:</span>
+                        <span class="drawer-info-value">#${schedule.reservationId || schedule.id}</span>
+                    </div>
+                    <div class="drawer-info-item">
+                        <span class="drawer-info-label">Xe:</span>
+                        <span class="drawer-info-value">${schedule.vehicleName || 'Xe #' + schedule.vehicleId}</span>
+                    </div>
+                    <div class="drawer-info-item">
+                        <span class="drawer-info-label">Người đặt:</span>
+                        <span class="drawer-info-value">${schedule.userName || 'User #' + schedule.userId}</span>
+                    </div>
+                    <div class="drawer-info-item">
+                        <span class="drawer-info-label">Trạng thái:</span>
+                        <span class="drawer-info-value">
+                            <span class="status-badge ${schedule.status === 'BOOKED' ? 'booked' : schedule.status === 'COMPLETED' ? 'completed' : 'cancelled'}">
+                                ${schedule.status === 'BOOKED' ? '🟢' : schedule.status === 'COMPLETED' ? '✅' : '🔴'} ${schedule.status}
+                            </span>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="drawer-section">
+                    <div class="drawer-section-title">Thời gian</div>
+                    <div class="drawer-info-item">
+                        <span class="drawer-info-label">Ngày bắt đầu:</span>
+                        <span class="drawer-info-value">${new Date(schedule.startDatetime).toLocaleString('vi-VN')}</span>
+                    </div>
+                    <div class="drawer-info-item">
+                        <span class="drawer-info-label">Ngày kết thúc:</span>
+                        <span class="drawer-info-value">${new Date(schedule.endDatetime).toLocaleString('vi-VN')}</span>
+                    </div>
+                    <div class="drawer-info-item">
+                        <span class="drawer-info-label">Thời lượng:</span>
+                        <span class="drawer-info-value">${calculateDuration(schedule.startDatetime, schedule.endDatetime)}</span>
+                    </div>
+                </div>
+                
+                <div class="drawer-section">
+                    <div class="drawer-section-title">Ghi chú</div>
+                    <div style="padding: 12px; background: #f8f9fa; border-radius: 8px; color: #1e293b;">
+                        ${schedule.purpose || 'Không có ghi chú'}
+                    </div>
+                </div>
+                
+                ${timeline.length > 0 ? `
+                <div class="drawer-section">
+                    <div class="drawer-section-title">Lịch sử thay đổi</div>
+                    <div class="drawer-timeline">
+                        ${timeline.map(item => `
+                            <div class="timeline-item">
+                                <div class="timeline-icon">${item.icon}</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-time">${item.time}</div>
+                                    <div class="timeline-text">${item.text}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="drawer-section">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" style="flex: 1;" onclick="showEditModal(${id}); closeDrawer();">
+                            <i class="bi bi-pencil"></i> Chỉnh sửa
+                        </button>
+                        <button class="btn btn-warning" style="flex: 1;" onclick="changeStatus(${id}, '${schedule.status}'); closeDrawer();">
+                            <i class="bi bi-arrow-repeat"></i> Đổi trạng thái
+                        </button>
+                        <button class="btn btn-danger" style="flex: 1;" onclick="deleteSchedule(${id}); closeDrawer();">
+                            <i class="bi bi-trash"></i> Xóa
+                        </button>
+                    </div>
+                </div>
+            `;
+
+        drawer.classList.add('open');
+        overlay.classList.add('show');
+    }
+
+    // Close drawer
+    function closeDrawer() {
+        const drawer = document.getElementById('sideDrawer');
+        const overlay = document.getElementById('drawerOverlay');
+        drawer.classList.remove('open');
+        overlay.classList.remove('show');
+    }
+
+    // Format date helper
+    function formatDate(date) {
+        if (!date) return '';
+        const d = new Date(date);
+        return d.toLocaleString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    // Load reservation timeline
+    async function loadReservationTimeline(id) {
+        // TODO: Fetch from API
+        return [
+            { icon: '📅', time: formatDate(new Date()), text: 'Lịch đặt được tạo' },
+            { icon: '✏️', time: formatDate(new Date(Date.now() - 86400000)), text: 'Đã cập nhật thông tin' }
+        ];
+    }
+
+    // Bulk selection functions
+    function toggleSelectAll() {
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.reservation-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = selectAll.checked;
+            if (selectAll.checked) {
+                window.selectedReservations.add(cb.value);
+            } else {
+                window.selectedReservations.delete(cb.value);
+            }
+        });
+        updateBulkActionsBar();
+    }
+
+    function updateSelection() {
+        const checkboxes = document.querySelectorAll('.reservation-checkbox');
+        window.selectedReservations.clear();
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                window.selectedReservations.add(cb.value);
+            }
+        });
+
+        const selectAll = document.getElementById('selectAll');
+        selectAll.checked = window.selectedReservations.size === checkboxes.length;
+
+        updateBulkActionsBar();
+    }
+
+    function updateBulkActionsBar() {
+        const count = window.selectedReservations.size;
+        const bar = document.getElementById('bulkActionsBar');
+        const btn = document.getElementById('bulkActionsBtn');
+
+        if (count > 0) {
+            bar.style.display = 'block';
+            btn.style.display = 'block';
+            document.getElementById('selectedCount').textContent = count;
+        } else {
+            bar.style.display = 'none';
+            btn.style.display = 'none';
+        }
+    }
+
+    function toggleBulkActions() {
+        const bar = document.getElementById('bulkActionsBar');
+        if (bar.style.display === 'none') {
+            bar.style.display = 'block';
+        } else {
+            bar.style.display = 'none';
+        }
+    }
+
+    function clearSelection() {
+        window.selectedReservations.clear();
+        document.querySelectorAll('.reservation-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('selectAll').checked = false;
+        updateBulkActionsBar();
+    }
+
+    async function bulkMarkCompleted() {
+        if (window.selectedReservations.size === 0) return;
+        if (confirm(`Bạn có chắc muốn đánh dấu ${window.selectedReservations.size} lịch là Completed?`)) {
+            const selected = Array.from(window.selectedReservations);
+            clearSelection();
+
+            // Update all at once
+            try {
+                const promises = selected.map(id => {
+                    return fetch(`/admin/reservations/${id}/status?status=COMPLETED`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    });
+                });
+
+                await Promise.all(promises);
+                await loadSchedules();
+                Swal.fire('Thành công!', `Đã đánh dấu ${selected.length} lịch là Completed.`, 'success');
+            } catch (error) {
+                console.error('Error bulk updating:', error);
+                Swal.fire('Lỗi!', 'Không thể cập nhật một số lịch.', 'error');
+                await loadSchedules();
+            }
+        }
+    }
+
+    async function bulkCancel() {
+        if (window.selectedReservations.size === 0) return;
+        if (confirm(`Bạn có chắc muốn hủy ${window.selectedReservations.size} lịch?`)) {
+            const selected = Array.from(window.selectedReservations);
+            clearSelection();
+
+            // Update all at once
+            try {
+                const promises = selected.map(id => {
+                    return fetch(`/admin/reservations/${id}/status?status=CANCELLED`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    });
+                });
+
+                await Promise.all(promises);
+                await loadSchedules();
+                Swal.fire('Thành công!', `Đã hủy ${selected.length} lịch.`, 'success');
+            } catch (error) {
+                console.error('Error bulk canceling:', error);
+                Swal.fire('Lỗi!', 'Không thể hủy một số lịch.', 'error');
+                await loadSchedules();
+            }
+        }
+    }
+
+    function bulkExport() {
+        const selected = Array.from(window.selectedReservations);
+        const selectedSchedules = schedules.filter(s =>
+            selected.includes(String(s.reservationId || s.id))
+        );
+
+        if (selectedSchedules.length === 0) {
+            alert('Vui lòng chọn ít nhất một lịch để xuất!');
+            return;
+        }
+
+        // Use existing export function with filtered data
+        const original = window.currentRecommendations;
+        window.currentRecommendations = selectedSchedules;
+        exportToExcel();
+        window.currentRecommendations = original;
+    }
+
+    // Save filter preset
+    function saveFilterPreset() {
+        const preset = {
+            vehicle: document.getElementById('vehicleFilter').value,
+            user: document.getElementById('userFilter').value,
+            status: document.getElementById('statusFilter').value,
+            time: document.getElementById('timeFilter').value,
+            dateFrom: document.getElementById('dateFrom').value,
+            dateTo: document.getElementById('dateTo').value
+        };
+
+        localStorage.setItem('reservationFilterPreset', JSON.stringify(preset));
+        alert('✅ Đã lưu bộ lọc! Lần sau sẽ tự động áp dụng.');
+    }
+
+    // Load filter preset
+    function loadFilterPreset() {
+        const preset = localStorage.getItem('reservationFilterPreset');
+        if (preset) {
+            const data = JSON.parse(preset);
+            document.getElementById('vehicleFilter').value = data.vehicle || '';
+            document.getElementById('userFilter').value = data.user || '';
+            document.getElementById('statusFilter').value = data.status || '';
+            document.getElementById('timeFilter').value = data.time || 'month';
+            if (data.time === 'custom') {
+                document.getElementById('customDateRange').style.display = 'flex';
+                document.getElementById('dateFrom').value = data.dateFrom || '';
+                document.getElementById('dateTo').value = data.dateTo || '';
+            }
+        }
+    }
+
+    // Render cards for mobile
+    function renderCards(data) {
+        const cardViewContainer = getCardViewContainer();
+        if (!cardViewContainer) {
+            console.error('Card view container not found');
+            return;
+        }
+
+        if (!data.length) {
+            cardViewContainer.innerHTML = '<div class="text-center py-5"><i class="bi bi-inbox display-1 opacity-25"></i><br>Không có lịch nào</div>';
+            return;
+        }
+        cardViewContainer.innerHTML = '';
+        data.forEach(s => {
+            const duration = calculateDuration(s.startDatetime, s.endDatetime);
+            const statusClass = s.status === 'BOOKED' ? 'booked' : s.status === 'COMPLETED' ? 'completed' : 'cancelled';
+
+            const card = `
+                    <div class="reservation-card">
+                        <div class="reservation-card-header">
+                            <div>
+                                <strong>🚗 ${s.vehicleName || 'Xe #' + s.vehicleId}</strong>
+                            </div>
+                            <span class="status-badge ${statusClass}">
+                                <i class="bi ${s.status === 'BOOKED' ? 'bi-calendar-check' : s.status === 'COMPLETED' ? 'bi-check-circle' : 'bi-x-circle'}"></i> ${s.status}
+                            </span>
+                        </div>
+                        <div class="reservation-card-info">
+                            <div class="reservation-card-info-item">
+                                <i class="bi bi-person"></i>
+                                <span>👤 ${s.userName || 'User #' + s.userId}</span>
+                            </div>
+                            <div class="reservation-card-info-item">
+                                <i class="bi bi-calendar-event"></i>
+                                <span>🕒 ${new Date(s.startDatetime).toLocaleString('vi-VN')} – ${new Date(s.endDatetime).toLocaleString('vi-VN')}</span>
+                            </div>
+                            <div class="reservation-card-info-item">
+                                <i class="bi bi-clock"></i>
+                                <span>⏱️ ${duration}</span>
+                            </div>
+                            ${s.purpose ? `<div class="reservation-card-info-item"><i class="bi bi-chat-left-text"></i><span>💬 ${s.purpose}</span></div>` : ''}
+                        </div>
+                        <div class="reservation-card-actions">
+                            <button class="btn btn-sm btn-primary" onclick="showDetailModal(${s.reservationId || s.id})">
+                                <i class="bi bi-eye"></i> Chi tiết
+                            </button>
+                            <button class="btn btn-sm btn-warning" onclick="showEditModal(${s.reservationId || s.id})">
+                                <i class="bi bi-pencil"></i> Sửa
+                            </button>
+                            <button class="btn btn-sm btn-info" onclick="changeStatus(${s.reservationId || s.id}, '${s.status}')">
+                                <i class="bi bi-arrow-repeat"></i> Đổi trạng thái
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteSchedule(${s.reservationId || s.id})">
+                                <i class="bi bi-trash"></i> Xóa
+                            </button>
+                        </div>
+                    </div>`;
+            cardViewContainer.innerHTML += card;
+        });
+    }
+
+    // Toggle action menu
+    function toggleActionMenu(id) {
+        // Close all menus
+        document.querySelectorAll('.action-menu-dropdown').forEach(menu => {
+            menu.classList.remove('show');
+        });
+        // Toggle current menu
+        const menu = document.getElementById(`menu-${id}`);
+        if (menu) {
+            menu.classList.toggle('show');
+        }
+    }
+
+    // Close menus when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.action-menu')) {
+            document.querySelectorAll('.action-menu-dropdown').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+    });
+
+    // Show detail modal (now uses drawer instead)
+    async function showDetailModal(id) {
+        await openDrawer(id);
+    }
+
+    // Check for conflicts before creating
+    function checkConflicts(vehicleId, startDate, endDate, excludeId = null) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        return schedules.filter(s => {
+            if (excludeId && (s.reservationId || s.id) == excludeId) return false;
+            if (s.vehicleId != vehicleId) return false;
+            if (s.status === 'CANCELLED') return false;
+
+            const sStart = new Date(s.startDatetime);
+            const sEnd = new Date(s.endDatetime);
+
+            // Check overlap
+            return (start < sEnd && end > sStart);
+        });
+    }
+
+    // Hiện modal tạo mới với conflict check
+    async function showCreateModal() {
+        const { value: formValues } = await Swal.fire({
+            title: 'Tạo lịch đặt mới',
+            html:
+                '<label class="form-label text-start w-100">Người dùng:</label>' +
+                '<select id="swal-userId" class="swal2-input">' +
+                users.map(u => `<option value="${u.id}">${u.name || u.username || 'User #' + u.id}</option>`).join('') +
+                '</select>' +
+                '<label class="form-label text-start w-100">Xe:</label>' +
+                '<select id="swal-vehicleId" class="swal2-input" onchange="checkVehicleAvailability()">' +
+                vehicles.map(v => `<option value="${v.id}">${v.name || 'Xe #' + v.id}</option>`).join('') +
+                '</select>' +
+                '<div id="conflictWarning" style="display: none; margin: 8px 0; padding: 8px; background: #fef2f2; border-radius: 6px; color: #dc2626; font-size: 12px;"></div>' +
+                '<label class="form-label text-start w-100">Ngày bắt đầu:</label>' +
+                '<input id="swal-startDate" class="swal2-input" type="datetime-local" required onchange="checkConflictsRealtime()">' +
+                '<label class="form-label text-start w-100">Ngày kết thúc:</label>' +
+                '<input id="swal-endDate" class="swal2-input" type="datetime-local" required onchange="checkConflictsRealtime()">' +
+                '<label class="form-label text-start w-100">Ghi chú:</label>' +
+                '<input id="swal-note" class="swal2-input" placeholder="Ghi chú">',
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Tạo',
+            cancelButtonText: 'Hủy',
+            didOpen: () => {
+                // Add realtime conflict checking
+                window.checkConflictsRealtime = function () {
+                    const vehicleId = document.getElementById('swal-vehicleId').value;
+                    const startDate = document.getElementById('swal-startDate').value;
+                    const endDate = document.getElementById('swal-endDate').value;
+                    const warning = document.getElementById('conflictWarning');
+
+                    if (vehicleId && startDate && endDate) {
+                        const conflicts = checkConflicts(vehicleId, startDate, endDate);
+                        if (conflicts.length > 0) {
+                            warning.style.display = 'block';
+                            warning.innerHTML = `⚠️ Cảnh báo: Xe này đã có ${conflicts.length} lịch trùng thời gian!<br>` +
+                                conflicts.map(c => `• ${new Date(c.startDatetime).toLocaleString('vi-VN')} - ${c.userName || 'User #' + c.userId}`).join('<br>');
+                        } else {
+                            warning.style.display = 'none';
+                        }
+                    }
+                };
+            },
+            preConfirm: () => {
+                const userId = document.getElementById('swal-userId').value;
+                const vehicleId = document.getElementById('swal-vehicleId').value;
+                const startDate = document.getElementById('swal-startDate').value;
+                const endDate = document.getElementById('swal-endDate').value;
+
+                if (!userId || !vehicleId || !startDate || !endDate) {
+                    Swal.showValidationMessage('Vui lòng điền đầy đủ thông tin bắt buộc');
+                    return false;
+                }
+
+                if (new Date(startDate) >= new Date(endDate)) {
+                    Swal.showValidationMessage('Ngày kết thúc phải sau ngày bắt đầu');
+                    return false;
+                }
+
+                // Check conflicts
+                const conflicts = checkConflicts(vehicleId, startDate, endDate);
+                if (conflicts.length > 0) {
+                    const conflictList = conflicts.map(c =>
+                        `• ${new Date(c.startDatetime).toLocaleString('vi-VN')} - ${c.userName || 'User #' + c.userId}`
+                    ).join('\n');
+
+                    Swal.showValidationMessage(`⚠️ Xung đột lịch!\n${conflictList}\n\nVui lòng chọn thời gian khác.`);
+                    return false;
+                }
+
+                return {
+                    userId: userId,
+                    vehicleId: vehicleId,
+                    startDate: startDate,
+                    endDate: endDate,
+                    note: document.getElementById('swal-note').value
+                }
+            }
+        });
+
+        if (formValues) {
+            await createReservation(formValues);
+        }
+    }
+
+    // Tạo lịch đặt
+    async function createReservation(data) {
+        try {
+            const startDate = new Date(data.startDate).toISOString().slice(0, 19);
+            const endDate = new Date(data.endDate).toISOString().slice(0, 19);
+
+            const payload = {
+                userId: parseInt(data.userId),
+                vehicleId: parseInt(data.vehicleId),
+                startDatetime: startDate,
+                endDatetime: endDate,
+                purpose: data.note || '',
+                status: 'BOOKED'
+            };
+
+            const res = await fetch('http://localhost:8084/api/reservations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                Swal.fire('Thành công!', 'Đã tạo lịch đặt mới.', 'success');
+                loadSchedules();
+            } else {
+                const error = await res.text();
+                Swal.fire('Lỗi!', error || 'Không thể tạo lịch', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Lỗi!', 'Không kết nối được máy chủ: ' + e.message, 'error');
+        }
+    }
+
+    // Hiện modal sửa
+    async function showEditModal(id) {
+        const schedule = schedules.find(s => (s.reservationId || s.id) === id);
+        if (!schedule) return;
+
+        const { value: formValues } = await Swal.fire({
+            title: 'Sửa lịch đặt #' + id,
+            html:
+                '<label class="form-label text-start w-100">Người dùng:</label>' +
+                '<select id="swal-userId" class="swal2-input">' +
+                users.map(u => `<option value="${u.id}" ${u.id == schedule.userId ? 'selected' : ''}>${u.name || u.username || 'User #' + u.id}</option>`).join('') +
+                '</select>' +
+                '<label class="form-label text-start w-100">Xe:</label>' +
+                '<select id="swal-vehicleId" class="swal2-input">' +
+                vehicles.map(v => `<option value="${v.id}" ${v.id == schedule.vehicleId ? 'selected' : ''}>${v.name || 'Xe #' + v.id}</option>`).join('') +
+                '</select>' +
+                '<label class="form-label text-start w-100">Ngày bắt đầu:</label>' +
+                '<input id="swal-startDate" class="swal2-input" value="' + schedule.startDatetime.slice(0, 16) + '" type="datetime-local">' +
+                '<label class="form-label text-start w-100">Ngày kết thúc:</label>' +
+                '<input id="swal-endDate" class="swal2-input" value="' + schedule.endDatetime.slice(0, 16) + '" type="datetime-local">' +
+                '<label class="form-label text-start w-100">Trạng thái:</label>' +
+                '<select id="swal-status" class="swal2-input">' +
+                '<option value="BOOKED" ' + (schedule.status === 'BOOKED' ? 'selected' : '') + '>BOOKED</option>' +
+                '<option value="COMPLETED" ' + (schedule.status === 'COMPLETED' ? 'selected' : '') + '>COMPLETED</option>' +
+                '<option value="CANCELLED" ' + (schedule.status === 'CANCELLED' ? 'selected' : '') + '>CANCELLED</option>' +
+                '</select>' +
+                '<label class="form-label text-start w-100">Ghi chú:</label>' +
+                '<input id="swal-note" class="swal2-input" value="' + (schedule.purpose || '') + '">',
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Cập nhật',
+            cancelButtonText: 'Hủy',
+            preConfirm: () => {
+                return {
+                    userId: document.getElementById('swal-userId').value,
+                    vehicleId: document.getElementById('swal-vehicleId').value,
+                    startDate: document.getElementById('swal-startDate').value,
+                    endDate: document.getElementById('swal-endDate').value,
+                    status: document.getElementById('swal-status').value,
+                    note: document.getElementById('swal-note').value
+                }
+            }
+        });
+
+        if (formValues) {
+            await updateReservation(id, formValues);
+        }
+    }
+
+    // Cập nhật lịch đặt
+    async function updateReservation(id, data) {
+        try {
+            const res = await fetch(`http://localhost:8084/api/reservations/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: parseInt(data.userId),
+                    vehicleId: parseInt(data.vehicleId),
+                    startDatetime: data.startDate,
+                    endDatetime: data.endDate,
+                    purpose: data.note,
+                    status: data.status
+                })
+            });
+            if (res.ok) {
+                Swal.fire('Thành công!', 'Đã cập nhật lịch.', 'success');
+                loadSchedules();
+            } else {
+                const error = await res.text();
+                Swal.fire('Lỗi!', error || 'Không thể cập nhật', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Lỗi!', 'Không kết nối được máy chủ: ' + e.message, 'error');
+        }
+    }
+
+    // Đổi trạng thái
+    async function changeStatus(id, currentStatus) {
+        const statuses = ['BOOKED', 'COMPLETED', 'CANCELLED'];
+        const currentIndex = statuses.indexOf(currentStatus);
+        const nextStatus = statuses[(currentIndex + 1) % statuses.length];
+
+        const result = await Swal.fire({
+            title: 'Đổi trạng thái',
+            text: `Đổi từ ${currentStatus} sang ${nextStatus}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy'
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            const res = await fetch(`http://localhost:8084/api/reservations/${id}/status?status=${nextStatus}`, {
+                method: 'PUT'
+            });
+            if (res.ok) {
+                Swal.fire('Thành công!', 'Đã đổi trạng thái.', 'success');
+                loadSchedules();
+            } else {
+                const error = await res.text();
+                Swal.fire('Lỗi!', error || 'Không thể đổi trạng thái', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Lỗi!', 'Không kết nối được máy chủ: ' + e.message, 'error');
+        }
+    }
+
+
+    // Xóa lịch
+    async function deleteSchedule(id) {
+        const result = await Swal.fire({
+            title: 'Xác nhận xóa',
+            text: `Bạn có chắc muốn xóa lịch này không?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#ef4444'
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            const res = await fetch(`http://localhost:8084/api/reservations/${id}`, {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                Swal.fire('Thành công!', 'Đã xóa lịch.', 'success');
+                loadSchedules();
+            } else {
+                const error = await res.text();
+                Swal.fire('Lỗi!', error || 'Không thể xóa', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Lỗi!', 'Không kết nối được máy chủ: ' + e.message, 'error');
+        }
+    }
+
+    // Phân trang
+    function changePage(delta) {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const vehicleId = document.getElementById('vehicleFilter').value;
+        const userId = document.getElementById('userFilter').value;
+
+        let filtered = schedules.filter(s =>
+            (s.vehicleName?.toLowerCase().includes(search) ||
+                s.userName?.toLowerCase().includes(search) ||
+                s.vehicleId?.toString().includes(search) ||
+                s.userId?.toString().includes(search) ||
+                s.purpose?.toLowerCase().includes(search)) &&
+            (!status || s.status === status) &&
+            (!vehicleId || s.vehicleId == vehicleId) &&
+            (!userId || s.userId == userId)
+        );
+
+        const totalPages = Math.ceil(filtered.length / pageSize);
+        currentPage += delta;
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+
+        filterAndRender();
+    }
+
+    // Export to Excel
+    function exportToExcel() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const vehicleId = document.getElementById('vehicleFilter').value;
+        const userId = document.getElementById('userFilter').value;
+
+        let filtered = schedules.filter(s =>
+            (s.vehicleName?.toLowerCase().includes(search) ||
+                s.userName?.toLowerCase().includes(search) ||
+                s.vehicleId?.toString().includes(search) ||
+                s.userId?.toString().includes(search) ||
+                s.purpose?.toLowerCase().includes(search)) &&
+            (!status || s.status === status) &&
+            (!vehicleId || s.vehicleId == vehicleId) &&
+            (!userId || s.userId == userId)
+        );
+
+        const data = filtered.map(s => ({
+            'ID': s.reservationId || s.id,
+            'Xe': s.vehicleName || 'Xe #' + s.vehicleId,
+            'Người đặt': s.userName || 'User #' + s.userId,
+            'Ngày bắt đầu': new Date(s.startDatetime).toLocaleString('vi-VN'),
+            'Ngày kết thúc': new Date(s.endDatetime).toLocaleString('vi-VN'),
+            'Thời lượng': calculateDuration(s.startDatetime, s.endDatetime),
+            'Trạng thái': s.status,
+            'Ghi chú': s.purpose || '-'
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Lịch đặt');
+        XLSX.writeFile(wb, 'lich_dat_xe.xlsx');
+
+        Swal.fire('Thành công!', 'Đã xuất file Excel.', 'success');
+    }
+
+    // Event listeners
+    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutBtnByClass = document.querySelector('.logout-btn');
+    const logoutElement = logoutBtn || logoutBtnByClass;
+
+    if (logoutElement) {
+        logoutElement.addEventListener('click', (e) => {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Đăng xuất',
+                text: 'Bạn có muốn đăng xuất?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Đăng xuất',
+                cancelButtonText: 'Hủy'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                    window.location.href = '/admin-login';
+                }
+            });
+        });
+    }
+
+    // Event listeners - all use debounced filterAndRender (already has debounce built-in)
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const vehicleFilter = document.getElementById('vehicleFilter');
+    const userFilter = document.getElementById('userFilter');
+    const timeFilter = document.getElementById('timeFilter');
+    const dateFrom = document.getElementById('dateFrom');
+    const dateTo = document.getElementById('dateTo');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => filterAndRender(), { passive: true });
+    }
+
+    if (statusFilter) {
+        statusFilter.addEventListener('change', () => filterAndRender(), { passive: true });
+    }
+
+    if (vehicleFilter) {
+        vehicleFilter.addEventListener('change', () => filterAndRender(), { passive: true });
+    }
+
+    if (userFilter) {
+        userFilter.addEventListener('change', () => filterAndRender(), { passive: true });
+    }
+
+    // Time filter
+    if (timeFilter) {
+        timeFilter.addEventListener('change', function () {
+            const customRange = document.getElementById('customDateRange');
+            if (this.value === 'custom') {
+                if (customRange) customRange.style.display = 'flex';
+            } else {
+                if (customRange) customRange.style.display = 'none';
+            }
+            filterAndRender();
+        }, { passive: true });
+    }
+
+    if (dateFrom) {
+        dateFrom.addEventListener('change', () => filterAndRender(), { passive: true });
+    }
+
+    if (dateTo) {
+        dateTo.addEventListener('change', () => filterAndRender(), { passive: true });
+    }
+
+    // Load filter preset on page load (but don't apply time filter if it's month)
+    const preset = localStorage.getItem('reservationFilterPreset');
+    if (preset) {
+        try {
+            const data = JSON.parse(preset);
+            // Don't auto-apply month filter as it might filter out all data
+            const timeFilterEl = document.getElementById('timeFilter');
+            if (timeFilterEl) {
+                if (data.time && data.time !== 'month') {
+                    timeFilterEl.value = data.time || 'all';
+                } else {
+                    timeFilterEl.value = 'all'; // Default to all
+                }
+            }
+
+            const vehicleFilterEl = document.getElementById('vehicleFilter');
+            if (vehicleFilterEl) {
+                vehicleFilterEl.value = data.vehicle || '';
+            }
+
+            const userFilterEl = document.getElementById('userFilter');
+            if (userFilterEl) {
+                userFilterEl.value = data.user || '';
+            }
+
+            const statusFilterEl = document.getElementById('statusFilter');
+            if (statusFilterEl) {
+                statusFilterEl.value = data.status || '';
+            }
+
+            if (data.time === 'custom') {
+                const customDateRange = document.getElementById('customDateRange');
+                if (customDateRange) {
+                    customDateRange.style.display = 'flex';
+                }
+                const dateFrom = document.getElementById('dateFrom');
+                if (dateFrom) {
+                    dateFrom.value = data.dateFrom || '';
+                }
+                const dateTo = document.getElementById('dateTo');
+                if (dateTo) {
+                    dateTo.value = data.dateTo || '';
+                }
+            }
+        } catch (e) {
+            console.error('Error loading filter preset:', e);
+        }
+    }
+
+    // Auto-update status - DISABLED to prevent infinite loops
+    // Status updates should be handled manually or by backend
+    let autoUpdateInterval = null;
+    function startAutoUpdate() {
+        // DISABLED - This was causing infinite loops
+        // If you need auto-refresh, uncomment and use a longer interval (e.g., 10 minutes)
+        return;
+
+        if (autoUpdateInterval) clearInterval(autoUpdateInterval);
+
+        autoUpdateInterval = setInterval(() => {
+            // Only run if page is visible
+            if (document.hidden) return;
+
+            const now = new Date();
+            let hasUpdates = false;
+
+            schedules.forEach(s => {
+                if (s.status === 'BOOKED') {
+                    const endDate = new Date(s.endDatetime);
+                    if (endDate < now) {
+                        hasUpdates = true;
+                    }
+                }
+            });
+
+            // Only reload if there are potential updates
+            if (hasUpdates) {
+                loadSchedules();
+            }
+        }, 600000); // 10 minutes - longer interval to prevent loops
+    }
+
+    // Auto-update DISABLED to prevent infinite loops
+    // Uncomment below if you want periodic refresh (every 5 minutes)
+    // startAutoUpdate();
+
+    // Stop auto-update when page is hidden - DISABLED
+    // document.addEventListener('visibilitychange', () => {
+    //     if (document.hidden) {
+    //         if (autoUpdateInterval) {
+    //             clearInterval(autoUpdateInterval);
+    //             autoUpdateInterval = null;
+    //         }
+    //     } else {
+    //         startAutoUpdate();
+    //     }
+    // });
+
+    // Tải lần đầu
+    loadSchedules();
+</script>
+</body>
+
+</html>

@@ -1,0 +1,145 @@
+<div th:fragment="contracts-page">
+    <section id="contracts-page" class="contracts-page-section">
+        <div class="page-header">
+            <div>
+                <p class="page-subtitle">Ký hợp đồng để tham gia nhóm xe chung</p>
+                <h1>Quản lý Hợp đồng</h1>
+            </div>
+            <div class="header-actions">
+                <button id="btn-create-contract" class="btn btn-primary" disabled>
+                    <i class="fas fa-plus"></i>
+                    Tạo hợp đồng mới
+                </button>
+                <button id="btn-upload-contract" class="btn-outline">
+                    <i class="fas fa-upload"></i>
+                    Tải lên hợp đồng đã ký
+                </button>
+            </div>
+        </div>
+
+        <div class="contracts-alert info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <p class="alert-title">Bước 1 của quá trình tham gia nhóm</p>
+                <p class="alert-description">Bạn cần ký hợp đồng nhóm xe trước khi gửi yêu cầu tham gia. Hợp đồng đã ký sẽ mở khóa các nút “Tham gia nhóm” tương ứng.</p>
+            </div>
+        </div>
+
+        <div class="contracts-stats" id="contracts-stats">
+            <!-- Filled by JS -->
+            <div class="stat-card skeleton"></div>
+            <div class="stat-card skeleton"></div>
+            <div class="stat-card skeleton"></div>
+            <div class="stat-card skeleton"></div>
+        </div>
+
+        <div class="contracts-toolbar">
+            <div class="search-input">
+                <i class="fas fa-search"></i>
+                <input type="text" id="contract-search" placeholder="Tìm kiếm hợp đồng hoặc nhóm...">
+            </div>
+            <div class="toolbar-select">
+                <label for="status-filter">Trạng thái</label>
+                <select id="status-filter">
+                    <option value="all">Tất cả</option>
+                </select>
+            </div>
+            <div class="toolbar-select">
+                <label for="vehicle-filter">Loại xe</label>
+                <select id="vehicle-filter">
+                    <option value="all">Tất cả</option>
+                </select>
+            </div>
+            <button id="btn-refresh-contracts" class="btn-icon" title="Làm mới">
+                <i class="fas fa-sync"></i>
+            </button>
+        </div>
+
+        <div class="contracts-panel">
+            <div class="contracts-table-card">
+                <div class="table-header">
+                    <div>
+                        <h2>Danh sách hợp đồng</h2>
+                        <p id="contracts-table-meta">Đang tải...</p>
+                    </div>
+                    <div class="table-actions">
+                        <button class="btn-outline" id="btn-export-contracts">
+                            <i class="fas fa-download"></i>
+                            Xuất báo cáo
+                        </button>
+                        <button class="btn-outline" id="btn-sign-pending" disabled>
+                            <i class="fas fa-pen-to-square"></i>
+                            Ký tất cả hợp đồng chờ
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="contracts-table">
+                        <thead>
+                        <tr>
+                            <th>Hợp đồng</th>
+                            <th>Nhóm xe</th>
+                            <th>Thông tin xe</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody id="contracts-table-body">
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div class="loading-state">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Đang tải hợp đồng...</p>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-bar" id="contracts-pagination" hidden>
+                    <div class="pagination-info" id="contracts-pagination-info"></div>
+                    <div class="pagination-controls">
+                        <button class="btn-icon" id="contracts-prev-page">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="contracts-current-page">1</span>
+                        <button class="btn-icon" id="contracts-next-page">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="contracts-side-panel">
+                <div class="side-card">
+                    <h3>Hợp đồng gần nhất</h3>
+                    <ul id="recent-contracts">
+                        <li class="skeleton-item"></li>
+                        <li class="skeleton-item"></li>
+                        <li class="skeleton-item"></li>
+                    </ul>
+                </div>
+                <div class="side-card secondary">
+                    <h3>Hướng dẫn ký hợp đồng</h3>
+                    <ol class="steps">
+                        <li>Chọn hợp đồng trong danh sách</li>
+                        <li>Đọc kỹ điều khoản và thông tin nhóm</li>
+                        <li>Ký điện tử và lưu bản PDF</li>
+                        <li>Quay lại mục Nhóm để gửi yêu cầu tham gia</li>
+                    </ol>
+                    <button class="btn btn-primary" id="btn-open-group-page">
+                        <i class="fas fa-users"></i>
+                        Đi đến trang Nhóm
+                    </button>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    
+    </div>
+</div>
+

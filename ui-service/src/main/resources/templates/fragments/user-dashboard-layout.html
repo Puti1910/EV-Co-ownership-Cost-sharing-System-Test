@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CarShare Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link th:href="@{/css/user-dashboard.css}" rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css"
+          th:if="${activePage == 'fair-schedule'}">
+</head>
+<body>
+    <th:block th:fragment="layout">
+        <div class="user-container" th:attr="data-user-id=${userId},data-user-email=${userEmail}">
+            <!-- Header -->
+            <header class="user-header">
+                <div class="header-left">
+                    <div class="brand">
+                        <i class="fas fa-car-battery"></i>
+                        <span>CarShare</span>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <nav class="main-nav">
+                        <a th:href="@{/user/groups}" class="nav-item" th:classappend="${activePage == 'home'} ? 'active'" data-page="home">
+                            <i class="fas fa-users"></i>
+                            <span>Nhóm của tôi</span>
+                        </a>
+                        <a th:href="@{/user/costs}" class="nav-item" th:classappend="${activePage == 'costs'} ? 'active'" data-page="costs">
+                            <i class="fas fa-receipt"></i>
+                            <span>Chi phí của tôi</span>
+                        </a>
+                        <a th:href="@{/user/contracts}" class="nav-item" th:classappend="${activePage == 'contracts'} ? 'active'" data-page="contracts">
+                            <i class="fas fa-file-contract"></i>
+                            <span>Hợp đồng</span>
+                        </a>
+                        <a th:href="@{/user/usage}" class="nav-item" th:classappend="${activePage == 'usage'} ? 'active'" data-page="usage">
+                            <i class="fas fa-road"></i>
+                            <span>Nhập km</span>
+                        </a>
+                        <a th:href="@{/user/payments}" class="nav-item" th:classappend="${activePage == 'payments'} ? 'active'" data-page="payments">
+                            <i class="fas fa-credit-card"></i>
+                            <span>Thanh toán</span>
+                        </a>
+                        <a th:href="@{/user/disputes}" class="nav-item" th:classappend="${activePage == 'disputes'} ? 'active'" data-page="disputes">
+                            <i class="fas fa-flag"></i>
+                            <span>Tranh chấp</span>
+                        </a>
+                        <a th:href="@{/user/fund}" class="nav-item" th:classappend="${activePage == 'fund'} ? 'active'" data-page="fund">
+                            <i class="fas fa-piggy-bank"></i>
+                            <span>Quỹ Chung</span>
+                        </a>
+                        <a th:href="@{/user/maintenance}" class="nav-item" th:classappend="${activePage == 'maintenance'} ? 'active'" data-page="maintenance">
+                            <i class="fas fa-screwdriver-wrench"></i>
+                            <span>Bảo dưỡng</span>
+                        </a>
+                        <a th:href="@{/user/fair-schedule}" class="nav-item" th:classappend="${activePage == 'fair-schedule'} ? 'active'" data-page="fair-schedule">
+                            <i class="fas fa-scale-balanced"></i>
+                            <span>Lịch công bằng</span>
+                        </a>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <div class="user-menu">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name" th:text="${userName}">Người dùng</div>
+                            <div class="user-email" th:text="${userEmail}">user@example.com</div>
+                        </div>
+                        <div class="dropdown">
+                            <button class="dropdown-toggle">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a th:href="@{/user/profile}"><i class="fas fa-user-circle"></i> Hồ sơ</a>
+                                <a href="#"><i class="fas fa-cog"></i> Cài đặt</a>
+                                <a href="/"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="user-main">
+                <!-- Content will be inserted here by th:replace -->
+                <th:block th:switch="${activePage}">
+                    <th:block th:case="'home'">
+                        <th:block th:replace="user/home :: home-page"></th:block>
+                    </th:block>
+                    <th:block th:case="'costs'">
+                        <th:block th:replace="user/costs :: costs-page"></th:block>
+                    </th:block>
+                    <th:block th:case="'usage'">
+                        <th:block th:replace="user/usage :: usage-page"></th:block>
+                    </th:block>
+                    <th:block th:case="'payments'">
+                        <th:block th:replace="user/payments :: payments-page"></th:block>
+                    </th:block>
+                    <th:block th:case="'fund'">
+                        <th:block th:replace="user/fund :: fund-page"></th:block>
+                    </th:block>
+                    <th:block th:case="'disputes'">
+                        <th:block th:replace="user/disputes :: disputes-page"></th:block>
+                    </th:block>
+                    <th:block th:case="'maintenance'">
+                        <th:block th:replace="user/maintenance :: maintenance-page"></th:block>
+                    </th:block>
+                    <th:block th:case="'fair-schedule'">
+                        <th:block th:replace="user/fair-schedule :: fair-schedule-page"></th:block>
+                    </th:block>
+                    <th:block th:case="'profile'">
+                        <th:block th:replace="user/profile :: profile-page"></th:block>
+                    </th:block>
+                    <th:block th:case="'contracts'">
+                        <th:block th:replace="user/contracts :: contracts-page"></th:block>
+                    </th:block>
+                </th:block>
+            </main>
+        </div>
+
+        <!-- Include Modals -->
+        <th:block th:replace="fragments/user-modals :: modals"></th:block>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast">
+            <div class="toast-icon"></div>
+            <div class="toast-message"></div>
+        </div>
+
+        <!-- Scripts -->
+        <!-- Load authentication utilities for all user pages -->
+        <script th:src="@{/js/auth/auth-utils.js}"></script>
+        <script th:src="@{/js/auth/token-manager.js}"></script>
+        <script th:src="@{/js/auth/user-guard.js}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script th:src="@{/js/user-dashboard.js}"></script>
+        <th:block th:if="${activePage == 'profile'}">
+            <link rel="stylesheet" th:href="@{/css/auth/onboarding-style.css}">
+            <script th:src="@{/js/auth/auth-utils.js}" defer></script>
+            <script th:src="@{/js/auth/token-manager.js}" defer></script>
+            <script th:src="@{/js/auth/user-onboarding.js}" defer></script>
+        </th:block>
+        <th:block th:if="${activePage == 'fair-schedule'}">
+            <!-- auth-utils.js, token-manager.js, and user-guard.js already loaded above -->
+            <!-- Load FullCalendar CSS -->
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css">
+            <!-- Load FullCalendar JS - sử dụng index.global.min.js để expose FullCalendar global -->
+            <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.5/dist/signature_pad.umd.min.js" defer></script>
+            <script th:src="@{/js/fairness/fairness-api.js}" defer></script>
+            <script th:src="@{/js/fairness/user-fair-schedule.js}" defer></script>
+        </th:block>
+        <th:block th:if="${activePage == 'maintenance'}">
+            <script th:src="@{/js/user-maintenance.js}" defer></script>
+        </th:block>
+        <th:block th:if="${activePage == 'contracts'}">
+            <script th:src="@{/js/user-contracts.js}" defer></script>
+        </th:block>
+    </th:block>
+</body>
+</html>
+

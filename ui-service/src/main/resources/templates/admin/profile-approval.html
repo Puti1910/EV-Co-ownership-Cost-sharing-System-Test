@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duyệt hồ sơ KYC - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link th:href="@{/css/admin-layout.css}" rel="stylesheet">
+    <link th:href="@{/css/admin-profile-approval.css}" rel="stylesheet">
+    <th:block th:replace="fragments/admin-guard :: scripts"></th:block>
+</head>
+<body>
+<div th:replace="fragments/admin-sidebar :: sidebar"></div>
+
+<main class="main-content">
+    <div th:replace="fragments/admin-header :: header"></div>
+
+    <div class="content-shell">
+        <div class="page-heading">
+            <div>
+                <h1>Duyệt hồ sơ KYC</h1>
+                <p class="subtitle">Xem nhanh trạng thái hồ sơ và xử lý phê duyệt ngay trên một màn hình.</p>
+            </div>
+            <button class="btn btn-outline-secondary" id="btn-refresh">
+                <i class="fas fa-rotate"></i> Làm mới dữ liệu
+            </button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <p>Đang chờ</p>
+                <h2 id="pending-count">0</h2>
+            </div>
+            <div class="stat-card">
+                <p>Đã phê duyệt</p>
+                <h2 id="approved-count">0</h2>
+            </div>
+            <div class="stat-card">
+                <p>Từ chối</p>
+                <h2 id="rejected-count">0</h2>
+            </div>
+            <div class="stat-card">
+                <p>Thiếu giấy tờ</p>
+                <h2 id="missing-docs-count">0</h2>
+            </div>
+        </div>
+
+        <div class="actions-row">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Tìm theo tên, email hoặc số điện thoại">
+            </div>
+            <span class="filter-pill">Chỉ hiển thị trạng thái PENDING</span>
+        </div>
+
+        <div class="table-card">
+            <div class="table-header">
+                <div>
+                    <h3>Hồ sơ người dùng</h3>
+                    <p>Kiểm tra thông tin và thực hiện phê duyệt ngay tại đây.</p>
+                </div>
+                <button class="btn btn-primary" id="btn-refresh-2">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                    <tr>
+                        <th>Người dùng</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Ngày cập nhật</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody id="user-list-body">
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-spinner fa-spin me-2"></i> Đang tải dữ liệu...
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div id="profileModal" class="modal-backdrop">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <p class="modal-kicker">Chi tiết hồ sơ</p>
+                <h2 id="modalUserName">Đang tải...</h2>
+            </div>
+            <span class="modal-close" id="modalCloseButton">&times;</span>
+        </div>
+        <div class="modal-body" id="modalBodyContent">
+            <p class="text-muted">Đang tải dữ liệu...</p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline-secondary" id="modalRejectBtn">
+                <i class="fas fa-times"></i> Từ chối
+            </button>
+            <button class="btn btn-success" id="modalApproveBtn">
+                <i class="fas fa-check"></i> Phê duyệt
+            </button>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/auth/admin/profile-approval.js}"></script>
+</body>
+</html>
+

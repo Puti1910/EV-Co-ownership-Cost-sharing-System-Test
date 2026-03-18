@@ -1,0 +1,397 @@
+<div th:fragment="fair-schedule-page" xmlns:th="http://www.thymeleaf.org">
+    <div id="fair-schedule-page" class="page" th:classappend="${activePage == 'fair-schedule'} ? 'active'">
+        <div class="page-header">
+            <div>
+                <h1><i class="fas fa-scale-balanced"></i> Lịch đặt xe công bằng</h1>
+                <p>Xem quyền ưu tiên, đặt lịch và hoàn tất check-in/out minh bạch.</p>
+            </div>
+            <div class="page-actions">
+                <a href="/reservations/book" class="btn btn-primary">
+                    <i class="fas fa-calendar-plus"></i> Đặt lịch nhanh
+                </a>
+            </div>
+        </div>
+
+        <div class="section-card fair-filter-card">
+            <div class="fair-filter-grid">
+                <div class="fair-filter">
+                    <label>Chọn xe đồng sở hữu</label>
+                    <select id="userVehicleSelect">
+                        <option value="">Đang tải xe của bạn...</option>
+                    </select>
+                </div>
+                <div class="fair-filter">
+                    <label>Khoảng thời gian</label>
+                    <select id="userRangeSelect">
+                        <option value="14">14 ngày</option>
+                        <option value="30" selected>30 ngày</option>
+                        <option value="60">60 ngày</option>
+                    </select>
+                </div>
+                <div class="fair-filter refresh">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-outline" id="userRefreshBtn">
+                        <i class="fas fa-sync-alt"></i> Làm mới
+                    </button>
+                </div>
+            </div>
+            <div class="fair-metrics">
+                <div class="metric-pill">
+                    <div>
+                        <h4>Fairness Index</h4>
+                        <p>Điểm cân bằng giữa các thành viên</p>
+                    </div>
+                    <span id="userFairnessIndex">-</span>
+                </div>
+                <div class="metric-pill">
+                    <div>
+                        <h4>Tổng giờ sử dụng</h4>
+                        <p>Trong chu kỳ đã chọn</p>
+                    </div>
+                    <span id="userTotalHours">-</span>
+                </div>
+                <div class="metric-pill">
+                    <div>
+                        <h4>Vị trí ưu tiên</h4>
+                        <p>Thứ tự hàng chờ hiện tại</p>
+                    </div>
+                    <span id="userPriorityIndex">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="fair-schedule-layout">
+            <div class="fair-left">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2><i class="fas fa-wand-magic-sparkles"></i> Xin gợi ý công bằng</h2>
+                        <p>Hệ thống dựa trên tỷ lệ sở hữu và lịch sử để quyết định ưu tiên.</p>
+                    </div>
+                    <form id="fairnessSuggestionForm" class="fair-form" novalidate>
+                        <div class="form-field">
+                            <label>Thời gian bắt đầu mong muốn</label>
+                            <input type="datetime-local" id="desiredStart" required>
+                        </div>
+                        <div class="form-field">
+                            <label>Số giờ sử dụng</label>
+                            <input type="number" min="1" step="0.5" value="2" id="durationHours" required>
+                        </div>
+                        <button class="btn btn-primary btn-lg" type="submit">
+                            <i class="fas fa-magic"></i> Xin gợi ý
+                        </button>
+                    </form>
+                    <div class="suggestion-result" id="suggestionResult">
+                        <div class="suggestion-header">
+                            <i class="fas fa-check-circle" id="suggestionIcon"></i>
+                            <strong id="suggestionTitle">Được ưu tiên</strong>
+                        </div>
+                        <p id="suggestionReason"></p>
+                        <div id="suggestionSlots" class="suggestion-slots"></div>
+                        <div class="suggestion-actions">
+                            <a class="btn btn-outline" id="goToBookingBtn" href="/reservations/book">
+                                <i class="fas fa-journal-whills"></i> Đặt lịch ngay
+                            </a>
+                            <button class="btn btn-outline" id="copySuggestionBtn" type="button">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2><i class="fas fa-qrcode"></i> Check-in / Check-out</h2>
+                        <p>Phát sinh QR và ký số khi nhận hoặc trả xe.</p>
+                    </div>
+                    <div class="form-field">
+                        <label>Chọn lịch sắp tới</label>
+                        <select id="userReservationSelect">
+                            <option value="">Chưa có lịch phù hợp</option>
+                        </select>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="userGenerateCheckin">
+                            <i class="fas fa-qrcode"></i> QR Check-in
+                        </button>
+                        <button class="btn btn-outline" id="userGenerateCheckout">
+                            <i class="fas fa-qrcode"></i> QR Check-out
+                        </button>
+                    </div>
+                    <div class="qr-preview-user" id="userQrPreview" style="display:none;">
+                        <p class="preview-title">QR của bạn</p>
+                        <img id="userQrImage" alt="QR code">
+                        <small>Hết hạn: <span id="userQrExpire">--</span></small>
+                        <small>Token: <span id="userQrToken">--</span></small>
+                    </div>
+                    <div class="signature-block">
+                        <label>Chữ ký điện tử</label>
+                        <canvas id="signatureCanvas" class="signature-canvas"></canvas>
+                        <div class="btn-group">
+                            <button class="btn btn-outline btn-sm" id="clearSignatureBtn" type="button">
+                                Xóa chữ ký
+                            </button>
+                            <button class="btn btn-success btn-sm" id="submitSignatureBtn" type="button">
+                                <i class="fas fa-paper-plane"></i> Gửi chữ ký
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fair-right">
+                <div class="section-card calendar-card">
+                    <div class="section-header">
+                        <h2><i class="fas fa-calendar-alt"></i> Lịch xe & hàng chờ</h2>
+                        <p>Cập nhật realtime theo nhóm đã chọn.</p>
+                    </div>
+                    <div id="userFairnessCalendar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        #fair-schedule-page .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        #fair-schedule-page .page-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        #fair-schedule-page .page-header p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        #fair-schedule-page .page-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        #fair-schedule-page .fair-filter-card select,
+        #fair-schedule-page .fair-filter-card input,
+        #fair-schedule-page .fair-form input,
+        #fair-schedule-page select {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #fff;
+        }
+
+        #fair-schedule-page .fair-filter-card label,
+        #fair-schedule-page .form-field label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.35rem;
+            display: block;
+        }
+
+        #fair-schedule-page .fair-filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        #fair-schedule-page .fair-filter.refresh {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        #fair-schedule-page .fair-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        #fair-schedule-page .metric-pill {
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            border: 1px solid var(--border);
+            background: var(--light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #fair-schedule-page .metric-pill h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+            color: var(--dark);
+        }
+
+        #fair-schedule-page .metric-pill p {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        #fair-schedule-page .metric-pill span {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            min-width: 60px;
+            text-align: right;
+        }
+
+        #fair-schedule-page .fair-schedule-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        #fair-schedule-page .fair-left,
+        #fair-schedule-page .fair-right {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        #fair-schedule-page .section-header h2 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #fair-schedule-page .section-header p {
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        #fair-schedule-page .fair-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        #fair-schedule-page .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        #fair-schedule-page .suggestion-result {
+            border-radius: 16px;
+            border: 1px solid #e0e7ff;
+            padding: 1.25rem;
+            background: #eef2ff;
+            margin-top: 1.25rem;
+            display: none;
+        }
+
+        #fair-schedule-page .suggestion-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        #fair-schedule-page .suggestion-header i {
+            color: var(--success);
+        }
+
+        #fair-schedule-page .suggestion-slots {
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+
+        #fair-schedule-page .suggestion-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        #fair-schedule-page .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        #fair-schedule-page .btn-outline {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        #fair-schedule-page .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        #fair-schedule-page .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.78rem;
+        }
+
+        #fair-schedule-page .qr-preview-user {
+            border: 1px dashed #cbd5f5;
+            border-radius: 16px;
+            padding: 1.25rem;
+            background: #f8fafc;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        #fair-schedule-page .qr-preview-user img {
+            max-width: 160px;
+            margin-bottom: 0.75rem;
+        }
+
+        #fair-schedule-page .qr-preview-user small {
+            display: block;
+            color: var(--text-light);
+            font-size: 0.8rem;
+        }
+
+        #fair-schedule-page .signature-block {
+            margin-top: 1.25rem;
+        }
+
+        #fair-schedule-page .signature-canvas {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed #cbd5f5;
+            border-radius: 16px;
+            background: white;
+        }
+
+        #fair-schedule-page .calendar-card {
+            position: sticky;
+            top: 2rem;
+        }
+
+        #fair-schedule-page #userFairnessCalendar {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 0.5rem;
+        }
+
+        @media (max-width: 1200px) {
+            #fair-schedule-page .fair-schedule-layout {
+                grid-template-columns: 1fr;
+            }
+
+            #fair-schedule-page .calendar-card {
+                position: static;
+            }
+        }
+    </style>
+</div>
+

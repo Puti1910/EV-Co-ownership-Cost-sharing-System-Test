@@ -1,0 +1,426 @@
+<!-- FUND PAGE -->
+<div th:fragment="fund-page">
+    <div id="fund-page" class="page" th:classappend="${activePage == 'fund'} ? 'active'">
+        <div class="page-header">
+            <div class="header-content">
+                <div>
+                    <h1><i class="fas fa-piggy-bank"></i> Quỹ Chung</h1>
+                    <p>Quản lý quỹ chung của nhóm sở hữu xe điện</p>
+                </div>
+                <div class="quick-actions">
+                    <button class="btn btn-success btn-icon" onclick="openDepositModal()" title="Nạp tiền">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Nạp tiền</span>
+                    </button>
+                    <button class="btn btn-primary btn-icon" onclick="openWithdrawVoteModal()" title="Tạo phiếu rút tiền">
+                        <i class="fas fa-vote-yea"></i>
+                        <span>Rút tiền</span>
+                    </button>
+                    <button class="btn btn-info btn-icon" onclick="openCreateDecisionModal()" title="Tạo quyết định chung">
+                        <i class="fas fa-hand-paper"></i>
+                        <span>Quyết định</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Navigation Tabs -->
+        <div class="fund-tabs">
+            <button class="fund-tab active" data-tab="overview" onclick="switchFundTab('overview')">
+                <i class="fas fa-chart-line"></i>
+                <span>Tổng quan</span>
+            </button>
+            <button class="fund-tab" data-tab="transactions" onclick="switchFundTab('transactions')">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Giao dịch</span>
+            </button>
+            <button class="fund-tab" data-tab="requests" onclick="switchFundTab('requests')">
+                <i class="fas fa-bell"></i>
+                <span>Yêu cầu</span>
+                <span class="tab-badge" id="requestsTabBadge">0</span>
+            </button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="fund-overview-tab" class="fund-tab-content active">
+            <!-- Statistics Cards - Enhanced -->
+            <div class="fund-stats-grid">
+                <div class="fund-stat-card primary">
+                    <div class="stat-card-header">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="stat-trend">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-body">
+                        <div class="stat-label">Tổng số dư</div>
+                        <div class="stat-value" id="totalBalance">0 VNĐ</div>
+                        <div class="stat-description">Tất cả các nhóm</div>
+                    </div>
+                </div>
+                <div class="fund-stat-card success">
+                    <div class="stat-card-header">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-body">
+                        <div class="stat-label">Tôi đã nạp</div>
+                        <div class="stat-value" id="myDeposits">0 VNĐ</div>
+                        <div class="stat-description">Tổng tiền đã nạp</div>
+                    </div>
+                </div>
+                <div class="fund-stat-card warning">
+                    <div class="stat-card-header">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-body">
+                        <div class="stat-label">Tôi đã rút</div>
+                        <div class="stat-value" id="myWithdraws">0 VNĐ</div>
+                        <div class="stat-description">Tổng tiền đã rút</div>
+                    </div>
+                </div>
+                <div class="fund-stat-card info">
+                    <div class="stat-card-header">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-body">
+                        <div class="stat-label">Yêu cầu chờ</div>
+                        <div class="stat-value" id="myPending">0</div>
+                        <div class="stat-description">Đang chờ xử lý</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fund Summary & Recent Transactions -->
+            <div class="fund-overview-grid">
+                <!-- Fund Summary -->
+                <div class="section-card fund-summary-card">
+                    <div class="card-header">
+                        <h2>
+                            <i class="fas fa-chart-pie"></i>
+                            Tóm tắt quỹ
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="fund-summary-enhanced">
+                            <div class="summary-row">
+                                <div class="summary-label">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Số dư đầu kỳ
+                                </div>
+                                <div class="summary-value" id="summaryOpening">0 VNĐ</div>
+                            </div>
+                            <div class="summary-row income">
+                                <div class="summary-label">
+                                    <i class="fas fa-arrow-up"></i>
+                                    Thu nhập
+                                </div>
+                                <div class="summary-value positive" id="summaryIncome">0 VNĐ</div>
+                            </div>
+                            <div class="summary-row expense">
+                                <div class="summary-label">
+                                    <i class="fas fa-arrow-down"></i>
+                                    Chi phí
+                                </div>
+                                <div class="summary-value negative" id="summaryExpense">0 VNĐ</div>
+                            </div>
+                            <div class="summary-row total">
+                                <div class="summary-label">
+                                    <i class="fas fa-wallet"></i>
+                                    Số dư cuối kỳ
+                                </div>
+                                <div class="summary-value" id="summaryBalance">0 VNĐ</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="section-card">
+                    <div class="card-header">
+                        <h2>
+                            <i class="fas fa-history"></i>
+                            Giao dịch gần đây
+                        </h2>
+                        <button class="btn btn-sm btn-outline" onclick="switchFundTab('transactions')">
+                            Xem tất cả
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="transaction-list-enhanced" id="recentTransactions">
+                            <div class="empty-state">
+                                <i class="fas fa-receipt"></i>
+                                <p>Chưa có giao dịch nào</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Tab -->
+        <div id="fund-transactions-tab" class="fund-tab-content">
+            <!-- Transaction History Table -->
+            <div class="section-card">
+                <div class="card-header">
+                    <h2>
+                        <i class="fas fa-list"></i>
+                        Lịch sử giao dịch
+                    </h2>
+                    <div class="card-actions">
+                        <div class="filter-group-enhanced">
+                            <select id="filterStatus" class="form-select">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="Completed" selected>Hoàn tất</option>
+                                <option value="Pending">Chờ duyệt</option>
+                                <option value="Approved">Đã duyệt</option>
+                                <option value="Rejected">Từ chối</option>
+                            </select>
+                            <select id="filterType" class="form-select">
+                                <option value="">Tất cả loại</option>
+                                <option value="Deposit">Nạp tiền</option>
+                                <option value="Withdraw">Rút tiền</option>
+                            </select>
+                            <select id="filterCategory" class="form-select">
+                                <option value="">Tất cả danh mục</option>
+                                <option value="maintenance">Quỹ Bảo Dưỡng</option>
+                                <option value="reserve">Phí Dự Phòng</option>
+                                <option value="other">Khác</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="data-table enhanced">
+                            <thead>
+                                <tr>
+                                    <th>Ngày</th>
+                                    <th>Loại</th>
+                                    <th>Mục đích</th>
+                                    <th>Số tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Người thực hiện</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionsTableBody">
+                                <tr>
+                                    <td colspan="6" class="empty-table">
+                                        <div class="empty-state">
+                                            <i class="fas fa-receipt"></i>
+                                            <p>Chưa có giao dịch nào</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Requests Tab -->
+        <div id="fund-requests-tab" class="fund-tab-content">
+            <!-- Group Decisions / Voting Section -->
+            <div class="section-card">
+                <div class="card-header">
+                    <h2>
+                        <i class="fas fa-hand-paper"></i>
+                        Quyết định chung của nhóm
+                    </h2>
+                    <button class="btn btn-sm btn-info" onclick="openCreateDecisionModal()">
+                        <i class="fas fa-plus"></i>
+                        Tạo quyết định mới
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="decision-tabs">
+                        <button class="tab-btn active" data-tab="all-decisions" onclick="switchDecisionTab('all-decisions')">
+                            <i class="fas fa-list"></i> Tất cả
+                        </button>
+                        <button class="tab-btn" data-tab="pending-decisions" onclick="switchDecisionTab('pending-decisions')">
+                            <i class="fas fa-clock"></i> Đang chờ vote
+                            <span class="badge badge-warning" id="pendingDecisionsBadge">0</span>
+                        </button>
+                        <button class="tab-btn" data-tab="my-decisions" onclick="switchDecisionTab('my-decisions')">
+                            <i class="fas fa-user"></i> Quyết định của tôi
+                        </button>
+                    </div>
+                    <div class="decisions-container">
+                        <!-- All Decisions Tab -->
+                        <div id="all-decisions-tab" class="decision-tab-content active">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Loại quyết định</th>
+                                            <th>Chủ đề</th>
+                                            <th>Người tạo</th>
+                                            <th>Ngày tạo</th>
+                                            <th>Trạng thái</th>
+                                            <th>Kết quả</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="allDecisionsBody">
+                                        <tr>
+                                            <td colspan="7" class="empty-table">
+                                                <div class="empty-state">
+                                                    <i class="fas fa-vote-yea"></i>
+                                                    <p>Chưa có quyết định nào</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- Pending Decisions Tab -->
+                        <div id="pending-decisions-tab" class="decision-tab-content">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Loại quyết định</th>
+                                            <th>Chủ đề</th>
+                                            <th>Người tạo</th>
+                                            <th>Ngày tạo</th>
+                                            <th>Tiến độ vote</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pendingDecisionsBody">
+                                        <tr>
+                                            <td colspan="6" class="empty-table">
+                                                <div class="empty-state">
+                                                    <i class="fas fa-check-circle"></i>
+                                                    <p>Không có quyết định nào đang chờ vote</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- My Decisions Tab -->
+                        <div id="my-decisions-tab" class="decision-tab-content">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Loại quyết định</th>
+                                            <th>Chủ đề</th>
+                                            <th>Ngày tạo</th>
+                                            <th>Trạng thái</th>
+                                            <th>Kết quả</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="myDecisionsBody">
+                                        <tr>
+                                            <td colspan="6" class="empty-table">
+                                                <div class="empty-state">
+                                                    <i class="fas fa-user"></i>
+                                                    <p>Bạn chưa tạo quyết định nào</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Vote Requests (Requests from other members) - Priority -->
+            <div class="section-card priority-card" id="pendingVoteSection">
+                <div class="card-header">
+                    <div class="header-left">
+                        <div class="priority-indicator"></div>
+                        <div>
+                            <h2>
+                                <i class="fas fa-bell"></i>
+                                Yêu cầu rút tiền cần bỏ phiếu
+                            </h2>
+                            <p class="card-subtitle">Các yêu cầu từ thành viên khác đang chờ bạn bỏ phiếu</p>
+                        </div>
+                    </div>
+                    <span class="badge badge-primary badge-large" id="pendingVoteBadge">0</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="data-table enhanced">
+                            <thead>
+                                <tr>
+                                    <th>Người yêu cầu</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Số tiền</th>
+                                    <th>Mục đích</th>
+                                    <th>Nhóm</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingVoteBody">
+                                <tr>
+                                    <td colspan="6" class="empty-table">
+                                        <div class="empty-state">
+                                            <i class="fas fa-check-circle"></i>
+                                            <p>Không có yêu cầu nào cần bỏ phiếu</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Pending Requests -->
+            <div class="section-card" id="myPendingCard">
+                <div class="card-header">
+                    <h2>
+                        <i class="fas fa-vote-yea"></i>
+                        Phiếu rút tiền của tôi đang chờ
+                    </h2>
+                    <span class="badge badge-warning" id="myPendingBadge">0</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="data-table enhanced">
+                            <thead>
+                                <tr>
+                                    <th>Ngày tạo</th>
+                                    <th>Số tiền</th>
+                                    <th>Mục đích</th>
+                                    <th>Trạng thái</th>
+                                    <th>Kết quả vote</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myPendingBody">
+                                <tr>
+                                    <td colspan="6" class="empty-table">
+                                        <div class="empty-state">
+                                            <i class="fas fa-check-circle"></i>
+                                            <p>Không có phiếu nào đang chờ</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

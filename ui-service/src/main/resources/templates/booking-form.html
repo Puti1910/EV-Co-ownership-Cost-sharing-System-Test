@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Đặt Lịch Xe - VehicleTracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .content-area {
+            padding: 24px;
+            flex: 1;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .card-section {
+            background: #fafbfc;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 16px;
+        }
+
+        .section-title-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .section-title-icon.people {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .section-title-icon.calendar {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .section-title-icon.list {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .form-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control,
+        .form-select {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-text {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        .btn {
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            border-radius: 8px;
+            border: none;
+            padding: 12px 16px;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #dc3545;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .reservation-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 4px;
+            background: #f3f4f6;
+            border-radius: 10px;
+        }
+
+        .filter-tab {
+            flex: 1;
+            padding: 10px 16px;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #6b7280;
+            background: transparent;
+            border: none;
+        }
+
+        .filter-tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge {
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-blue {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+    </style>
+</head>
+
+<body>
+<div class="main-content">
+    <div class="content-area">
+        <div class="page-header">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h1 style="margin: 0; font-size: 20px;">Đặt Lịch Nhanh</h1>
+                <a href="/user/fair-schedule" class="btn btn-outline-secondary btn-sm" style="text-decoration: none;">
+                    <i class="bi bi-arrow-left me-1"></i>Quay lại
+                </a>
+            </div>
+            <p class="page-subtitle" style="margin: 0;">Đặt lịch sử dụng xe đồng sở hữu</p>
+        </div>
+
+        <div class="row">
+            <!-- Form Card -->
+            <div class="col-12 col-lg-8 col-xl-6 mx-auto">
+                <!-- Group Info Card -->
+                <div class="card-section" id="groupInfoSection" style="display: none;">
+                    <div class="section-title">
+                        <div class="section-title-icon people">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <span>Thông Tin Nhóm Sở Hữu</span>
+                    </div>
+                    <div id="groupInfoContent"></div>
+                </div>
+
+                <div class="card-section">
+                    <div class="section-title">
+                        <div class="section-title-icon calendar">
+                            <i class="bi bi-calendar-plus"></i>
+                        </div>
+                        <span>Tạo Lịch Mới</span>
+                    </div>
+
+                    <!-- Error Alert -->
+                    <div id="errorAlert" class="alert alert-danger" style="display: none;" role="alert">
+                        <div class="d-flex align-items-start">
+                            <div style="width: 24px; height: 24px; background: #dc3545; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0;">
+                                <i class="bi bi-x-lg" style="color: white; font-size: 12px;"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <strong style="display: block; margin-bottom: 4px; color: #991b1b; font-size: 14px;">Không thể đặt lịch</strong>
+                                <span id="errorMessage" style="color: #7f1d1d; font-size: 13px; line-height: 1.5;"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Success Alert -->
+                    <div id="successAlert" class="alert alert-success" style="display: none;" role="alert">
+                        <strong>Thành công!</strong> <span id="successMessage">Đặt lịch thành công!</span>
+                    </div>
+
+                    <form id="bookingForm">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-car-front me-1"></i>CHỌN XE
+                            </label>
+                            <select class="form-select" name="vehicleId" id="vehicle" required>
+                                <option value="">-- Chọn xe để đặt lịch --</option>
+                            </select>
+                            <div class="form-text text-success" id="vehicleInfo" style="display: none;">
+                                <i class="bi bi-check-circle me-1"></i><span id="vehicleCount">0</span> xe để đặt lịch. Chọn xe từ nhóm đồng sở hữu của bạn.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">THỜI GIAN BẮT ĐẦU</label>
+                            <input class="form-control" type="datetime-local" id="startDate" name="startDate" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">THỜI GIAN KẾT THÚC</label>
+                            <input class="form-control" type="datetime-local" id="endDate" name="endDate" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">GHI CHÚ</label>
+                            <textarea class="form-control" name="purpose" id="purpose" rows="3" placeholder="VD: Đi họp khách hàng, đi du lịch..."></textarea>
+                            <div class="form-text">Mô tả mục đích sử dụng xe (không bắt buộc)</div>
+                        </div>
+
+                        <button class="btn btn-primary w-100" type="submit" id="submitBtn">
+                            <i class="bi bi-plus-circle me-2"></i>Đặt Lịch Ngay
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Lấy token từ localStorage hoặc cookie
+    function getAuthToken() {
+        // Tìm token với nhiều key phổ biến
+        const token = localStorage.getItem('jwtToken') ||
+            localStorage.getItem('token') ||
+            localStorage.getItem('authToken');
+        if (token) return token;
+
+        // Thử lấy từ cookie
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'jwtToken' || name === 'token' || name === 'authToken') return value;
+        }
+        return null;
+    }
+
+    function decodeJwt(token) {
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    // Lấy userId từ localStorage hoặc token
+    function getUserId() {
+        const storedId = localStorage.getItem('userId');
+        if (storedId) {
+            return parseInt(storedId, 10);
+        }
+
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user.userId || user.id) {
+                    return parseInt(user.userId || user.id, 10);
+                }
+            } catch (e) {
+                console.error('Error parsing user:', e);
+            }
+        }
+
+        const token = getAuthToken();
+        if (token) {
+            const decoded = decodeJwt(token);
+            if (decoded && decoded.userId) {
+                return parseInt(decoded.userId, 10);
+            }
+        }
+        return null;
+    }
+
+    // API Base URL - qua API Gateway
+    const API_BASE = 'http://localhost:8084/api';
+
+    let currentVehicleId = null;
+    let userId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        userId = getUserId();
+        console.log('✓ Set userId from localStorage:', userId);
+
+        if (!userId) {
+            showError('Vui lòng đăng nhập để đặt lịch');
+            return;
+        }
+
+        // Load vehicles
+        loadVehicles();
+
+        // Form submit handler
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await submitBooking();
+        });
+
+        // Vehicle change handler
+        document.getElementById('vehicle').addEventListener('change', (e) => {
+            const vehicleId = e.target.value;
+            if (vehicleId) {
+                currentVehicleId = parseInt(vehicleId);
+                loadGroupInfo(vehicleId);
+            }
+        });
+
+        // Set min date for end date
+        document.getElementById('startDate').addEventListener('change', (e) => {
+            document.getElementById('endDate').min = e.target.value;
+        });
+    });
+
+    // Load vehicles
+    async function loadVehicles() {
+        try {
+            const token = getAuthToken();
+            console.log('🔑 Token found:', token ? 'Yes' : 'No');
+            console.log('👤 UserId:', userId);
+
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+                console.log('✅ Sending request with Authorization header');
+            } else {
+                console.warn('⚠️ No token found, request may fail');
+            }
+
+            const response = await fetch(`${API_BASE}/users/${userId}/vehicles`, {
+                headers: headers
+            });
+
+            console.log('📡 Response status:', response.status, response.statusText);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Error response:', errorText);
+                if (response.status === 401) {
+                    throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                }
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            const vehicles = await response.json();
+            console.log('✓ Loaded', vehicles.length, 'vehicles for user');
+
+            const select = document.getElementById('vehicle');
+            select.innerHTML = '<option value="">-- Chọn xe để xem lịch --</option>';
+
+            vehicles.forEach(v => {
+                const option = document.createElement('option');
+                option.value = v.vehicleId;
+                const vehicleName = v.vehicleName || v.name || `Xe #${v.vehicleId}`;
+                const groupName = v.groupName || `Nhóm #${v.groupId || ''}`;
+                const ownership = v.ownershipPercentage || 0;
+                const licensePlate = v.licensePlate || '';
+                option.textContent = licensePlate 
+                    ? `${vehicleName} (${licensePlate}) - ${groupName} (${ownership}%)`
+                    : `${vehicleName} - ${groupName} (${ownership}%)`;
+                select.appendChild(option);
+            });
+
+            if (vehicles.length > 0) {
+                document.getElementById('vehicleInfo').style.display = 'block';
+                document.getElementById('vehicleCount').textContent = vehicles.length;
+            }
+        } catch (error) {
+            console.error('Error loading vehicles:', error);
+            showError('Không thể tải danh sách xe. Vui lòng thử lại.');
+        }
+    }
+
+    // Load group info
+    async function loadGroupInfo(vehicleId) {
+        try {
+            const token = getAuthToken();
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`${API_BASE}/vehicles/${vehicleId}/group`, {
+                headers: headers
+            });
+
+            if (response.ok) {
+                const groupInfo = await response.json();
+                displayGroupInfo(groupInfo);
+            }
+        } catch (error) {
+            console.error('Error loading group info:', error);
+        }
+    }
+
+    // Display group info
+    function displayGroupInfo(groupInfo) {
+        const section = document.getElementById('groupInfoSection');
+        const content = document.getElementById('groupInfoContent');
+
+        if (groupInfo && groupInfo.groupName) {
+            let html = `<h5 class="mb-3">${groupInfo.groupName}</h5>`;
+            if (groupInfo.description) {
+                html += `<p class="text-muted small mb-3">${groupInfo.description}</p>`;
+            }
+
+            if (groupInfo.members && groupInfo.members.length > 0) {
+                html += '<div class="mb-2"><strong class="text-muted small">Thành viên nhóm:</strong></div>';
+                html += '<div class="d-flex flex-wrap gap-2">';
+                groupInfo.members.forEach(member => {
+                    const fullName = member.fullName || `User#${member.userId}`;
+                    html += `<div class="badge badge-blue d-flex align-items-center gap-1" style="padding: 6px 12px; font-size: 12px;">
+                            <i class="bi bi-person-circle"></i>
+                            <span>${fullName}</span>
+                            <span class="text-muted">(${member.ownershipPercentage}%)</span>
+                        </div>`;
+                });
+                html += '</div>';
+            }
+
+            content.innerHTML = html;
+            section.style.display = 'block';
+        }
+    }
+
+    // Submit booking
+    async function submitBooking() {
+        const vehicleId = document.getElementById('vehicle').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const purpose = document.getElementById('purpose').value;
+
+        // Validation
+        if (!vehicleId) {
+            showError('Vui lòng chọn xe');
+            return;
+        }
+
+        if (!startDate || !endDate) {
+            showError('Vui lòng chọn thời gian bắt đầu và kết thúc');
+            return;
+        }
+
+        if (new Date(endDate) <= new Date(startDate)) {
+            showError('Thời gian kết thúc phải sau thời gian bắt đầu');
+            return;
+        }
+
+        // Hide previous alerts
+        document.getElementById('errorAlert').style.display = 'none';
+        document.getElementById('successAlert').style.display = 'none';
+
+        // Disable submit button
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Đang xử lý...';
+
+        try {
+            const token = getAuthToken();
+
+            // Format datetime to ISO-8601 format
+            // datetime-local input returns format: "YYYY-MM-DDTHH:mm" (local time, no timezone)
+            // We need to convert it to ISO-8601 format
+            let startDatetime, endDatetime;
+            
+            try {
+                // Validate input format
+                if (!startDate || !endDate) {
+                    throw new Error('Vui lòng chọn đầy đủ thời gian bắt đầu và kết thúc');
+                }
+                
+                // datetime-local format: "YYYY-MM-DDTHH:mm"
+                // Parse as local time and convert to ISO string
+                // If the string doesn't have timezone, JavaScript treats it as local time
+                const startDateStr = startDate.trim();
+                const endDateStr = endDate.trim();
+                
+                // Create Date objects - JavaScript will parse as local time
+                const startDateObj = new Date(startDateStr);
+                const endDateObj = new Date(endDateStr);
+                
+                // Validate dates
+                if (isNaN(startDateObj.getTime())) {
+                    console.error('Invalid startDate:', startDateStr);
+                    throw new Error('Thời gian bắt đầu không hợp lệ: ' + startDateStr);
+                }
+                if (isNaN(endDateObj.getTime())) {
+                    console.error('Invalid endDate:', endDateStr);
+                    throw new Error('Thời gian kết thúc không hợp lệ: ' + endDateStr);
+                }
+                
+                // Convert to ISO string (UTC)
+                startDatetime = startDateObj.toISOString();
+                endDatetime = endDateObj.toISOString();
+                
+                console.log('📅 Date conversion:', {
+                    startDateInput: startDateStr,
+                    startDateISO: startDatetime,
+                    endDateInput: endDateStr,
+                    endDateISO: endDatetime
+                });
+            } catch (dateError) {
+                console.error('❌ Date parsing error:', dateError);
+                showError(dateError.message || 'Thời gian không hợp lệ. Vui lòng kiểm tra lại.');
+                return;
+            }
+
+            const requestBody = {
+                vehicleId: parseInt(vehicleId),
+                userId: userId,
+                startDatetime: startDatetime,
+                endDatetime: endDatetime,
+                purpose: purpose || null
+            };
+
+            console.log('📤 Sending booking request:', requestBody);
+
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            // Gửi userId trong header nếu có
+            if (userId) {
+                headers['X-User-Id'] = userId.toString();
+            }
+
+            const response = await fetch(`${API_BASE}/reservations`, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(requestBody)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                console.log('✅ Booking successful:', data);
+                showSuccess('Đặt lịch thành công!');
+
+                // Reset form
+                document.getElementById('bookingForm').reset();
+            } else {
+                console.error('❌ Booking failed:', data);
+                const errorMsg = data.message || data.error || 'Không thể đặt lịch';
+                showError(errorMsg);
+            }
+        } catch (error) {
+            console.error('❌ Error submitting booking:', error);
+            showError('Lỗi kết nối. Vui lòng thử lại.');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>Đặt Lịch Ngay';
+        }
+    }
+
+
+    // Show error
+    function showError(message) {
+        document.getElementById('errorMessage').textContent = message;
+        document.getElementById('errorAlert').style.display = 'block';
+        document.getElementById('successAlert').style.display = 'none';
+    }
+
+    // Show success
+    function showSuccess(message) {
+        document.getElementById('successMessage').textContent = message;
+        document.getElementById('successAlert').style.display = 'block';
+        document.getElementById('errorAlert').style.display = 'none';
+    }
+</script>
+</body>
+</html>

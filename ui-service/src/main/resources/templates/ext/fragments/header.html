@@ -1,0 +1,20 @@
+<!-- templates/ext/fragments/header.html -->
+<header th:fragment="header" class="admin-header">
+    <div class="header-left">
+        <h1 th:text="${pageTitle != null ? pageTitle : 'Quản Lý Xe'}"></h1>
+        <p th:text="${pageDescription != null ? pageDescription : 'Theo dõi và quản lý đội xe'}"></p>
+    </div>
+    <div class="header-right">
+        <div class="notification">
+            <i class="fas fa-bell"></i>
+            <span class="badge">3</span>
+        </div>
+        <div class="user-profile">
+            <div class="admin-avatar">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <span th:text="${adminName != null ? adminName : 'Admin'}">Admin</span>
+        </div>
+    </div>
+</header>
+

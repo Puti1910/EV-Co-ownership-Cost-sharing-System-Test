@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Tình trạng Hồ sơ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: #2196F3;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .content {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .status-pending {
+            background: #ff9800;
+            color: white;
+        }
+        .status-approved {
+            background: #4CAF50;
+            color: white;
+        }
+        .status-rejected {
+            background: #f44336;
+            color: white;
+        }
+        .btn {
+            background: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 th:text="${pageTitle}">Tình trạng Hồ sơ</h1>
+        <p>Xin chào, <span th:text="${userName}">User</span>!</p>
+    </div>
+    
+    <div class="content">
+        <div class="user-info">
+            <p><strong>Email:</strong> <span th:text="${userEmail}">user@example.com</span></p>
+            <p><strong>Trạng thái hồ sơ:</strong> 
+                <span th:if="${profileStatus == 'PENDING'}" class="status-badge status-pending">Đang chờ duyệt</span>
+                <span th:if="${profileStatus == 'APPROVED'}" class="status-badge status-approved">Đã được duyệt</span>
+                <span th:if="${profileStatus == 'REJECTED'}" class="status-badge status-rejected">Bị từ chối</span>
+                <span th:if="${profileStatus == null}" class="status-badge status-pending">Chưa hoàn tất</span>
+            </p>
+            <p><strong>Đã xác thực:</strong> <span th:text="${isVerified ? 'Có' : 'Chưa'}">Chưa</span></p>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <a th:href="@{/user/onboarding}" class="btn">Cập nhật hồ sơ</a>
+            <a th:href="@{/user/home}" class="btn">Về trang chủ</a>
+        </div>
+    </div>
+</body>
+</html>
+

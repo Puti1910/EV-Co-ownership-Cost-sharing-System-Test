@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhập Km Sử Dụng - CarShare Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/layout.css}" rel="stylesheet">
+    <link th:href="@{/css/cost-management.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Layout Container -->
+    <div class="layout-container">
+        <!-- Include Sidebar -->
+        <div th:replace="fragments/sidebar :: sidebar"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-info">
+                        <h1 class="page-title">📊 Nhập Km Sử Dụng</h1>
+                        <p class="page-subtitle">Nhập số km đã chạy trong tháng để tự động chia chi phí sạc điện công bằng</p>
+                    </div>
+                </div>
+                <div class="top-bar-actions">
+                    <a href="/costs/auto-split" class="btn btn-primary">
+                        <i class="fas fa-calculator"></i>
+                        Tạo chi phí tự động
+                    </a>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Info Alert -->
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Hướng dẫn:</strong> Nhập số km bạn đã chạy trong tháng này. 
+                        Hệ thống sẽ dùng dữ liệu này để tự động chia chi phí sạc điện theo mức độ sử dụng.
+                    </div>
+                </div>
+
+                <!-- Month Selection -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-calendar"></i>
+                            Chọn tháng
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="selectMonth">Tháng</label>
+                                <select id="selectMonth" class="form-control">
+                                    <option value="1">Tháng 1</option>
+                                    <option value="2">Tháng 2</option>
+                                    <option value="3">Tháng 3</option>
+                                    <option value="4">Tháng 4</option>
+                                    <option value="5">Tháng 5</option>
+                                    <option value="6">Tháng 6</option>
+                                    <option value="7">Tháng 7</option>
+                                    <option value="8">Tháng 8</option>
+                                    <option value="9">Tháng 9</option>
+                                    <option value="10" selected>Tháng 10</option>
+                                    <option value="11">Tháng 11</option>
+                                    <option value="12">Tháng 12</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="selectYear">Năm</label>
+                                <select id="selectYear" class="form-control">
+                                    <option value="2024" selected>2024</option>
+                                    <option value="2025">2025</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="selectGroup">Nhóm</label>
+                                <select id="selectGroup" class="form-control">
+                                    <option value="1">Group 1 - Tesla Model 3</option>
+                                    <option value="2">Group 2 - BMW i3</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="align-self: flex-end;">
+                                <button type="button" class="btn btn-primary w-100" onclick="loadUsageData()">
+                                    <i class="fas fa-search"></i>
+                                    Xem dữ liệu
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Usage Input Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-road"></i>
+                            Nhập số km
+                        </h3>
+                        <span class="badge badge-info" id="totalKmBadge">Tổng: 0 km</span>
+                    </div>
+                    <div class="card-content">
+                        <form id="usageForm">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Số km đã chạy</th>
+                                            <th>% sử dụng</th>
+                                            <th>Ghi chú</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usageTableBody">
+                                        <!-- Sample row -->
+                                        <tr data-user-id="1">
+                                            <td>
+                                                <div class="user-info">
+                                                    <i class="fas fa-user-circle"></i>
+                                                    <strong>User 1</strong>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control km-input" 
+                                                       value="0" min="0" step="0.1"
+                                                       onchange="calculatePercentages()">
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-primary percent-badge">0%</span>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control" 
+                                                       placeholder="Ghi chú...">
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-success" 
+                                                        onclick="saveUserUsage(1)">
+                                                    <i class="fas fa-save"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-success" onclick="saveAllUsage()">
+                                    <i class="fas fa-save"></i>
+                                    Lưu tất cả
+                                </button>
+                                <button type="button" class="btn btn-outline" onclick="resetForm()">
+                                    <i class="fas fa-redo"></i>
+                                    Làm mới
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Usage Statistics -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-chart-pie"></i>
+                            Thống kê sử dụng
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="stats-grid" id="usageStats">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="totalKmStat">0 km</div>
+                                    <div class="stat-label">Tổng km nhóm</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="avgKmStat">0 km</div>
+                                    <div class="stat-label">Trung bình/người</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-crown"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="maxUserStat">-</div>
+                                    <div class="stat-label">Dùng nhiều nhất</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Usage Chart -->
+                        <div class="chart-container" style="margin-top: 2rem;">
+                            <canvas id="usageChart" style="max-height: 300px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script th:src="@{/js/layout.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:src="@{/js/usage-tracking.js}"></script>
+</body>
+</html>
+

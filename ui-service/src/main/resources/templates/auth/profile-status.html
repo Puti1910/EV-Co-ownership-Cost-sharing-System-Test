@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tình trạng Hồ sơ</title>
+    <script th:src="@{/js/auth/user-guard.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/auth/user-layout.css}">
+    <link rel="stylesheet" th:href="@{/css/auth/profile-status.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<div class="user-layout-container no-sidebar">
+    <!-- Header -->
+    <header class="user-header">
+        <div class="header-left">
+            <div class="brand">
+                <i class="fas fa-car-battery"></i>
+                <span>CarShare</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="/user/groups" class="btn-back-home">
+                <i class="fas fa-arrow-left"></i> Trở về trang chủ
+            </a>
+            <div class="user-profile">
+                <span id="userNameDisplay">Người dùng</span>
+                <button onclick="if(typeof logout === 'function') logout(); else window.location.href='/auth/login';" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Đăng Xuất
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content full-width">
+        <div class="page-header">
+            <h1><i class="fas fa-user-circle"></i> Tình trạng Hồ sơ</h1>
+            <p>Xem thông tin và trạng thái hồ sơ của bạn</p>
+        </div>
+
+        <div class="status-card">
+            <h2>Hồ sơ của bạn</h2>
+            <div id="status-tag" class="status-tag pending">
+                <i class="fas fa-clock"></i> Đang chờ duyệt
+            </div>
+        </div>
+
+        <div class="profile-view-section">
+
+            <div class="profile-view-header"><i class="fas fa-user"></i> Thông Tin Cá Nhân</div>
+            <div class="info-row">
+                <div class="info-group">
+                    <label>Họ và Tên</label>
+                    <span id="fullName-view">&nbsp;</span>
+                </div>
+                <div class="info-group">
+                    <label>Số Điện Thoại</label>
+                    <span id="phoneNumber-view">&nbsp;</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-group">
+                    <label>Email</label>
+                    <span id="email-view">&nbsp;</span>
+                </div>
+                <div class="info-group">
+                    <label>Ngày Sinh</label>
+                    <span id="dateOfBirth-view">&nbsp;</span>
+                </div>
+            </div>
+
+            <div class="profile-view-header"><i class="fas fa-id-card"></i> Giấy Tờ Tùy Thân</div>
+            <div class="info-row">
+                <div class="info-group">
+                    <label>Số CMND/CCCD</label>
+                    <span id="idCardNumber-view">&nbsp;</span>
+                </div>
+                <div class="info-group">
+                    <label>Ngày Cấp</label>
+                    <span id="idCardIssueDate-view">&nbsp;</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-group">
+                    <label>Nơi Cấp</label>
+                    <span id="idCardIssuePlace-view">&nbsp;</span>
+                </div>
+            </div>
+
+            <div class="profile-view-header"><i class="fas fa-car-side"></i> Giấy Phép Lái Xe</div>
+            <div class="info-row">
+                <div class="info-group">
+                    <label>Số Giấy Phép</label>
+                    <span id="licenseNumber-view">&nbsp;</span>
+                </div>
+                <div class="info-group">
+                    <label>Hạng Giấy Phép</label>
+                    <span id="licenseClass-view">&nbsp;</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-group">
+                    <label>Ngày Cấp</label>
+                    <span id="licenseIssueDate-view">&nbsp;</span>
+                </div>
+                <div class="info-group">
+                    <label>Ngày Hết Hạn</label>
+                    <span id="licenseExpiryDate-view">&nbsp;</span>
+                </div>
+            </div>
+
+            <div class="profile-view-header"><i class="fas fa-upload"></i> Giấy Tờ Đã Tải Lên</div>
+            <div class="info-row">
+                <div class="info-group">
+                    <label>Ảnh CMND/CCCD (Mặt trước)</label>
+                    <span class="image-placeholder" id="idCardFrontUrl-view">Chưa tải lên</span>
+                </div>
+                <div class="info-group">
+                    <label>Ảnh CMND/CCCD (Mặt sau)</label>
+                    <span class="image-placeholder" id="idCardBackUrl-view">Chưa tải lên</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-group">
+                    <label>Ảnh Giấy Phép Lái Xe</label>
+                    <span class="image-placeholder" id="licenseImageUrl-view">Chưa tải lên</span>
+                </div>
+                <div class="info-group">
+                    <label>Ảnh Chân Dung</label>
+                    <span class="image-placeholder" id="portraitImageUrl-view">Chưa tải lên</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+<script th:src="@{/js/auth/user-guard.js}"></script>
+<script th:src="@{/js/auth/auth-utils.js}"></script>
+<script th:src="@{/js/auth/token-manager.js}"></script>
+<script th:src="@{/js/auth/profile-status.js}"></script>
+</body>
+</html>

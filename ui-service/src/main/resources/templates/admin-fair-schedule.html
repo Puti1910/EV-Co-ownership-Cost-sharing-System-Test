@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Công Bằng - Admin</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin-layout.css}">
+
+    <style>
+        body {
+            background: #F9FAFB;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .fairness-wrapper {
+            padding: 32px;
+            flex: 1;
+        }
+        .fairness-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 40px -20px rgba(15, 23, 42, 0.4);
+            margin-bottom: 24px;
+        }
+        .fairness-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+        }
+        .fairness-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .summary-tile {
+            border-radius: 14px;
+            padding: 18px;
+            border: 1px solid #eef2ff;
+            background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(59,130,246,0.08));
+        }
+        .summary-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e1b4b;
+        }
+        .queue-list li {
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #fairnessCalendar {
+            background: #fff;
+            border-radius: 16px;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .availability-chip {
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 13px;
+            margin: 4px;
+            background: #eef2ff;
+            color: #3730a3;
+            border: 1px solid #c7d2fe;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .members-table thead th {
+            background: #f8fafc;
+            font-size: 13px;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+        .priority-chip {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .priority-HIGH { background: #fee2e2; color: #b91c1c; }
+        .priority-NORMAL { background: #e0f2fe; color: #0369a1; }
+        .priority-LOW { background: #ede9fe; color: #5b21b6; }
+        .calendar-legend span {
+            margin-right: 16px;
+            font-size: 13px;
+            color: #475569;
+        }
+        .calendar-legend i {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .legend-booked { background: #c7d2fe; }
+        .legend-completed { background: #bbf7d0; }
+        .legend-cancelled { background: #fecaca; }
+        .queue-rank {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #eef2ff;
+            color: #4338ca;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+        .qr-box {
+            border: 1px dashed #cbd5f5;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            background: #f8fafc;
+        }
+        .signature-preview {
+            max-width: 100%;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+
+    <th:block th:replace="fragments/admin-guard :: scripts"></th:block>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js" defer></script>
+    <script th:src="@{/js/fairness/fairness-api.js}" defer></script>
+    <script th:src="@{/js/fairness/admin-fair-schedule.js}" defer></script>
+</head>
+<body class="admin-page">
+<div class="admin-container">
+    <div th:replace="fragments/admin-sidebar :: sidebar"
+         th:with="activePage='fair-schedule'"></div>
+
+    <main class="admin-main">
+        <div th:replace="fragments/admin-header :: header"></div>
+
+        <section class="admin-content fairness-wrapper">
+            <div class="fairness-card">
+                <div class="fairness-header">
+                    <div>
+                        <h2 class="mb-1">Lịch đặt xe công bằng</h2>
+                        <p class="text-muted mb-0">
+                            Theo dõi lịch trống/đang dùng, xếp hàng ưu tiên và quản lý check-in/out cho từng xe.
+                        </p>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <select id="fairnessVehicleSelect" class="form-select">
+                            <option value="">Đang tải danh sách xe...</option>
+                        </select>
+                        <select id="fairnessRangeSelect" class="form-select">
+                            <option value="7">7 ngày</option>
+                            <option value="14">14 ngày</option>
+                            <option value="30" selected>30 ngày</option>
+                            <option value="60">60 ngày</option>
+                        </select>
+                        <button class="btn btn-outline-primary" id="refreshFairnessBtn">
+                            <i class="bi bi-arrow-repeat"></i> Làm mới
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fairness-summary-grid mb-4">
+                <div class="summary-tile">
+                    <p class="text-muted mb-1">Fairness Index</p>
+                    <div class="summary-value" id="fairnessIndexValue">-</div>
+                    <small class="text-muted">Điểm cân bằng sử dụng của nhóm</small>
+                </div>
+                <div class="summary-tile">
+                    <p class="text-muted mb-1">Tổng giờ sử dụng</p>
+                    <div class="summary-value" id="totalUsageHours">-</div>
+                    <small class="text-muted">Trong khoảng thời gian được chọn</small>
+                </div>
+                <div class="summary-tile">
+                    <p class="text-muted mb-1">Thành viên ưu tiên tiếp theo</p>
+                    <div class="summary-value" id="nextPriorityMember">-</div>
+                    <small class="text-muted">Theo chênh lệch quyền sở hữu</small>
+                </div>
+                <div class="summary-tile">
+                    <p class="text-muted mb-1">Khung giờ trống sớm nhất</p>
+                    <div class="summary-value" id="nextAvailabilitySlot">-</div>
+                    <small class="text-muted">Đủ điều kiện đặt lịch mới</small>
+                </div>
+            </div>
+
+            <div class="fairness-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Lịch xe & khung giờ trống</h5>
+                    <div class="calendar-legend">
+                        <span><i class="legend-booked"></i>Đang đặt</span>
+                        <span><i class="legend-completed"></i>Hoàn tất</span>
+                        <span><i class="legend-cancelled"></i>Đã hủy</span>
+                    </div>
+                </div>
+                <div id="fairnessCalendar"></div>
+                <div class="mt-3">
+                    <h6 class="mb-2">Khung giờ trống gợi ý</h6>
+                    <div id="availabilityList" class="d-flex flex-wrap"></div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-7">
+                    <div class="fairness-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Thành viên & quyền ưu tiên</h5>
+                            <a href="/user/fair-schedule" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                Xem như người dùng
+                            </a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover members-table align-middle mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Thành viên</th>
+                                    <th class="text-center">Quyền sở hữu</th>
+                                    <th class="text-center">Đã sử dụng</th>
+                                    <th class="text-center">Chênh lệch</th>
+                                    <th class="text-center">Ưu tiên</th>
+                                </tr>
+                                </thead>
+                                <tbody id="membersTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        Chọn xe để xem thông tin fairness
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="fairness-card mb-4">
+                        <h5>Hàng chờ ưu tiên</h5>
+                        <ul class="list-unstyled queue-list mt-3" id="priorityQueueList">
+                            <li class="text-muted">Chưa có dữ liệu</li>
+                        </ul>
+                    </div>
+                    <div class="fairness-card">
+                        <h5>Chi tiết thành viên</h5>
+                        <p class="text-muted small mb-3">
+                            Bấm vào tên trong bảng để xem thêm thông tin lịch sử và chênh lệch.
+                        </p>
+                        <div id="memberDetailPanel" class="text-muted small">
+                            Chưa chọn thành viên.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- Reservation Modal -->
+<div class="modal fade" id="reservationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <div>
+                    <h5 class="modal-title" id="reservationModalTitle">Chi tiết lịch đặt</h5>
+                    <small class="text-muted" id="reservationModalSubtitle"></small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="border rounded-3 p-3">
+                            <h6>Thông tin cơ bản</h6>
+                            <dl class="row small mb-0" id="reservationInfoList"></dl>
+                        </div>
+                        <div class="border rounded-3 p-3 mt-3">
+                            <h6>Check-in / Check-out</h6>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary" id="issueCheckinBtn">
+                                    <i class="bi bi-qr-code-scan"></i> Tạo QR Check-in
+                                </button>
+                                <button class="btn btn-outline-primary" id="issueCheckoutBtn">
+                                    <i class="bi bi-qr-code"></i> Tạo QR Check-out
+                                </button>
+                            </div>
+                            <div class="mt-3" id="checkpointHistory">
+                                <div class="text-muted small">Chưa có mã nào</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="qr-box" id="checkpointPreview" style="display:none;">
+                            <p class="fw-semibold">QR mới tạo</p>
+                            <img alt="QR" class="img-fluid mb-2" id="checkpointQrImage">
+                            <div class="small text-muted" id="checkpointToken"></div>
+                            <small class="text-muted d-block">Hết hạn: <span id="checkpointExpire"></span></small>
+                        </div>
+                        <div class="border rounded-3 p-3 mt-3">
+                            <h6>Chữ ký điện tử (nếu có)</h6>
+                            <img id="signaturePreview" class="signature-preview d-none" alt="signature">
+                            <div id="signaturePlaceholder" class="text-muted small">Chưa có chữ ký.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+

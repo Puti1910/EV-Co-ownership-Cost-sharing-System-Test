@@ -81,10 +81,7 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(auth -> auth
                         // API Public
-<<<<<<< HEAD
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-=======
->>>>>>> 7b3a3ddb1c4a2077a5fa00e227a99d6c41895d71
                         .requestMatchers("/api/auth/users/register", "/api/auth/users/login", "/api/auth/users/refresh", "/api/auth/users/logout").permitAll()
 
                         // Endpoint trung gian để nhận JWT và set cookie (public)

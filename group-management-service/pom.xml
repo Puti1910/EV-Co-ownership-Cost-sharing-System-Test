@@ -68,7 +68,6 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-<<<<<<< HEAD
 	
 		<dependency>
 			<groupId>org.springdoc</groupId>
@@ -76,9 +75,6 @@
 			<version>2.5.0</version>
 		</dependency>
 </dependencies>
-=======
-	</dependencies>
->>>>>>> 7b3a3ddb1c4a2077a5fa00e227a99d6c41895d71
 
 	<build>
 		<plugins>

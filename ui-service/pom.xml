@@ -124,6 +124,13 @@
 							<goal>check</goal>
 						</goals>
 					</execution>
+					<execution>
+						<id>spotbugs-report</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>spotbugs</goal>
+						</goals>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>

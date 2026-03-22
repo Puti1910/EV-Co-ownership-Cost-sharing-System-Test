@@ -11,17 +11,7 @@
         </processorPath>
         <module name="user-account-service" />
       </profile>
-      <profile name="Annotation profile for Reservation Admin Service" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.34/lombok-1.18.34.jar" />
-        </processorPath>
-        <module name="ReservationService" />
-        <module name="reservationadminservice" />
-      </profile>
-      <profile name="Annotation profile for LegalContractService" enabled="true">
+      <profile name="Annotation profile for VehicleServiceManagementService" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -31,18 +21,28 @@
         <module name="LegalContractService" />
         <module name="VehicleServiceManagementService" />
       </profile>
-      <profile name="Annotation profile for cost-payment-service" enabled="true">
+      <profile name="Annotation profile for ui-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
         </processorPath>
-        <module name="api-gateway" />
         <module name="dispute-management-service" />
+        <module name="api-gateway" />
         <module name="group-management-service" />
-        <module name="cost-payment-service" />
         <module name="ui-service" />
+        <module name="cost-payment-service" />
+      </profile>
+      <profile name="Annotation profile for Reservation Service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.34/lombok-1.18.34.jar" />
+        </processorPath>
+        <module name="ReservationService" />
+        <module name="reservationadminservice" />
       </profile>
     </annotationProcessing>
   </component>

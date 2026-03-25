@@ -21,6 +21,6 @@ jobs:
         with:
           args: >
             -Dsonar.organization=dydymerho
-            -Dsonar.projectKey=dydymerho_EV-Co-ownership-Cost-sharing-System-Test
+            -Dsonar.projectKey=Dydymerho_EV-Co-ownership-Cost-sharing-System-Test
             -Dsonar.sources=.
             -Dsonar.java.binaries=.

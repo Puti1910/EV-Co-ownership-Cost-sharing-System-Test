@@ -51,6 +51,12 @@ public class UserService {
         if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
             throw new RuntimeException("Mật khẩu không được để trống!");
         }
+
+        // Kiểm tra định dạng email (Regex đơn giản)
+        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+        if (request.getEmail() == null || !request.getEmail().matches(emailRegex)) {
+            throw new RuntimeException("Email không đúng định dạng!");
+        }
         
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email đã tồn tại trong hệ thống!");

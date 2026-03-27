@@ -378,21 +378,6 @@ FROM `Group` g
 LEFT JOIN GroupContract c ON c.group_id = g.groupId
 WHERE c.contract_id IS NULL;
 
--- Fallback ensure GroupContract exists (idempotent) in case script is partially applied
-CREATE TABLE IF NOT EXISTS GroupContract (
-    contract_id INT AUTO_INCREMENT PRIMARY KEY,
-    group_id INT NOT NULL,
-    contract_code VARCHAR(100) NOT NULL UNIQUE,
-    contract_content TEXT,
-    contract_status ENUM('pending', 'signed', 'archived') DEFAULT 'pending',
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    signed_date DATETIME NULL,
-    created_by INT,
-    CONSTRAINT fk_group_contract_group_fallback
-        FOREIGN KEY (group_id) REFERENCES `Group`(groupId)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 SELECT '✅ Contract tables created/updated successfully.' AS '';
 
 

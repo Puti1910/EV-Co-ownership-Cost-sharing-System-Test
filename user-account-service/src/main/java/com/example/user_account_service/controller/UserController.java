@@ -69,7 +69,7 @@ public class UserController {
      * API Đăng nhập (PUBLIC)
      */
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
             LoginResponse response = userService.loginUser(loginRequest);
             return ResponseEntity.ok(response);

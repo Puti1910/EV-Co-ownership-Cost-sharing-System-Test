@@ -79,6 +79,11 @@ public class UserService {
      * Đăng nhập: xác thực, phát access token + refresh token.
      */
     public LoginResponse loginUser(LoginRequest request) {
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty() ||
+            request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new RuntimeException("Email và mật khẩu không được để trống!");
+        }
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );

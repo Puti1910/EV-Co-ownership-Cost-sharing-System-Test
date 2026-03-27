@@ -8,6 +8,7 @@ import com.example.user_account_service.dto.UserProfileUpdateRequest;
 import com.example.user_account_service.entity.User;
 import com.example.user_account_service.service.UserService;
 import com.example.user_account_service.service.StorageService; // <-- THÊM IMPORT
+import jakarta.validation.Valid; // <-- THÊM IMPORT
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ public class UserController {
      * API Đăng ký (PUBLIC)
      */
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
             LoginResponse response = userService.registerUser(registerRequest);
             return ResponseEntity.ok(response);

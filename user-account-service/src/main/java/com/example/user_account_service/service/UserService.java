@@ -48,6 +48,10 @@ public class UserService {
      * Đăng ký người dùng mới và trả về bộ đôi token.
      */
     public LoginResponse registerUser(RegisterRequest request) {
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new RuntimeException("Mật khẩu không được để trống!");
+        }
+        
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email đã tồn tại trong hệ thống!");
         }

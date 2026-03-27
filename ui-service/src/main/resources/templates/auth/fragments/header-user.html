@@ -1,0 +1,16 @@
+<header th:fragment="header-user" class="user-header" xmlns:th="http://www.thymeleaf.org">
+    <div class="header-left">
+        <h1 style="font-size: 24px;" th:text="${pageTitle != null ? pageTitle : 'Hoàn tất đăng ký'}">Hoàn tất đăng ký</h1>
+    </div>
+    <div class="header-right">
+        <div class="user-profile">
+            <span id="userNameDisplay">Nguyễn Văn A</span>
+
+            <button onclick="logout()" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Đăng Xuất
+            </button>
+
+            <img src="https://via.placeholder.com/40x40/4F46E5/FFFFFF?text=AD" alt="User">
+        </div>
+    </div>
+</header>

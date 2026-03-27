@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Co-ownership System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/layout.css}" rel="stylesheet">
+    <link th:href="@{/css/index.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Layout Container -->
+    <div class="layout-container">
+        <!-- Include Sidebar Fragment -->
+        <div th:replace="fragments/sidebar :: sidebar"></div>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-info">
+                        <h1 class="page-title">Chào mừng</h1>
+                        <p class="page-subtitle">Hệ thống quản lý đồng sở hữu xe điện</p>
+                    </div>
+                </div>
+                <div class="top-bar-actions">
+                    <a href="/admin" class="btn btn-primary">
+                        <i class="fas fa-shield-halved"></i>
+                        Admin Panel
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Welcome Section -->
+                <div class="welcome-section">
+                    <div class="welcome-content">
+                        <h1 class="welcome-title">Chào mừng đến với EV Co-ownership System</h1>
+                        <p class="welcome-subtitle">Quản lý nhóm đồng sở hữu xe điện và chia sẻ chi phí một cách hiệu quả</p>
+                    </div>
+                </div>
+
+                <!-- Feature Cards -->
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Quản lý nhóm</h3>
+                            <p>Tạo và quản lý các nhóm đồng sở hữu xe điện, thêm thành viên và tiến hành bỏ phiếu.</p>
+                            <a href="/groups" class="feature-link">
+                                Quản lý nhóm <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Quản lý chi phí</h3>
+                            <p>Theo dõi chi phí, chia sẻ chi phí và quản lý thanh toán cho xe điện của bạn.</p>
+                            <a href="/costs" class="feature-link">
+                                Quản lý chi phí <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-share-alt"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Chia sẻ chi phí</h3>
+                            <p>Chia sẻ chi phí một cách công bằng và minh bạch giữa các thành viên trong nhóm.</p>
+                            <a href="/costs/sharing" class="feature-link">
+                                Chia sẻ chi phí <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-vote-yea"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Bỏ phiếu</h3>
+                            <p>Tiến hành bỏ phiếu cho các quyết định quan trọng trong nhóm đồng sở hữu.</p>
+                            <a href="/groups/voting" class="feature-link">
+                                Bỏ phiếu <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-piggy-bank"></i>
+                            </div>
+                        <div class="feature-content">
+                            <h3>Quỹ chung</h3>
+                            <p>Quản lý quỹ chung của nhóm để chi trả các chi phí chung và bảo trì xe.</p>
+                            <a href="/groups/fund" class="feature-link">
+                                Quỹ chung <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <!-- Quick Start Section -->
+                <div class="quick-start-section">
+                        <div class="card">
+                        <div class="card-header">
+                            <h3>
+                                <i class="fas fa-rocket"></i>
+                                Bắt đầu ngay
+                            </h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="quick-start-grid">
+                                <div class="quick-start-item">
+                                    <div class="step-number">1</div>
+                                    <div class="step-content">
+                                        <h4>Tạo nhóm</h4>
+                                        <p>Tạo nhóm đồng sở hữu xe điện đầu tiên của bạn</p>
+                                        <a href="/groups/create" class="btn btn-outline">Tạo nhóm</a>
+                                    </div>
+                                </div>
+                                
+                                <div class="quick-start-item">
+                                    <div class="step-number">2</div>
+                                    <div class="step-content">
+                                        <h4>Thêm chi phí</h4>
+                                        <p>Bắt đầu theo dõi các chi phí liên quan đến xe điện</p>
+                                        <a href="/costs/create" class="btn btn-outline">Thêm chi phí</a>
+                                    </div>
+                                </div>
+                                
+                                <div class="quick-start-item">
+                                    <div class="step-number">3</div>
+                                    <div class="step-content">
+                                        <h4>Chia sẻ chi phí</h4>
+                                        <p>Chia sẻ chi phí một cách công bằng với các thành viên</p>
+                                        <a href="/costs/sharing" class="btn btn-outline">Chia sẻ</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script th:src="@{/js/layout.js}"></script>
+    <script>
+        // Index page specific JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Welcome page loaded');
+            setActiveNavItem();
+            
+            // Add animation to feature cards
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('animate-in');
+            });
+        });
+    </script>
+</body>
+</html>

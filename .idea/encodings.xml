@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/LegalContractService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ReservationAdminService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ReservationService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/VehicleServiceManagementService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/api-gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/cost-payment-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/dispute-management-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/group-management-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ui-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/user-account-service/src/main/java" charset="UTF-8" />
+  </component>
+</project>

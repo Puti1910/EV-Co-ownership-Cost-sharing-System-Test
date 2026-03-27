@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết Tranh chấp - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/admin-layout.css" rel="stylesheet">
+    <th:block th:replace="fragments/admin-guard :: scripts"></th:block>
+    <style>
+        body {
+            background: #F9FAFB;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            padding: 0;
+        }
+
+        .content-wrapper {
+            padding: 24px;
+        }
+
+        .dispute-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #64748b;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .badge,
+        .status-pill {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .badge-urgent {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .badge-high {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-medium {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .badge-low {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+
+        .badge-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-in-review {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .badge-resolved {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .badge-closed {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+
+        .info-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #64748b;
+            width: 150px;
+        }
+
+        .info-value {
+            color: #1a202c;
+            flex: 1;
+        }
+
+        .comment-item {
+            background: #f8fafc;
+            border-left: 3px solid #667eea;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+        }
+
+        .comment-item.internal {
+            border-left-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .history-item {
+            padding: 12px;
+            border-left: 3px solid #e5e7eb;
+            margin-bottom: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .action-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .action-card h5 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+
+        .form-control,
+        .form-select {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            background: #eef2ff;
+            color: #4338ca;
+        }
+
+        @media (max-width: 992px) {
+            .dispute-layout {
+                grid-template-columns: 1fr;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div th:replace="fragments/admin-sidebar :: sidebar"
+         th:with="activePage='disputes'"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-wrapper">
+            <!-- Header -->
+            <div class="section-header">
+                <h2 style="margin: 0; font-size: 24px; font-weight: 700;">
+                    <i class="fas fa-exclamation-triangle text-warning"></i> Chi tiết Tranh chấp
+                </h2>
+                <a href="/admin/disputes" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div th:if="${error}" class="alert alert-danger" style="margin-bottom: 24px;">
+                <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success" style="margin-bottom: 24px;">
+                <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+            </div>
+
+            <!-- Dispute Information -->
+            <div th:if="${dispute}" class="dispute-layout">
+                <section class="panel">
+                    <div style="margin-bottom: 24px;">
+                        <div style="display:flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <h3 style="margin: 0 0 12px;" th:text="${dispute.get('title')}">Tiêu đề</h3>
+                                <div style="display:flex; flex-wrap: wrap; gap:8px;">
+                                    <span th:if="${dispute.get('priority') == 'URGENT'}" class="badge badge-urgent" th:text="${dispute.get('priority')}">URGENT</span>
+                                    <span th:if="${dispute.get('priority') == 'HIGH'}" class="badge badge-high" th:text="${dispute.get('priority')}">HIGH</span>
+                                    <span th:if="${dispute.get('priority') == 'MEDIUM'}" class="badge badge-medium" th:text="${dispute.get('priority')}">MEDIUM</span>
+                                    <span th:if="${dispute.get('priority') == 'LOW'}" class="badge badge-low" th:text="${dispute.get('priority')}">LOW</span>
+                                </div>
+                            </div>
+                            <div class="status-chip">
+                                <i class="fas fa-circle"></i>
+                                <span th:text="${dispute.get('status')}">PENDING</span>
+                            </div>
+                        </div>
+                        <p style="margin-top:16px; color:#475569;" th:text="${dispute.get('description')}">Mô tả chi tiết...</p>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="info-label">Loại:</div>
+                        <div class="info-value" th:text="${dispute.get('category')}">OTHER</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Nhóm:</div>
+                        <div class="info-value" th:text="${dispute.get('groupId')}">1</div>
+                    </div>
+                    <div class="info-row" th:if="${dispute.get('vehicleId') != null}">
+                        <div class="info-label">Xe:</div>
+                        <div class="info-value" th:text="${dispute.get('vehicleId')}">1</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Người tạo:</div>
+                        <div class="info-value" th:text="${dispute.get('createdBy')}">1</div>
+                    </div>
+                    <div class="info-row" th:if="${dispute.get('reportedUserId') != null}">
+                        <div class="info-label">Người bị báo cáo:</div>
+                        <div class="info-value" th:text="${dispute.get('reportedUserId')}">1</div>
+                    </div>
+                    <div class="info-row" th:if="${dispute.get('createdAt') != null}">
+                        <div class="info-label">Ngày tạo:</div>
+                        <div class="info-value" th:text="${dispute.get('createdAt')}">2025-01-01</div>
+                    </div>
+                </section>
+
+                <section class="action-panel">
+                    <div class="panel action-card">
+                        <h5><i class="fas fa-bolt text-warning"></i> Phê duyệt nhanh</h5>
+                        <p style="font-size:13px; color:#64748b; margin-bottom:16px;">
+                            Cập nhật trạng thái chỉ với một thao tác. Thêm ghi chú để lưu vào lịch sử thay đổi.
+                        </p>
+                        <form th:action="@{/admin/disputes/{id}/update-status(id=${dispute.get('disputeId')})}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">Trạng thái</label>
+                                <select name="status" class="form-select" required>
+                                    <option value="PENDING" th:selected="${dispute.get('status') == 'PENDING'}">PENDING</option>
+                                    <option value="IN_REVIEW" th:selected="${dispute.get('status') == 'IN_REVIEW'}">IN_REVIEW</option>
+                                    <option value="RESOLVED" th:selected="${dispute.get('status') == 'RESOLVED'}">RESOLVED</option>
+                                    <option value="CLOSED" th:selected="${dispute.get('status') == 'CLOSED'}">CLOSED</option>
+                                    <option value="ESCALATED" th:selected="${dispute.get('status') == 'ESCALATED'}">ESCALATED</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Ghi chú</label>
+                                <textarea name="note" class="form-control" rows="3" placeholder="Thông tin thêm cho lần cập nhật này..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-warning btn-full">
+                                <i class="fas fa-edit"></i> Cập nhật trạng thái
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="panel action-card" th:if="${dispute.get('status') != 'RESOLVED' and dispute.get('status') != 'CLOSED'}">
+                        <h5><i class="fas fa-check-circle text-success"></i> Hoàn tất tranh chấp</h5>
+                        <p style="font-size:13px; color:#64748b; margin-bottom:16px;">
+                            Chốt phương án xử lý và ghi nhận bồi thường (nếu có) ngay tại đây.
+                        </p>
+                        <form th:action="@{/admin/disputes/{id}/resolve(id=${dispute.get('disputeId')})}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">Loại giải pháp</label>
+                                <select name="resolutionType" class="form-select" required>
+                                    <option value="ACCEPTED">Chấp nhận yêu cầu</option>
+                                    <option value="REJECTED">Từ chối yêu cầu</option>
+                                    <option value="COMPROMISE">Thỏa hiệp</option>
+                                    <option value="REFUND">Hoàn tiền</option>
+                                    <option value="PENALTY">Phạt</option>
+                                    <option value="WARNING">Cảnh báo</option>
+                                    <option value="OTHER">Khác</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Chi tiết giải pháp *</label>
+                                <textarea name="resolutionDetails" class="form-control" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Hành động đã thực hiện</label>
+                                <textarea name="actionTaken" class="form-control" rows="2" placeholder="Ví dụ: Tạm khóa tài khoản 3 ngày..."></textarea>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label">Số tiền bồi thường (VND)</label>
+                                <input type="number" name="compensationAmount" class="form-control" value="0" min="0" step="1000">
+                            </div>
+                            <button type="submit" class="btn btn-success btn-full">
+                                <i class="fas fa-gavel"></i> Xác nhận giải quyết
+                            </button>
+                        </form>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Comments -->
+            <div class="card">
+                <h5 style="margin-bottom: 16px;"><i class="fas fa-comments"></i> Bình luận</h5>
+                
+                <div th:if="${comments != null and !comments.isEmpty()}">
+                    <div th:each="comment : ${comments}" 
+                         class="comment-item"
+                         th:classappend="${comment.get('isInternal') == true} ? 'internal' : ''">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <div>
+                                <strong th:text="${comment.get('userRole')}">ADMIN</strong>
+                                <span th:if="${comment.get('isInternal') == true}" style="color: #dc2626; margin-left: 8px;">
+                                    <i class="fas fa-lock"></i> Nội bộ
+                                </span>
+                            </div>
+                            <small style="color: #64748b;" th:text="${comment.get('createdAt')}">2025-01-01</small>
+                        </div>
+                        <p style="margin: 0;" th:text="${comment.get('content')}">Nội dung bình luận</p>
+                    </div>
+                </div>
+                <div th:if="${comments == null or comments.isEmpty()}" style="color: #9CA3AF; text-align: center; padding: 20px;">
+                    Chưa có bình luận nào.
+                </div>
+
+                <!-- Add Comment Form -->
+                <form th:action="@{/admin/disputes/{id}/comments(id=${dispute.get('disputeId')})}" 
+                      method="post" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                    <div style="margin-bottom: 12px;">
+                        <textarea name="content" class="form-control" rows="3" 
+                                  placeholder="Thêm bình luận..." required style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;"></textarea>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" name="isInternal" value="true" style="cursor: pointer;">
+                            <span style="font-size: 14px;">Bình luận nội bộ (chỉ Admin/Staff thấy)</span>
+                        </label>
+                    </div>
+                    <input type="hidden" name="userRole" value="ADMIN">
+                    <button type="submit" class="btn btn-primary" style="font-size: 14px; padding: 8px 16px;">
+                        <i class="fas fa-paper-plane"></i> Gửi bình luận
+                    </button>
+                </form>
+            </div>
+
+            <!-- Resolution -->
+            <div th:if="${resolution != null}" class="card">
+                <h5 style="margin-bottom: 16px;"><i class="fas fa-gavel"></i> Giải pháp</h5>
+                <div class="info-row">
+                    <div class="info-label">Loại:</div>
+                    <div class="info-value" th:text="${resolution.get('resolutionType')}">ACCEPTED</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Chi tiết:</div>
+                    <div class="info-value" th:text="${resolution.get('resolutionDetails')}">Chi tiết giải pháp...</div>
+                </div>
+                <div class="info-row" th:if="${resolution.get('actionTaken') != null}">
+                    <div class="info-label">Hành động:</div>
+                    <div class="info-value" th:text="${resolution.get('actionTaken')}"></div>
+                </div>
+                <div class="info-row" th:if="${resolution.get('compensationAmount') != null and resolution.get('compensationAmount') > 0}">
+                    <div class="info-label">Bồi thường:</div>
+                    <div class="info-value" th:text="${resolution.get('compensationAmount')} + ' VND'">0 VND</div>
+                </div>
+            </div>
+
+            <!-- History -->
+            <div th:if="${history != null and !history.isEmpty()}" class="card">
+                <h5 style="margin-bottom: 16px;"><i class="fas fa-history"></i> Lịch sử thay đổi</h5>
+                <div th:each="item : ${history}" class="history-item">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <div>
+                            <strong th:text="${item.get('newStatus')}">PENDING</strong>
+                            <span th:if="${item.get('oldStatus') != null}" style="color: #64748b; margin-left: 8px;">
+                                từ <span th:text="${item.get('oldStatus')}">PENDING</span>
+                            </span>
+                        </div>
+                        <small style="color: #64748b;" th:text="${item.get('createdAt')}">2025-01-01</small>
+                    </div>
+                    <p th:if="${item.get('changeNote') != null}" style="margin: 0; color: #64748b;" th:text="${item.get('changeNote')}">Ghi chú</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Assign Modal -->
+    <div class="modal fade" id="assignModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Giao tranh chấp cho Staff</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/disputes/{id}/assign(id=${dispute.get('disputeId')})}" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Staff ID</label>
+                            <input type="number" name="staffId" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Giao</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Modal -->
+    <div class="modal fade" id="statusModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cập nhật trạng thái</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/disputes/{id}/update-status(id=${dispute.get('disputeId')})}" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Trạng thái</label>
+                            <select name="status" class="form-select" required>
+                                <option value="PENDING">PENDING</option>
+                                <option value="IN_REVIEW">IN_REVIEW</option>
+                                <option value="RESOLVED">RESOLVED</option>
+                                <option value="CLOSED">CLOSED</option>
+                                <option value="ESCALATED">ESCALATED</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea name="note" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Cập nhật</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolve Modal -->
+    <div class="modal fade" id="resolveModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Giải quyết tranh chấp</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/disputes/{id}/resolve(id=${dispute.get('disputeId')})}" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Loại giải pháp</label>
+                            <select name="resolutionType" class="form-select" required>
+                                <option value="ACCEPTED">Chấp nhận yêu cầu</option>
+                                <option value="REJECTED">Từ chối yêu cầu</option>
+                                <option value="COMPROMISE">Thỏa hiệp</option>
+                                <option value="REFUND">Hoàn tiền</option>
+                                <option value="PENALTY">Phạt</option>
+                                <option value="WARNING">Cảnh báo</option>
+                                <option value="OTHER">Khác</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Chi tiết giải pháp *</label>
+                            <textarea name="resolutionDetails" class="form-control" rows="4" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Hành động đã thực hiện</label>
+                            <textarea name="actionTaken" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Số tiền bồi thường (VND)</label>
+                            <input type="number" name="compensationAmount" class="form-control" 
+                                   value="0" min="0" step="1000">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-success">Giải quyết</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

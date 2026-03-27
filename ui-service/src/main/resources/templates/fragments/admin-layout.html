@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} ?: 'Admin Dashboard'">Admin Dashboard - CarShare Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link th:href="@{/css/admin-layout.css}" rel="stylesheet">
+    <th:block th:if="${pageCss}">
+        <link th:each="css : ${pageCss}" th:href="@{${css}}" rel="stylesheet">
+    </th:block>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar Fragment -->
+        <div th:replace="fragments/admin-sidebar :: sidebar"></div>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="header-left">
+                    <h1 id="page-title" th:text="${pageTitle} ?: 'Tổng quan'">Tổng quan</h1>
+                    <p class="header-subtitle">Quản lý hệ thống chia sẻ chi phí xe điện</p>
+                </div>
+                <div class="header-right">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Tìm kiếm...">
+                    </div>
+                    <button class="btn-notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <button class="btn-menu-toggle" id="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content Sections -->
+            <div class="admin-content">
+                <!-- Page Content -->
+                <th:block th:switch="${activePage}">
+                    <div th:case="'overview'" th:replace="admin/overview :: content"></div>
+                    <div th:case="'costs'" th:replace="admin/costs :: content"></div>
+                    <div th:case="'auto-split'" th:replace="admin/auto-split :: content"></div>
+                    <div th:case="'payments'" th:replace="admin/payments :: content"></div>
+                    <div th:case="'groups'" th:replace="admin/groups :: content"></div>
+                    <div th:case="'vehicle-services'" th:replace="admin/vehicle-services :: content"></div>
+                    <div th:case="*" th:replace="admin/overview :: content"></div>
+                </th:block>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals Fragment -->
+    <div th:replace="fragments/admin-modals :: modals"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Hide all sections except the active one - Run immediately, not waiting for DOMContentLoaded -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        (function() {
+            const activePage = /*[[${activePage}]]*/ 'overview';
+            const sectionIdMap = {
+                'overview': 'overview-section',
+                'costs': 'cost-management-section',
+                'auto-split': 'auto-split-section',
+                'payments': 'payment-tracking-section',
+                'groups': 'group-management-section',
+                'vehicle-services': 'vehicle-services-section'
+            };
+            const activeSectionId = sectionIdMap[activePage] || 'overview-section';
+            
+            // Function to show/hide sections
+            function showActiveSection() {
+                // Hide all content sections
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                // Show only the section matching activePage
+                const activeSection = document.getElementById(activeSectionId);
+                if (activeSection) {
+                    activeSection.style.display = 'block';
+                }
+            }
+            
+            // Run immediately if DOM is ready, otherwise wait
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', showActiveSection);
+            } else {
+                showActiveSection();
+            }
+        })();
+        /*]]>*/
+    </script>
+    <script th:src="@{/js/admin-common.js}"></script>
+    <th:block th:if="${pageJs}">
+        <script th:each="js : ${pageJs}" th:src="@{${js}}"></script>
+    </th:block>
+</body>
+</html>
+

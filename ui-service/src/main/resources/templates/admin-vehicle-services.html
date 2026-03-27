@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý dịch vụ xe - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/admin-layout.css" rel="stylesheet">
+    <th:block th:replace="fragments/admin-guard :: scripts"></th:block>
+    <style>
+        body {
+            background: #F9FAFB;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            padding: 0;
+        }
+
+        .content-wrapper {
+            padding: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #64748b;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .stat-icon.total { background: #667eea; }
+        .stat-icon.maintenance { background: #f59e0b; }
+        .stat-icon.inspection { background: #3b82f6; }
+        .stat-icon.broken { background: #ef4444; }
+
+        .stat-info h3 {
+            font-size: 12px;
+            color: #64748b;
+            margin: 0 0 4px 0;
+            font-weight: 500;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a202c;
+        }
+
+        .filter-section {
+            margin-bottom: 24px;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1a202c;
+            font-size: 14px;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .table-section {
+            margin-bottom: 32px;
+        }
+
+        .table-header {
+            margin-bottom: 16px;
+        }
+
+        .table-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            background: #f8fafc;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #64748b;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        tbody td {
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .vehicle-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .vehicle-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            color: #667eea;
+        }
+
+        .vehicle-name {
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .vehicle-type {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-in-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-complete {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-available {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-badge.status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.status-complete {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.status-in-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .service-status {
+            font-size: 11px;
+            color: #64748b;
+            margin-left: 4px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-view-detail {
+            padding: 6px 12px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-view-detail:hover {
+            background: #2563eb;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* Modal Styles - Simplified */
+        #addNewServiceModal {
+            display: none;
+            position: fixed !important;
+            z-index: 99999 !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: rgba(0, 0, 0, 0.6) !important;
+            overflow: auto !important;
+        }
+
+        #addNewServiceModal.show {
+            display: block !important;
+        }
+
+        #addNewServiceModal .modal-content {
+            background: white !important;
+            margin: 50px auto !important;
+            padding: 0 !important;
+            border-radius: 12px !important;
+            width: 90% !important;
+            max-width: 600px !important;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
+            position: relative !important;
+            z-index: 100000 !important;
+        }
+
+        #addNewServiceModal .modal-header {
+            padding: 20px 24px !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+        }
+
+        #addNewServiceModal .modal-header h2 {
+            margin: 0 !important;
+            font-size: 20px !important;
+            font-weight: 600 !important;
+        }
+
+        #addNewServiceModal .modal-close {
+            font-size: 28px !important;
+            font-weight: bold !important;
+            color: #94a3b8 !important;
+            cursor: pointer !important;
+            background: none !important;
+            border: none !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+        }
+
+        #addNewServiceModal .modal-close:hover {
+            color: #1a202c !important;
+        }
+
+        #addNewServiceModal .modal-body {
+            padding: 24px !important;
+        }
+
+        .detail-section {
+            margin-bottom: 24px;
+        }
+
+        .detail-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 16px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .detail-item label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .detail-item span {
+            font-size: 14px;
+            color: #1a202c;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1a202c;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group small {
+            color: #64748b;
+            font-size: 12px;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-save {
+            padding: 10px 20px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .services-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .loading-message {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+<!-- Sidebar từ admin-sidebar.html -->
+<div th:replace="fragments/admin-sidebar :: sidebar"
+     th:with="activePage='vehicle-services'"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Header Fragment -->
+    <div th:replace="fragments/admin-header :: header"></div>
+
+    <!-- Content Wrapper -->
+    <div class="content-wrapper">
+        <!-- Action Button -->
+        <div style="margin-bottom: 24px;">
+            <button type="button" class="btn btn-success" id="btnAddNewService" onclick="if(typeof openAddNewServiceModal === 'function') { openAddNewServiceModal(); } else { console.error('openAddNewServiceModal is not defined'); }">
+                <i class="fas fa-plus-circle"></i> Thêm Dịch Vụ Mới
+            </button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon total">
+                    <i class="fas fa-car"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Tổng số xe</h3>
+                    <span class="stat-number" th:text="${totalVehicles}">24</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon maintenance">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Bảo dưỡng</h3>
+                    <span class="stat-number" th:text="${maintenanceVehicles}">6</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon inspection">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Kiểm tra</h3>
+                    <span class="stat-number" th:text="${inspectionVehicles}">0</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon broken">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Sửa chữa</h3>
+                    <span class="stat-number" th:text="${brokenVehicles}">2</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="card">
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Tìm kiếm xe...</label>
+                        <input type="text" id="searchQuery" th:value="${searchQuery}" placeholder="Tìm kiếm xe...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Lọc theo dịch vụ</label>
+                        <select id="serviceFilter" th:value="${serviceFilter}">
+                            <option value="all">Tất cả dịch vụ</option>
+                            <option value="maintenance">Bảo dưỡng</option>
+                            <option value="inspection">Kiểm tra</option>
+                            <option value="repair">Sửa chữa</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" style="flex: 0 0 auto;">
+                        <label>&nbsp;</label>
+                        <button type="button" class="btn btn-secondary" onclick="applyFilter()">
+                            <i class="fas fa-filter"></i> Lọc
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Section -->
+        <div class="card">
+            <div class="table-section">
+                <div class="table-header">
+                    <h3>Danh Sách Xe</h3>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>TÊN XE</th>
+                            <th>BIỂN SỐ</th>
+                            <th>LOẠI XE</th>
+                            <th>DỊCH VỤ ĐANG CHỜ</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>NGÀY YÊU CẦU</th>
+                            <th>HÀNH ĐỘNG</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="row : ${vehicles}" th:attr="data-vehicle-id=${row.vehicleId}">
+                            <td>
+                                <div class="vehicle-info">
+                                    <div class="vehicle-icon" th:class="${row.iconClass}">
+                                        <i class="fas fa-car"></i>
+                                    </div>
+                                    <div>
+                                        <div class="vehicle-name" th:text="${row.name}">Toyota Camry 2023</div>
+                                        <div class="vehicle-type" th:text="${row.typeDetail}">Sedan Camry 2023</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td th:text="${row.plateNumber}">30A-12345</td>
+                            <td th:text="${row.category}">Sedan</td>
+                            <td>
+                                    <span th:if="${row.hasService}" class="status" th:class="'status-' + ${row.serviceStatusClass}"
+                                          th:text="${row.serviceName}">Bảo dưỡng định kỳ</span>
+                                <span th:if="${!row.hasService}" class="status status-available">
+                                        Không có dịch vụ
+                                    </span>
+                            </td>
+                            <td>
+                                    <span th:if="${row.hasService and row.serviceStatus == 'pending'}" class="status-badge status-pending">
+                                        <i class="fas fa-clock"></i> Pending
+                                    </span>
+                                <span th:if="${row.hasService and row.serviceStatus == 'completed'}" class="status-badge status-complete">
+                                        <i class="fas fa-check-circle"></i> Complete
+                                    </span>
+                                <span th:if="${row.hasService and (row.serviceStatus == 'in_progress' or row.serviceStatus == 'in progress')}" class="status-badge status-in-progress">
+                                        <i class="fas fa-spinner"></i> In Progress
+                                    </span>
+                                <span th:if="${!row.hasService}" class="status-badge" style="background: #E5E7EB; color: #6B7280;">
+                                        -
+                                    </span>
+                            </td>
+                            <td>
+                                <span th:if="${row.hasService}" th:text="${row.formattedRequestDate}">22/10/2024 10:30:00</span>
+                                <span th:if="${!row.hasService}">-</span>
+                            </td>
+                            <td>
+                                <div th:if="${row.hasService}" style="display: flex; gap: 8px; align-items: center;">
+                                    <select class="status-select-inline"
+                                            th:attr="data-service-id=${row.serviceId != null and row.serviceId != '' ? row.serviceId : 'NO_ID'}, data-vehicle-id=${row.vehicleId}, data-original-status=${row.serviceStatus}"
+                                            th:value="${row.serviceStatus}"
+                                            style="padding: 4px 8px !important; border: 1px solid #D1D5DB !important; border-radius: 4px; font-size: 12px !important; cursor: pointer !important; min-width: 120px !important; display: inline-block !important; background: white !important;"
+                                            onchange="handleStatusChangeInline(this)">
+                                        <option value="pending">Pending</option>
+                                        <option value="in_progress">In Progress</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                    <button type="button" class="btn-delete btn-delete-service"
+                                            th:attr="data-service-id=${row.serviceId != null and row.serviceId != '' ? row.serviceId : 'NO_ID'}, data-vehicle-id=${row.vehicleId}"
+                                            style="padding: 4px 8px !important; background: #EF4444 !important; color: white !important; border: none !important; border-radius: 4px !important; cursor: pointer !important; font-size: 12px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; min-width: 32px !important; height: 28px !important;"
+                                            title="Xóa dịch vụ">
+                                        <i class="fas fa-trash" style="font-size: 12px;"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <span th:text="'Tổng số: ' + ${totalVehicles} + ' xe'">
+                        Tổng số: 0 xe
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="card">
+            <div class="table-section">
+                <div class="table-header">
+                    <h3><i class="fas fa-history" style="color: #8B5CF6; margin-right: 8px;"></i> Lịch Sử Dịch Vụ</h3>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>TÊN XE</th>
+                            <th>BIỂN SỐ</th>
+                            <th>LOẠI XE</th>
+                            <th>TÊN DỊCH VỤ</th>
+                            <th>LOẠI DỊCH VỤ</th>
+                            <th>NGÀY YÊU CẦU</th>
+                            <th>NGÀY HOÀN THÀNH</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${completedServices == null or completedServices.isEmpty()}">
+                            <td colspan="7" style="text-align: center; padding: 40px; color: #9CA3AF;">
+                                <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.3;"></i>
+                                Chưa có lịch sử dịch vụ
+                            </td>
+                        </tr>
+                        <tr th:each="service : ${completedServices}">
+                            <td>
+                                <div class="vehicle-info">
+                                    <div class="vehicle-icon">
+                                        <i class="fas fa-car"></i>
+                                    </div>
+                                    <div>
+                                        <div class="vehicle-name" th:text="${service.vehicleName}">-</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td th:text="${service.vehicleNumber}">-</td>
+                            <td th:text="${service.vehicleType}">-</td>
+                            <td th:text="${service.serviceName}">-</td>
+                            <td>
+                                <span class="status-badge status-complete" th:text="${service.serviceType}">-</span>
+                            </td>
+                            <td th:text="${service.formattedRequestDate}">-</td>
+                            <td th:text="${service.formattedCompletionDate}">-</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <span th:text="'Tổng số: ' + ${completedServices != null ? completedServices.size() : 0} + ' dịch vụ đã hoàn thành'">
+                        Tổng số: 0 dịch vụ đã hoàn thành
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Modals -->
+<div id="vehicleDetailModal" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2>Chi Tiết Xe</h2>
+            <span class="modal-close" onclick="closeVehicleDetailModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="detail-section">
+                <h3><i class="fas fa-car"></i> Thông Tin Xe</h3>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <label>Mã Xe:</label>
+                        <span id="modalVehicleId">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Tên Xe:</label>
+                        <span id="modalVehicleName">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Biển Số:</label>
+                        <span id="modalPlateNumber">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Loại Xe:</label>
+                        <span id="modalVehicleType">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3 style="color: #4F46E5;">
+                    <i class="fas fa-tools"></i> Dịch Vụ Đang Chờ
+                    <small style="font-size: 12px; font-weight: normal; color: #6B7280; margin-left: 8px;">
+                        (Pending / In Progress)
+                    </small>
+                </h3>
+                <div id="modalServicesList" class="services-list">
+                    <div class="loading-message">Đang tải dữ liệu...</div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3 style="color: #8B5CF6;">
+                    <i class="fas fa-history"></i> Lịch Sử Dịch Vụ
+                    <small style="font-size: 12px; font-weight: normal; color: #6B7280; margin-left: 8px;">
+                        (Các dịch vụ đã hoàn thành)
+                    </small>
+                </h3>
+                <div id="modalServicesHistory" class="services-list">
+                    <div class="loading-message">Đang tải dữ liệu...</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeVehicleDetailModal()">Đóng</button>
+            <button type="button" class="btn-save" onclick="saveChangesAndClose()">Lưu và Đóng</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm Dịch Vụ Mới -->
+<div id="addNewServiceModal" style="display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); overflow: auto;">
+    <div class="modal-content" style="background: white; margin: 50px auto; padding: 0; border-radius: 12px; width: 90%; max-width: 600px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); position: relative;">
+        <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; font-size: 20px; font-weight: 600;">
+                <i class="fas fa-plus-circle"></i> Thêm Dịch Vụ Mới Vào Hệ Thống
+            </h2>
+            <button type="button" class="modal-close" onclick="closeAddNewServiceModal()" style="font-size: 28px; font-weight: bold; color: #94a3b8; cursor: pointer; background: none; border: none; padding: 0; line-height: 1;">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 24px;">
+            <form id="addNewServiceForm">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="newServiceId" style="display: block; margin-bottom: 8px; font-weight: 600; color: #1a202c; font-size: 14px;">
+                        Mã dịch vụ <span style="color: red;">*</span>
+                    </label>
+                    <input type="text" id="newServiceId" name="serviceId" required
+                           placeholder="VD: SRV001, MAINT001"
+                           pattern="[A-Za-z0-9]+"
+                           maxlength="20"
+                           style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                    <small style="color: #64748b; font-size: 12px; display: block; margin-top: 5px;">Mã dịch vụ duy nhất (chữ và số, tối đa 20 ký tự)</small>
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="newServiceName" style="display: block; margin-bottom: 8px; font-weight: 600; color: #1a202c; font-size: 14px;">
+                        Tên dịch vụ <span style="color: red;">*</span>
+                    </label>
+                    <input type="text" id="newServiceName" name="serviceName" required
+                           placeholder="VD: Bảo dưỡng định kỳ, Kiểm tra tổng thể"
+                           maxlength="255"
+                           style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                    <small style="color: #64748b; font-size: 12px; display: block; margin-top: 5px;">Tên dịch vụ (tối đa 255 ký tự)</small>
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="newServiceType" style="display: block; margin-bottom: 8px; font-weight: 600; color: #1a202c; font-size: 14px;">
+                        Loại dịch vụ <span style="color: red;">*</span>
+                    </label>
+                    <select id="newServiceType" name="serviceType" required
+                            style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                        <option value="">-- Chọn loại dịch vụ --</option>
+                        <option value="maintenance">Bảo dưỡng</option>
+                        <option value="inspection">Kiểm tra</option>
+                        <option value="repair">Sửa chữa</option>
+                    </select>
+                    <small style="color: #64748b; font-size: 12px; display: block; margin-top: 5px;">Chọn loại dịch vụ (Bảo dưỡng, Kiểm tra, Sửa chữa)</small>
+                </div>
+                <div id="addNewServiceMessage" style="display: none; margin-top: 15px; padding: 12px; border-radius: 8px;"></div>
+            </form>
+        </div>
+        <div class="modal-footer" style="padding: 20px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px;">
+            <button type="button" class="btn-cancel" onclick="closeAddNewServiceModal()" style="padding: 10px 20px; border: 1px solid #e2e8f0; background: white; border-radius: 8px; cursor: pointer; color: #64748b; font-weight: 600;">Hủy</button>
+            <button type="button" class="btn-save" onclick="submitAddNewService()" style="padding: 10px 20px; border: none; background: #667eea; color: white; border-radius: 8px; cursor: pointer; font-weight: 600;">Thêm Dịch Vụ</button>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+    function applyFilter() {
+        const searchQuery = document.getElementById('searchQuery').value;
+        const serviceFilter = document.getElementById('serviceFilter').value;
+        window.location.href = '/admin/vehicle-services?searchQuery=' + encodeURIComponent(searchQuery) + '&serviceFilter=' + encodeURIComponent(serviceFilter);
+    }
+    
+    // Đảm bảo hàm openAddNewServiceModal có sẵn sau khi DOM load
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔵 [DOMContentLoaded] Page loaded, checking for openAddNewServiceModal');
+        if (typeof window.openAddNewServiceModal === 'function') {
+            console.log('✅ [DOMContentLoaded] openAddNewServiceModal is available');
+        } else {
+            console.warn('⚠️ [DOMContentLoaded] openAddNewServiceModal not yet available, will be set by vehicle-manager.js');
+        }
+    });
+</script>
+<script th:src="@{/js/admin-common.js}"></script>
+<script th:src="@{/ext/js/vehicle-manager.js}"></script>
+<script>
+    // Fallback: Đảm bảo hàm có sẵn sau khi script load
+    window.addEventListener('load', function() {
+        console.log('🔵 [window.load] All scripts loaded');
+        if (typeof window.openAddNewServiceModal === 'function') {
+            console.log('✅ [window.load] openAddNewServiceModal is available');
+        } else {
+            console.error('❌ [window.load] openAddNewServiceModal is NOT available!');
+            // Fallback function
+            window.openAddNewServiceModal = function() {
+                console.log('🔵 [FALLBACK] openAddNewServiceModal called (fallback)');
+                const modal = document.getElementById('addNewServiceModal');
+                if (modal) {
+                    console.log('🔵 [FALLBACK] Modal found, showing...');
+                    modal.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    console.error('❌ [FALLBACK] Modal element not found!');
+                }
+            };
+        }
+        
+        // Thêm event listener trực tiếp cho nút
+        const btnAddNewService = document.getElementById('btnAddNewService');
+        if (btnAddNewService) {
+            console.log('✅ [window.load] Found btnAddNewService, adding click listener');
+            btnAddNewService.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🔵 [BUTTON CLICK] Add new service button clicked');
+                if (typeof window.openAddNewServiceModal === 'function') {
+                    window.openAddNewServiceModal();
+                } else {
+                    console.error('❌ [BUTTON CLICK] openAddNewServiceModal is not a function');
+                    // Direct fallback
+                    const modal = document.getElementById('addNewServiceModal');
+                    if (modal) {
+                        console.log('🔵 [BUTTON CLICK] Showing modal directly');
+                        modal.style.display = 'block';
+                        document.body.style.overflow = 'hidden';
+                    }
+                }
+            });
+        } else {
+            console.warn('⚠️ [window.load] btnAddNewService not found');
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<div th:fragment="dispute-report-button" xmlns:th="http://www.thymeleaf.org">
+    <style>
+        .dispute-fab {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 14px 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 20px 40px -15px rgba(239, 68, 68, 0.6);
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .dispute-fab i { font-size: 18px; }
+        .dispute-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+        }
+        .dispute-modal-backdrop.active { display: flex; }
+        .dispute-modal {
+            background: #fff;
+            border-radius: 16px;
+            width: min(520px, 90vw);
+            padding: 24px;
+            box-shadow: 0 30px 60px -25px rgba(15, 23, 42, 0.55);
+            position: relative;
+        }
+        .dispute-modal h3 {
+            margin: 0 0 8px 0;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .dispute-modal p {
+            margin: 0 0 20px 0;
+            color: #475569;
+        }
+        .dispute-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            border: none;
+            background: transparent;
+            font-size: 20px;
+            cursor: pointer;
+            color: #94a3b8;
+        }
+        .dispute-form-grid {
+            display: grid;
+            gap: 14px;
+        }
+        .dispute-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .dispute-form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .dispute-form-group input,
+        .dispute-form-group select,
+        .dispute-form-group textarea {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .dispute-form-group textarea { resize: vertical; min-height: 100px; }
+        .dispute-submit {
+            margin-top: 12px;
+            width: 100%;
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(90deg, #ef4444, #f97316);
+            cursor: pointer;
+        }
+        .dispute-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 600;
+            display: none;
+            z-index: 1200;
+        }
+        .dispute-toast.success { background: #10b981; }
+        .dispute-toast.error { background: #ef4444; }
+        .dispute-toast.show { display: block; }
+    </style>
+
+    <button id="dispute-report-trigger" class="dispute-fab" type="button">
+        <i class="fas fa-flag"></i>
+        Báo cáo tranh chấp
+    </button>
+
+    <div id="dispute-report-modal" class="dispute-modal-backdrop" role="dialog" aria-modal="true">
+        <div class="dispute-modal">
+            <button class="dispute-close-btn" type="button" aria-label="Đóng">&times;</button>
+            <h3>Báo cáo tranh chấp</h3>
+            <p>Gửi mô tả ngắn gọn về vấn đề để Admin hỗ trợ xử lý nhanh nhất.</p>
+            <form method="post" action="/disputes/report" class="dispute-form-grid">
+                <input type="hidden" name="returnUrl" id="dispute-return-url">
+                <div class="dispute-form-group">
+                    <label>Tiêu đề</label>
+                    <input type="text" name="title" placeholder="Ví dụ: Tranh chấp sử dụng xe" required>
+                </div>
+                <div class="dispute-form-group">
+                    <label>Nhóm (Group ID)</label>
+                    <input type="number" name="groupId" placeholder="Nhập ID nhóm" required>
+                </div>
+                <div class="dispute-form-group">
+                    <label>ID của bạn (Created By)</label>
+                    <input type="number" name="createdBy" placeholder="Nhập ID của bạn" required>
+                </div>
+                <div class="dispute-form-group">
+                    <label>ID người bị báo cáo (nếu có)</label>
+                    <input type="number" name="reportedUserId" placeholder="Nhập ID thành viên liên quan">
+                </div>
+                <div class="dispute-form-group">
+                    <label>Danh mục</label>
+                    <select name="category">
+                        <option value="GENERAL">GENERAL</option>
+                        <option value="COST_SHARING">COST_SHARING</option>
+                        <option value="PAYMENT">PAYMENT</option>
+                        <option value="RESERVATION">RESERVATION</option>
+                        <option value="VEHICLE">VEHICLE</option>
+                    </select>
+                </div>
+                <div class="dispute-form-group">
+                    <label>Độ ưu tiên</label>
+                    <select name="priority">
+                        <option value="MEDIUM">MEDIUM</option>
+                        <option value="HIGH">HIGH</option>
+                        <option value="URGENT">URGENT</option>
+                        <option value="LOW">LOW</option>
+                    </select>
+                </div>
+                <div class="dispute-form-group">
+                    <label>Mô tả chi tiết</label>
+                    <textarea name="description" placeholder="Mô tả ngắn gọn vấn đề bạn gặp phải" required></textarea>
+                </div>
+                <button type="submit" class="dispute-submit">
+                    Gửi báo cáo cho Admin
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="dispute-toast" class="dispute-toast">
+        <span id="dispute-toast-message"></span>
+    </div>
+
+    <script>
+        (function () {
+            const trigger = document.getElementById("dispute-report-trigger");
+            const modal = document.getElementById("dispute-report-modal");
+            const closeBtn = modal ? modal.querySelector(".dispute-close-btn") : null;
+            const returnUrlInput = document.getElementById("dispute-return-url");
+            const toast = document.getElementById("dispute-toast");
+            const toastMessage = document.getElementById("dispute-toast-message");
+
+            const openModal = () => {
+                if (modal) {
+                    modal.classList.add("active");
+                }
+            };
+            const closeModal = () => {
+                if (modal) {
+                    modal.classList.remove("active");
+                }
+            };
+
+            if (trigger) {
+                trigger.addEventListener("click", openModal);
+            }
+            if (closeBtn) {
+                closeBtn.addEventListener("click", closeModal);
+            }
+            if (modal) {
+                modal.addEventListener("click", function (event) {
+                    if (event.target === modal) {
+                        closeModal();
+                    }
+                });
+            }
+            if (returnUrlInput) {
+                returnUrlInput.value = window.location.pathname + window.location.search;
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.has("disputeSuccess") || params.has("disputeError")) {
+                const message = params.get("disputeSuccess") || params.get("disputeError");
+                const type = params.has("disputeSuccess") ? "success" : "error";
+                if (toast && toastMessage) {
+                    toastMessage.textContent = message;
+                    toast.classList.add("show", type);
+                    setTimeout(() => {
+                        toast.classList.remove("show", type);
+                    }, 3500);
+                }
+                params.delete("disputeSuccess");
+                params.delete("disputeError");
+                const cleaned = params.toString();
+                const baseUrl = window.location.pathname + (cleaned ? "?" + cleaned : "");
+                window.history.replaceState({}, document.title, baseUrl);
+            }
+        })();
+    </script>
+</div>
+

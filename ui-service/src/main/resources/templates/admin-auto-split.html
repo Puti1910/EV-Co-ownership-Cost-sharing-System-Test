@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chia tự động - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/admin-layout.css" rel="stylesheet">
+    <link href="/css/admin-auto-split.css" rel="stylesheet">
+    <th:block th:replace="fragments/admin-guard :: scripts"></th:block>
+    <style>
+        body {
+            background: #F9FAFB;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            padding: 0;
+        }
+
+        .content-wrapper {
+            padding: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1a202c;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #64748b;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .preview-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-top: 24px;
+        }
+
+        .preview-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 16px;
+        }
+
+        #preview-content {
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div th:replace="fragments/admin-sidebar :: sidebar"
+         th:with="activePage='auto-split'"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header Fragment -->
+        <div th:replace="fragments/admin-header :: header"></div>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+        <!-- AUTO SPLIT SECTION -->
+        <section id="auto-split-section" class="content-section">
+            <div class="card">
+                <h3>Tạo chi phí và tự động chia</h3>
+                
+                <form id="auto-split-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nhóm/Xe</label>
+                            <select id="group-select" required>
+                                <option value="">-- Chọn nhóm --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Loại chi phí</label>
+                            <select id="cost-type" required>
+                                <option value="ElectricCharge">Phí sạc điện</option>
+                                <option value="Maintenance">Bảo dưỡng</option>
+                                <option value="Insurance">Bảo hiểm</option>
+                                <option value="Inspection">Đăng kiểm</option>
+                                <option value="Cleaning">Vệ sinh</option>
+                                <option value="Other">Khác</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Số tiền</label>
+                            <input type="number" id="amount" placeholder="VD: 500000" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phương thức chia</label>
+                            <select id="split-method" required>
+                                <option value="BY_OWNERSHIP">Theo tỷ lệ sở hữu</option>
+                                <option value="BY_USAGE">Theo km đã chạy</option>
+                                <option value="EQUAL">Chia đều</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="usage-period" style="display: none;">
+                        <label>Tháng/Năm (cho phương thức theo km)</label>
+                        <div class="form-row">
+                            <select id="month">
+                                <option value="1">Tháng 1</option>
+                                <option value="2">Tháng 2</option>
+                                <option value="3">Tháng 3</option>
+                                <option value="4">Tháng 4</option>
+                                <option value="5">Tháng 5</option>
+                                <option value="6">Tháng 6</option>
+                                <option value="7">Tháng 7</option>
+                                <option value="8">Tháng 8</option>
+                                <option value="9">Tháng 9</option>
+                                <option value="10">Tháng 10</option>
+                                <option value="11">Tháng 11</option>
+                                <option value="12">Tháng 12</option>
+                            </select>
+                            <input type="number" id="year" placeholder="2025" value="2025">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả</label>
+                        <textarea id="description" rows="3" placeholder="Mô tả chi tiết về khoản chi..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="btn-preview">
+                            <i class="fas fa-eye"></i> Xem trước
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Tạo và chia tự động
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Preview Result -->
+            <div id="preview-result" class="preview-card" style="display: none;">
+                <h3>Kết quả chia chi phí</h3>
+                <div id="preview-content"></div>
+            </div>
+        </section>
+        </div>
+    </main>
+
+    <th:block th:replace="fragments/admin-modals :: modals"></th:block>
+
+    <!-- Scripts -->
+    <script th:src="@{/js/admin-common.js}"></script>
+    <script th:src="@{/js/admin-auto-split.js}"></script>
+</body>
+</html>
+

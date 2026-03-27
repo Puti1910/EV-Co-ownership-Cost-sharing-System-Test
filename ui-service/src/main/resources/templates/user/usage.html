@@ -1,0 +1,264 @@
+<!-- USAGE PAGE -->
+<div th:fragment="usage-page">
+    <div id="usage-page" class="page" th:classappend="${activePage == 'usage'} ? 'active'">
+        <div class="page-header">
+            <div class="header-content">
+                <div>
+                    <h1><i class="fas fa-tachometer-alt"></i> Nhập số km đã chạy</h1>
+                    <p>Theo dõi quãng đường bạn đã sử dụng xe điện để chia sẻ chi phí công bằng</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="fund-stats-grid">
+            <div class="fund-stat-card primary">
+                <div class="stat-card-header">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                </div>
+                <div class="stat-card-body">
+                    <div class="stat-label">Km đã nhập tháng này</div>
+                    <div class="stat-value" id="usage-stat-current-km">0 km</div>
+                    <div class="stat-description" id="usage-stat-period">Tháng 11/2025</div>
+                </div>
+            </div>
+            <div class="fund-stat-card success">
+                <div class="stat-card-header">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <div class="stat-card-body">
+                    <div class="stat-label">Tổng km nhóm</div>
+                    <div class="stat-value" id="usage-stat-group-total">0 km</div>
+                    <div class="stat-description">Tất cả thành viên</div>
+                </div>
+            </div>
+            <div class="fund-stat-card warning">
+                <div class="stat-card-header">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                </div>
+                <div class="stat-card-body">
+                    <div class="stat-label">% sử dụng của bạn</div>
+                    <div class="stat-value" id="usage-stat-percent">0%</div>
+                    <div class="stat-description">Tỷ lệ sử dụng</div>
+                </div>
+            </div>
+            <div class="fund-stat-card info">
+                <div class="stat-card-header">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="stat-card-body">
+                    <div class="stat-label">Tỷ lệ sở hữu</div>
+                    <div class="stat-value" id="usage-stat-ownership">-</div>
+                    <div class="stat-description">Phần trăm sở hữu</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage Overview Grid -->
+        <div class="fund-overview-grid">
+            <!-- Info Card: Logic chia chi phí -->
+            <div class="section-card">
+                <div class="card-header">
+                    <h2>
+                        <i class="fas fa-info-circle"></i>
+                        Cách chia chi phí theo km
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="fund-summary-enhanced">
+                        <div class="summary-row">
+                            <div class="summary-label">
+                                <i class="fas fa-calculator"></i>
+                                Công thức tính
+                            </div>
+                            <div class="summary-value" style="font-size: 0.9rem; text-align: right;">
+                                % = (Km bạn / Tổng km) × 100%
+                            </div>
+                        </div>
+                        <div class="summary-row income">
+                            <div class="summary-label">
+                                <i class="fas fa-bolt"></i>
+                                Áp dụng cho
+                            </div>
+                            <div class="summary-value" style="font-size: 0.9rem; text-align: right;">
+                                Sạc điện, thay lốp
+                            </div>
+                        </div>
+                        <div class="summary-row">
+                            <div class="summary-label">
+                                <i class="fas fa-balance-scale"></i>
+                                Ví dụ
+                            </div>
+                            <div class="summary-value" style="font-size: 0.9rem; text-align: right;">
+                                300km / 1000km = 30%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usage Stats Card -->
+            <div class="section-card" id="group-usage-stats-card" style="display: none;">
+                <div class="card-header">
+                    <h2>
+                        <i class="fas fa-chart-pie"></i>
+                        Thống kê nhóm
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="fund-summary-enhanced">
+                        <div class="summary-row">
+                            <div class="summary-label">
+                                <i class="fas fa-user"></i>
+                                Tỷ lệ sở hữu của bạn
+                            </div>
+                            <div class="summary-value" id="my-ownership-percent">-</div>
+                        </div>
+                        <div class="summary-row income">
+                            <div class="summary-label">
+                                <i class="fas fa-users"></i>
+                                Tổng km nhóm
+                            </div>
+                            <div class="summary-value" id="group-total-km">0 km</div>
+                        </div>
+                        <div class="summary-row">
+                            <div class="summary-label">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Km bạn đã nhập
+                            </div>
+                            <div class="summary-value" id="my-current-km">0 km</div>
+                        </div>
+                        <div class="summary-row total">
+                            <div class="summary-label">
+                                <i class="fas fa-percentage"></i>
+                                % sử dụng hiện tại
+                            </div>
+                            <div class="summary-value" id="my-usage-percent">0%</div>
+                        </div>
+                    </div>
+                    <div class="comparison-bar" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                        <div class="comparison-label" style="margin-bottom: 0.5rem;">
+                            <span>So sánh: Tỷ lệ sở hữu vs Mức sử dụng</span>
+                        </div>
+                        <div class="bar-container">
+                            <div class="bar ownership-bar" id="ownership-bar" style="width: 0%">
+                                <span>Sở hữu</span>
+                            </div>
+                            <div class="bar usage-bar" id="usage-bar" style="width: 0%">
+                                <span>Sử dụng</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage Form -->
+        <div class="section-card">
+            <div class="card-header">
+                <h2>
+                    <i class="fas fa-edit"></i>
+                    Nhập thông tin sử dụng
+                </h2>
+            </div>
+            <div class="card-body">
+                <form id="usage-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-users"></i> Nhóm xe</label>
+                            <select id="usage-group" required onchange="loadGroupUsageInfo()">
+                                <option value="">-- Chọn nhóm --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar-alt"></i> Tháng</label>
+                            <select id="usage-month" required onchange="loadGroupUsageInfo()">
+                                <option value="1">Tháng 1</option>
+                                <option value="2">Tháng 2</option>
+                                <option value="3">Tháng 3</option>
+                                <option value="4">Tháng 4</option>
+                                <option value="5">Tháng 5</option>
+                                <option value="6">Tháng 6</option>
+                                <option value="7">Tháng 7</option>
+                                <option value="8">Tháng 8</option>
+                                <option value="9">Tháng 9</option>
+                                <option value="10">Tháng 10</option>
+                                <option value="11">Tháng 11</option>
+                                <option value="12">Tháng 12</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar"></i> Năm</label>
+                            <input type="number" id="usage-year" value="2025" required onchange="loadGroupUsageInfo()">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-tachometer-alt"></i> Số km đã chạy</label>
+                        <div class="km-input-group">
+                            <input type="number" id="km-driven" placeholder="VD: 150" min="0" step="0.1" required oninput="updateUsagePreview()">
+                            <span class="unit">km</span>
+                        </div>
+                        <small class="form-text">
+                            <i class="fas fa-info-circle"></i>
+                            Nhập tổng số kilomet bạn đã sử dụng xe trong tháng này
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-sticky-note"></i> Ghi chú (tùy chọn)</label>
+                        <textarea id="usage-note" rows="3" placeholder="VD: Đi làm hàng ngày, đi chơi cuối tuần, đi công tác..."></textarea>
+                    </div>
+
+                    <!-- Preview Cost Share -->
+                    <div id="cost-preview" class="cost-preview-card" style="display: none; margin-top: 1.5rem;">
+                        <div class="preview-header">
+                            <i class="fas fa-eye"></i>
+                            <span>Xem trước phân bổ chi phí</span>
+                        </div>
+                        <div class="preview-content">
+                            <p>Nếu có chi phí sạc điện <strong id="preview-cost-amount">1,000,000 VNĐ</strong> trong tháng này:</p>
+                            <div class="preview-result">
+                                <div class="result-item">
+                                    <span class="result-label">Bạn sẽ chịu:</span>
+                                    <span class="result-value" id="preview-my-share">0 VNĐ</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">Tương đương:</span>
+                                    <span class="result-value" id="preview-my-percent">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save"></i> Lưu thông tin
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Usage History -->
+        <div class="section-card">
+            <div class="card-header">
+                <h2><i class="fas fa-history"></i> Lịch sử sử dụng</h2>
+            </div>
+            <div class="card-body">
+                <div class="usage-history" id="usage-history-list">
+                    <!-- Usage history loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

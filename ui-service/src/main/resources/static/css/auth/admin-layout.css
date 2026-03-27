@@ -1,0 +1,155 @@
+/* admin-layout.css */
+
+/* --- GLOBAL LAYOUT --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f7f9fc; /* Màu nền cho trang Admin */
+    margin: 0;
+    padding: 0;
+}
+
+.admin-layout-container {
+    display: flex; /* Bố cục chính: Sidebar + Main Content */
+    min-height: 100vh;
+}
+
+.main-content {
+    flex-grow: 1; /* Cho phép Main Content chiếm hết phần còn lại */
+    padding: 24px;
+}
+
+/* --- SIDEBAR (từ sidebar.css) --- */
+.sidebar {
+    width: 280px;
+    background: white;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+    height: 100vh; /* Cố định chiều cao */
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    padding: 24px;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #4F46E5;
+}
+
+.logo i {
+    font-size: 24px;
+}
+
+.sidebar-nav {
+    padding: 20px 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    color: #64748B;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.nav-item:hover,
+.nav-item.active {
+    background: #EFF6FF;
+    color: #4F46E5;
+}
+
+.nav-item i {
+    width: 20px;
+}
+
+/* --- HEADER (từ header.css) --- */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.header-left h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.header-left p {
+    color: #64748B;
+    font-size: 16px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.notification {
+    position: relative;
+    padding: 12px;
+    background: #F3F4F6;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: #EF4444;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+/* --- HEADER (từ header.css) --- */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    /* --- CẤU HÌNH GHIM (STICKY) --- */
+    position: sticky; /* Kích hoạt chế độ ghim */
+    top: 0;           /* Ghim vào đỉnh (0px từ trên xuống) */
+    z-index: 1000;    /* Đảm bảo nó luôn nằm trên các nội dung khác */
+}
+/* ... (Các style khác trong file CSS của Admin giữ nguyên) ... */

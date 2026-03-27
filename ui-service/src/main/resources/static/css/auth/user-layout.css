@@ -1,0 +1,160 @@
+/* user-layout.css (Đã sửa lại để đảm bảo Sidebar hiển thị đúng) */
+
+/* --- GLOBAL LAYOUT --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f7f9fc;
+    margin: 0;
+    padding: 0;
+}
+
+/* ĐÃ ĐỔI TÊN CONTAINER CHÍNH (Sử dụng tên user-layout-container) */
+.user-layout-container {
+    display: flex; /* BẮT BUỘC: Kích hoạt bố cục 2 cột (Sidebar và Main) */
+    min-height: 100vh;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 24px;
+}
+
+/* --- SIDEBAR STYLE (Cấu hình Sidebar) --- */
+.sidebar {
+    width: 280px; /* Chiều rộng cố định */
+    background: white;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    padding: 24px;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #4F46E5;
+}
+
+.logo i {
+    font-size: 24px;
+}
+
+.sidebar-nav {
+    padding: 20px 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    color: #64748B;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.nav-item:hover,
+.nav-item.active {
+    background: #EFF6FF; /* Màu nền xanh nhạt khi hover/active */
+    color: #4F46E5; /* Màu chữ xanh tím khi hover/active */
+}
+
+.nav-item i {
+    width: 20px;
+}
+
+/* --- HEADER STYLE (user-header) --- */
+.user-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+
+    /* Cấu hình GHIM (Sticky) */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.header-left h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.header-left p {
+    color: #64748B;
+    font-size: 16px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* ... LOGOUT BUTTON & USER PROFILE STYLE ... */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+.user-profile span {
+    font-weight: 600;
+}
+.btn-logout {
+    background: none;
+    border: none;
+    color: #EF4444;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0;
+    margin-left: 5px;
+    transition: color 0.2s;
+}
+.btn-logout:hover {
+    color: #DC2626;
+}
+.btn-logout i {
+    margin-right: 5px;
+}
+/* --- HEADER STYLE (TỪ header-user.html) --- */
+
+.user-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    /* --- CẤU HÌNH GHIM (STICKY) --- */
+    position: sticky; /* Kích hoạt chế độ ghim */
+    top: 0;           /* Ghim vào đỉnh (0px từ trên xuống) */
+    z-index: 1000;    /* Đảm bảo nó luôn nằm trên các nội dung khác */
+}
+/* ... (Các style khác trong user-layout.css giữ nguyên) ... */

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh Sửa Hợp Đồng - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/admin-layout.css" rel="stylesheet">
+    <th:block th:replace="fragments/admin-guard :: scripts"></th:block>
+    <style>
+        body {
+            background: #F9FAFB;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            padding: 0;
+        }
+
+        .content-wrapper {
+            padding: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .required {
+            color: #ef4444;
+        }
+
+        .btn-save {
+            background: #667eea;
+            color: white;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-save:hover {
+            background: #5568d3;
+        }
+
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #64748b;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 12px;
+        }
+
+        .btn-cancel:hover {
+            background: #cbd5e1;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar từ admin-sidebar.html -->
+    <div th:replace="fragments/admin-sidebar :: sidebar"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header Fragment -->
+        <div th:replace="fragments/admin-header :: header"></div>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <div class="card">
+                <h2 style="margin-bottom: 24px;">Chỉnh Sửa Hợp Đồng</h2>
+                
+                <div th:if="${error}" class="error-message" th:text="${error}"></div>
+                
+                <form th:if="${contract}" id="editContractForm" onsubmit="saveContract(event)">
+                    <input type="hidden" id="contractId" th:value="${contract.contractId}">
+                    
+                    <div class="form-group">
+                        <label for="contractCode">Mã hợp đồng <span class="required">*</span></label>
+                        <input type="text" id="contractCode" th:value="${contract.contractCode}" required placeholder="VD: LC-2024-001">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="groupId">ID Nhóm <span class="required">*</span></label>
+                        <input type="number" id="groupId" th:value="${contract.groupId}" required placeholder="Nhập ID nhóm">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contractStatus">Trạng thái <span class="required">*</span></label>
+                        <select id="contractStatus" required>
+                            <option value="pending" th:selected="${contract.contractStatus == 'pending'}">Chờ ký</option>
+                            <option value="signed" th:selected="${contract.contractStatus == 'signed'}">Đã ký</option>
+                            <option value="archived" th:selected="${contract.contractStatus == 'archived'}">Đã lưu trữ</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" th:if="${contract.creationDate != null}">
+                        <label>Ngày tạo</label>
+                        <input type="text" th:value="${contract.creationDate}" readonly style="background: #f8fafc;">
+                    </div>
+
+                    <div class="form-group" th:if="${contract.signedDate != null}">
+                        <label>Ngày ký</label>
+                        <input type="text" th:value="${contract.signedDate}" readonly style="background: #f8fafc;">
+                    </div>
+
+                    <div style="margin-top: 24px;">
+                        <button type="button" class="btn-cancel" onclick="window.location.href='/admin/legal-contracts'">Hủy</button>
+                        <button type="submit" class="btn-save">Lưu thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function saveContract(event) {
+            event.preventDefault();
+            
+            const contractId = document.getElementById('contractId').value;
+            const contractData = {
+                contractCode: document.getElementById('contractCode').value,
+                groupId: parseInt(document.getElementById('groupId').value),
+                contractStatus: document.getElementById('contractStatus').value
+            };
+
+            fetch(`/admin/legal-contracts/api/update/${contractId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(contractData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.href = '/admin/legal-contracts';
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi cập nhật hợp đồng');
+            });
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,154 @@
+<div th:fragment="maintenance-page">
+    <div id="maintenance-page" class="page" th:classappend="${activePage == 'maintenance'} ? 'active'">
+        <div class="page-header">
+            <div class="header-content">
+                <div>
+                    <h1><i class="fas fa-tools"></i> Đặt dịch vụ bảo dưỡng xe</h1>
+                    <p>Theo dõi lịch chăm sóc xe đồng sở hữu và chủ động gửi yêu cầu bảo dưỡng</p>
+                </div>
+                <div class="header-actions">
+                    <span class="badge badge-info">
+                        <i class="fas fa-shield-heart"></i> Đồng bộ với lịch đặt xe
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="fund-stats-grid">
+            <div class="fund-stat-card primary">
+                <div class="stat-card-header">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-car-side"></i>
+                    </div>
+                </div>
+                <div class="stat-card-body">
+                    <div class="stat-label">Xe của bạn</div>
+                    <div class="stat-value" id="maintenance-total-vehicles">0</div>
+                    <div class="stat-description">Từ các nhóm đồng sở hữu</div>
+                </div>
+            </div>
+            <div class="fund-stat-card success">
+                <div class="stat-card-header">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-hammer"></i>
+                    </div>
+                </div>
+                <div class="stat-card-body">
+                    <div class="stat-label">Gói bảo dưỡng</div>
+                    <div class="stat-value" th:text="${maintenanceServices != null ? maintenanceServices.size() : 0}">0</div>
+                    <div class="stat-description">Đang được cung cấp</div>
+                </div>
+            </div>
+            <div class="fund-stat-card info">
+                <div class="stat-card-header">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                </div>
+                <div class="stat-card-body">
+                    <div class="stat-label">Thông báo</div>
+                    <div class="stat-value" id="maintenance-alerts">Luôn cập nhật</div>
+                    <div class="stat-description">Gửi email + push</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="card-header">
+                <h2><i class="fas fa-car"></i> Chọn xe cần bảo dưỡng</h2>
+                <p>Danh sách tự động đồng bộ từ các nhóm bạn đang tham gia. Tick vào checkbox để chọn một hoặc nhiều xe.</p>
+            </div>
+            <div class="card-body">
+                <div id="maintenance-options-loading" class="info-banner">
+                    <i class="fas fa-spinner fa-spin"></i> Đang tải danh sách xe...
+                </div>
+                <div id="maintenance-vehicle-checkbox-container" style="display: none;">
+                    <div class="vehicle-checkbox-list" id="maintenance-vehicle-checkbox-list" style="display: grid; gap: 12px; margin-top: 16px;">
+                        <!-- Checkboxes will be populated by JavaScript -->
+                    </div>
+                </div>
+                <div id="maintenance-empty-state" class="info-banner warning" style="display: none;">
+                    <i class="fas fa-info-circle"></i> Bạn chưa có xe nào đủ điều kiện đặt bảo dưỡng. Vui lòng tham gia nhóm hoặc liên hệ quản trị viên.
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="card-header">
+                <h2><i class="fas fa-clipboard-check"></i> Gửi yêu cầu bảo dưỡng</h2>
+            </div>
+            <div class="card-body">
+                <div class="info-banner" id="maintenance-selection-summary">
+                    <i class="fas fa-circle-info"></i>
+                    <span>Hãy chọn một hoặc nhiều xe ở danh sách phía trên trước khi gửi yêu cầu.</span>
+                </div>
+                <form id="maintenance-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-bolt"></i> Loại dịch vụ</label>
+                            <select id="maintenance-service" required>
+                                <option value="" disabled selected>-- Chọn gói bảo dưỡng --</option>
+                                <option th:each="service : ${maintenanceServices}"
+                                        th:value="${service['serviceId']}"
+                                        th:text="${service['serviceName']}"
+                                        th:attr="data-service-name=${service['serviceName']}">
+                                </option>
+                            </select>
+                            <small class="form-text">Các gói bảo dưỡng được quản trị viên cấu hình và đồng bộ theo chu kỳ.</small>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-phone"></i> Số điện thoại liên hệ</label>
+                            <input type="tel" id="maintenance-phone" placeholder="VD: 0987 123 456">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar-day"></i> Thời gian mong muốn</label>
+                            <input type="datetime-local" id="maintenance-start" required>
+                            <small class="form-text">Thời gian bắt đầu dự kiến.</small>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar-plus"></i> Hoàn thành dự kiến</label>
+                            <input type="datetime-local" id="maintenance-end">
+                            <small class="form-text">Tùy chọn nếu bạn muốn ghi rõ.</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-align-left"></i> Yêu cầu chi tiết</label>
+                        <textarea id="maintenance-description" rows="3" placeholder="Mô tả vấn đề hoặc hạng mục cần kiểm tra"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-sticky-note"></i> Ghi chú cho nhóm (tùy chọn)</label>
+                        <textarea id="maintenance-note" rows="2"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg" id="maintenance-submit-btn" disabled>
+                            <i class="fas fa-paper-plane"></i> Gửi yêu cầu
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="maintenance-reset-btn">
+                            <i class="fas fa-undo"></i> Làm mới form
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="card-header">
+                <h2><i class="fas fa-history"></i> Lưu ý trước khi đặt</h2>
+            </div>
+            <div class="card-body">
+                <ul class="guideline-list">
+                    <li><i class="fas fa-check-circle"></i> Yêu cầu sẽ được đồng bộ sang hệ thống quản trị và hiển thị trong lịch xe.</li>
+                    <li><i class="fas fa-check-circle"></i> Mọi thành viên trong nhóm sẽ nhận thông báo khi yêu cầu được duyệt.</li>
+                    <li><i class="fas fa-check-circle"></i> Bạn có thể theo dõi trạng thái tại trang quản trị hoặc mục lịch sử bảo dưỡng.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+

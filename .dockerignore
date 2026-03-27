@@ -1,0 +1,48 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.iml
+*.swp
+*.swo
+
+# Build outputs
+target/
+*.jar
+*.war
+*.ear
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Test
+test/
+*.test
+
+# Documentation
+*.md
+!README.md
+
+# Scripts
+*.ps1
+*.sh
+*.bat
+
+# Uploads
+uploads/
+
+# Temporary files
+*.tmp
+*.temp
+

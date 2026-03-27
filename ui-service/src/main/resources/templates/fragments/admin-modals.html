@@ -1,0 +1,605 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="modals">
+        <div id="modal-overlay" class="modal-overlay"></div>
+        
+        <!-- Cost CRUD Modals -->
+        <div id="cost-modal" class="modal">
+            <div class="modal-header">
+                <h3 id="cost-modal-title">Chi tiết chi phí</h3>
+                <button class="modal-close" onclick="closeCostModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="cost-modal-body">
+                <!-- Content loaded dynamically -->
+            </div>
+            <div class="modal-actions" id="cost-modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeCostModal()">Đóng</button>
+            </div>
+        </div>
+
+        <!-- Cost Create/Edit Modal -->
+        <div id="cost-form-modal" class="modal">
+            <div class="modal-header">
+                <h3 id="cost-form-modal-title">Tạo chi phí mới</h3>
+                <button class="modal-close" onclick="closeCostFormModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="cost-form">
+                    <input type="hidden" id="cost-form-id">
+                    
+                    <div class="form-group">
+                        <label for="cost-vehicle-id">Vehicle ID <span style="color: red;">*</span></label>
+                        <input type="number" id="cost-vehicle-id" class="form-control" required placeholder="Nhập ID xe">
+                        <small style="color: var(--text-light);">ID của xe liên quan đến chi phí này</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cost-type-select">Loại chi phí <span style="color: red;">*</span></label>
+                        <select id="cost-type-select" class="form-control" required>
+                            <option value="">-- Chọn loại chi phí --</option>
+                            <option value="ElectricCharge">Sạc điện</option>
+                            <option value="Maintenance">Bảo dưỡng</option>
+                            <option value="Insurance">Bảo hiểm</option>
+                            <option value="Inspection">Đăng kiểm</option>
+                            <option value="Cleaning">Vệ sinh</option>
+                            <option value="Other">Khác</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cost-amount">Số tiền (VNĐ) <span style="color: red;">*</span></label>
+                        <input type="number" id="cost-amount" class="form-control" required 
+                               placeholder="VD: 500000" min="0" step="0.01">
+                        <small style="color: var(--text-light);">Nhập số tiền chi phí</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cost-description">Mô tả</label>
+                        <textarea id="cost-description" class="form-control" rows="3" 
+                                  placeholder="Nhập mô tả chi tiết về chi phí (tùy chọn)"></textarea>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeCostFormModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Cost Split Modal -->
+        <div id="cost-split-modal" class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 id="cost-split-modal-title">Phân chia chi phí</h3>
+                <button class="modal-close" onclick="closeCostSplitModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="cost-split-info" style="background: var(--light); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <!-- Cost info will be loaded here -->
+                </div>
+
+                <form id="cost-split-form">
+                    <input type="hidden" id="split-cost-id">
+                    
+                    <div class="form-group">
+                        <label for="split-method-select">Phương thức chia <span style="color: red;">*</span></label>
+                        <select id="split-method-select" class="form-control" required>
+                            <option value="">-- Chọn phương thức --</option>
+                            <option value="BY_OWNERSHIP">Theo tỷ lệ sở hữu</option>
+                            <option value="BY_USAGE">Theo km đã chạy</option>
+                            <option value="EQUAL">Chia đều</option>
+                            <option value="CUSTOM">Tùy chỉnh (nhập % thủ công)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="split-group-container" style="display: none;">
+                        <label for="split-group-id">Nhóm <span style="color: red;">*</span></label>
+                        <select id="split-group-id" class="form-control">
+                            <option value="">-- Chọn nhóm --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="split-usage-period" style="display: none;">
+                        <label>Tháng/Năm (cho phương thức theo km)</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <select id="split-month" class="form-control">
+                                <option value="1">Tháng 1</option>
+                                <option value="2">Tháng 2</option>
+                                <option value="3">Tháng 3</option>
+                                <option value="4">Tháng 4</option>
+                                <option value="5">Tháng 5</option>
+                                <option value="6">Tháng 6</option>
+                                <option value="7">Tháng 7</option>
+                                <option value="8">Tháng 8</option>
+                                <option value="9">Tháng 9</option>
+                                <option value="10">Tháng 10</option>
+                                <option value="11">Tháng 11</option>
+                                <option value="12">Tháng 12</option>
+                            </select>
+                            <input type="number" id="split-year" class="form-control" placeholder="Năm" 
+                                   value="2025" min="2020" max="2030">
+                        </div>
+                    </div>
+
+                    <div id="split-custom-container" style="display: none;">
+                        <div class="form-group">
+                            <label>Danh sách thành viên và phần trăm</label>
+                            <div id="split-members-list">
+                                <!-- Custom split members will be added here -->
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="addCustomSplitMember()">
+                                <i class="fas fa-plus"></i> Thêm thành viên
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="previewCostSplit()">
+                            <i class="fas fa-eye"></i> Xem trước
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="closeCostSplitModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Lưu phân chia
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Preview Section -->
+                <div id="split-preview-section" style="display: none; margin-top: 2rem; padding: 1.5rem; background: var(--light); border-radius: 8px;">
+                    <h4 style="margin-bottom: 1rem; color: var(--primary);">
+                        <i class="fas fa-eye"></i> Xem trước phân chia
+                    </h4>
+                    <div id="split-preview-content">
+                        <!-- Preview content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Group Create/Edit Modal -->
+        <div id="group-modal" class="modal">
+            <div class="modal-header">
+                <h3 id="group-modal-title">Tạo nhóm mới</h3>
+                <button class="modal-close" onclick="closeGroupModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="group-form">
+                    <input type="hidden" id="group-id">
+                    
+                    <div class="form-group">
+                        <label for="group-name">Tên nhóm <span style="color: red;">*</span></label>
+                        <input type="text" id="group-name" class="form-control" required placeholder="Nhập tên nhóm">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="group-admin">Admin ID</label>
+                        <input type="number" id="group-admin" class="form-control" placeholder="Nhập ID người quản lý (tùy chọn)">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="group-status">Trạng thái</label>
+                        <select id="group-status" class="form-control">
+                            <option value="Active">Hoạt động</option>
+                            <option value="Inactive">Không hoạt động</option>
+                        </select>
+                    </div>
+
+                    <!-- Vehicle Information Section -->
+                    <div id="vehicle-section" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e2e8f0;">
+                        <h4 style="margin: 0 0 15px 0; color: #1a202c; font-size: 16px;">
+                            <i class="fas fa-car"></i> Thông tin xe
+                        </h4>
+                        
+                        <!-- Vehicle ID -->
+                        <div id="vehicle-id-group" class="form-group">
+                            <label for="vehicle-id-display">Mã xe <span id="vehicle-id-required" style="color: red;">*</span></label>
+                            <input type="text" id="vehicle-id-display" class="form-control" placeholder="">
+                            <small id="vehicle-id-hint" style="color: #64748b; font-size: 12px; display: block; margin-top: 5px;">
+                                Mã xe duy nhất (bắt buộc khi tạo mới)
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="vehicle-number">Biển số xe <span id="vehicle-number-required" style="color: red;">*</span></label>
+                            <input type="text" id="vehicle-number" class="form-control" placeholder="VD: EV-ALPHA-01">
+                            <small id="vehicle-number-hint" style="color: #64748b; font-size: 12px; display: block; margin-top: 5px;">
+                                Biển số xe duy nhất (bắt buộc khi tạo mới)
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vehicle-type">Loại xe <span id="vehicle-type-required" style="color: red;">*</span></label>
+                            <select id="vehicle-type" class="form-control">
+                                <option value="">-- Chọn loại xe --</option>
+                                <option value="SUV">SUV</option>
+                                <option value="Sedan">Sedan</option>
+                                <option value="Hatchback">Hatchback</option>
+                                <option value="Coupe">Coupe</option>
+                                <option value="Convertible">Convertible</option>
+                                <option value="Wagon">Wagon</option>
+                                <option value="Truck">Truck</option>
+                                <option value="Van">Van</option>
+                            </select>
+                            <small id="vehicle-type-hint" style="color: #64748b; font-size: 12px; display: block; margin-top: 5px;">
+                                Loại xe (bắt buộc khi tạo mới)
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeGroupModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Group Detail Modal -->
+        <div id="group-detail-modal" class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 id="group-detail-title">Chi tiết nhóm</h3>
+                <button class="modal-close" onclick="closeGroupDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="group-detail-content">
+                    <!-- Content loaded dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Member Management Modal -->
+        <div id="member-modal" class="modal">
+            <div class="modal-header">
+                <h3 id="member-modal-title">Thêm thành viên</h3>
+                <button class="modal-close" onclick="closeMemberModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="member-form">
+                    <input type="hidden" id="member-group-id">
+                    <input type="hidden" id="member-id">
+                    
+                    <div class="form-group">
+                        <label for="member-user-id">User ID <span style="color: red;">*</span></label>
+                        <input type="number" id="member-user-id" class="form-control" required placeholder="Nhập ID người dùng">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="member-role">Vai trò</label>
+                        <select id="member-role" class="form-control">
+                            <option value="Member">Thành viên</option>
+                            <option value="Admin">Quản trị viên</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="member-ownership">Tỷ lệ sở hữu (%)</label>
+                        <input type="number" id="member-ownership" class="form-control" min="0" max="100" step="0.01" value="0" placeholder="Nhập % sở hữu">
+                        <small style="color: var(--text-light);">Dùng cho phương thức chia theo sở hữu</small>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeMemberModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Payment Details Modal -->
+        <div id="payment-details-modal" class="modal">
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-info-circle"></i> Chi tiết thanh toán</h3>
+                    <button class="close-btn" onclick="closePaymentDetailsModal()">&times;</button>
+                </div>
+                <div class="modal-body" id="payment-details-body">
+                    <!-- Content will be dynamically loaded -->
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closePaymentDetailsModal()">Đóng</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirm Payment Modal -->
+        <div id="confirm-payment-modal" class="modal">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-check-circle"></i> Xác nhận thanh toán</h3>
+                    <button class="close-btn" onclick="closeConfirmPaymentModal()">&times;</button>
+                </div>
+                <form id="confirm-payment-form">
+                    <div class="modal-body">
+                        <p style="margin-bottom: 1.5rem;">Bạn có chắc chắn muốn xác nhận thanh toán này?</p>
+                        
+                        <div class="info-box" style="background: var(--card-bg); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <strong>User ID:</strong>
+                                <span id="confirm-user-id">-</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <strong>Số tiền:</strong>
+                                <span id="confirm-amount" style="color: var(--primary); font-weight: bold;">-</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <strong>Mã giao dịch:</strong>
+                                <span id="confirm-transaction-code">-</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirm-note">Ghi chú (tùy chọn)</label>
+                            <textarea id="confirm-note" class="form-control" rows="3" placeholder="Thêm ghi chú về thanh toán..."></textarea>
+                        </div>
+
+                        <input type="hidden" id="confirm-payment-id">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeConfirmPaymentModal()">Hủy</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> Xác nhận
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Payment Modal -->
+        <div id="edit-payment-modal" class="modal">
+            <div class="modal-content" style="max-width: 600px; display: flex; flex-direction: column; max-height: 90vh;">
+                <div class="modal-header" style="flex-shrink: 0;">
+                    <h3><i class="fas fa-edit"></i> Chỉnh sửa thanh toán</h3>
+                    <button class="close-btn" onclick="closeEditPaymentModal()">&times;</button>
+                </div>
+                <form id="edit-payment-form" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; min-height: 0;">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit-payment-id">
+                        
+                        <div class="form-group">
+                            <label for="edit-user-id">User ID <span style="color: red;">*</span></label>
+                            <input type="number" id="edit-user-id" class="form-control" required placeholder="Nhập User ID">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-cost-id">Cost ID <span style="color: red;">*</span></label>
+                            <input type="number" id="edit-cost-id" class="form-control" required placeholder="Nhập Cost ID">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-amount">Số tiền <span style="color: red;">*</span></label>
+                            <input type="number" id="edit-amount" class="form-control" required placeholder="Nhập số tiền" step="0.01">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-method">Phương thức thanh toán</label>
+                            <select id="edit-method" class="form-control">
+                                <option value="">-- Chọn phương thức --</option>
+                                <option value="BANKING">Chuyển khoản</option>
+                                <option value="CASH">Tiền mặt</option>
+                                <option value="EWALLET">Ví điện tử</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-transaction-code">Mã giao dịch</label>
+                            <input type="text" id="edit-transaction-code" class="form-control" placeholder="Nhập mã giao dịch">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-payment-date">Ngày thanh toán</label>
+                            <input type="date" id="edit-payment-date" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-status">Trạng thái</label>
+                            <select id="edit-status" class="form-control">
+                                <option value="PENDING">Chờ thanh toán</option>
+                                <option value="PAID">Đã thanh toán</option>
+                                <option value="OVERDUE">Quá hạn</option>
+                                <option value="CANCELLED">Đã hủy</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditPaymentModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Fund Detail Modal -->
+        <div id="fund-detail-modal" class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 id="fund-detail-title">Chi tiết quỹ</h3>
+                <button class="modal-close" onclick="closeFundDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="fund-detail-content">
+                    <!-- Content loaded dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Fund Transaction History Modal -->
+        <div id="fund-transactions-modal" class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 id="fund-transactions-title">Lịch sử giao dịch</h3>
+                <button class="modal-close" onclick="closeFundTransactionsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="filter-group" style="margin-bottom: 1rem;">
+                    <select id="transaction-type-filter" onchange="loadFundTransactions()">
+                        <option value="">Tất cả loại</option>
+                        <option value="DEPOSIT">Nạp tiền</option>
+                        <option value="WITHDRAW">Rút tiền</option>
+                    </select>
+                    <select id="transaction-status-filter" onchange="loadFundTransactions()">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="APPROVED">Đã duyệt</option>
+                        <option value="PENDING">Chờ duyệt</option>
+                        <option value="REJECTED">Từ chối</option>
+                    </select>
+                </div>
+                <div id="fund-transactions-content">
+                    <!-- Transactions will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Approve/Reject Withdraw Request Modal -->
+        <div id="withdraw-request-modal" class="modal">
+            <div class="modal-header">
+                <h3 id="withdraw-request-title">Xử lý yêu cầu rút tiền</h3>
+                <button class="modal-close" onclick="closeWithdrawRequestModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="withdraw-request-content">
+                    <!-- Request details will be loaded here -->
+                </div>
+                <form id="withdraw-request-form">
+                    <input type="hidden" id="request-id">
+                    <input type="hidden" id="request-action">
+                    <div class="form-group">
+                        <label for="request-note">Ghi chú (tùy chọn)</label>
+                        <textarea id="request-note" class="form-control" rows="3" placeholder="Nhập ghi chú về quyết định..."></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeWithdrawRequestModal()">Hủy</button>
+                        <button type="button" class="btn btn-danger" onclick="rejectWithdrawRequest()">
+                            <i class="fas fa-times"></i> Từ chối
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="approveWithdrawRequest()">
+                            <i class="fas fa-check"></i> Phê duyệt
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Deposit Fund Modal -->
+        <div id="deposit-fund-modal" class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-arrow-down"></i> Nạp tiền vào quỹ</h3>
+                <button class="modal-close" onclick="closeDepositFundModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="deposit-fund-form">
+                    <input type="hidden" id="deposit-fund-id">
+                    <input type="hidden" id="deposit-group-id">
+                    
+                    <div class="info-box" style="background: var(--light); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <strong>Nhóm:</strong>
+                            <span id="deposit-group-name">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <strong>Số dư hiện tại:</strong>
+                            <span id="deposit-current-balance" style="color: var(--primary); font-weight: bold;">-</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deposit-user-id">User ID <span style="color: red;">*</span></label>
+                        <input type="number" id="deposit-user-id" class="form-control" required placeholder="Nhập ID người nạp tiền">
+                        <small style="color: var(--text-light);">ID của người thực hiện nạp tiền</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deposit-amount">Số tiền (VNĐ) <span style="color: red;">*</span></label>
+                        <input type="number" id="deposit-amount" class="form-control" required 
+                               placeholder="VD: 1000000" min="1000" step="1000">
+                        <small style="color: var(--text-light);">Số tiền tối thiểu: 1,000 ₫</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deposit-purpose">Mục đích</label>
+                        <textarea id="deposit-purpose" class="form-control" rows="3" 
+                                  placeholder="Nhập mục đích nạp tiền (tùy chọn)"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deposit-receipt-url">URL hóa đơn/chứng từ (tùy chọn)</label>
+                        <input type="url" id="deposit-receipt-url" class="form-control" 
+                               placeholder="https://example.com/receipt.jpg">
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeDepositFundModal()">Hủy</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> Xác nhận nạp tiền
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Withdraw Fund Modal -->
+        <div id="withdraw-fund-modal" class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-arrow-up"></i> Rút tiền từ quỹ</h3>
+                <button class="modal-close" onclick="closeWithdrawFundModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="withdraw-fund-form">
+                    <input type="hidden" id="withdraw-fund-id">
+                    <input type="hidden" id="withdraw-group-id">
+                    
+                    <div class="info-box" style="background: var(--light); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <strong>Nhóm:</strong>
+                            <span id="withdraw-group-name">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <strong>Số dư hiện tại:</strong>
+                            <span id="withdraw-current-balance" style="color: var(--primary); font-weight: bold;">-</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="withdraw-user-id">User ID (Admin) <span style="color: red;">*</span></label>
+                        <input type="number" id="withdraw-user-id" class="form-control" required placeholder="Nhập ID admin">
+                        <small style="color: var(--text-light);">ID của admin thực hiện rút tiền</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="withdraw-amount">Số tiền (VNĐ) <span style="color: red;">*</span></label>
+                        <input type="number" id="withdraw-amount" class="form-control" required 
+                               placeholder="VD: 500000" min="1000" step="1000">
+                        <small style="color: var(--text-light);">Số tiền tối thiểu: 1,000 ₫</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="withdraw-purpose">Mục đích <span style="color: red;">*</span></label>
+                        <textarea id="withdraw-purpose" class="form-control" rows="3" required
+                                  placeholder="Nhập mục đích rút tiền"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="withdraw-receipt-url">URL hóa đơn/chứng từ (tùy chọn)</label>
+                        <input type="url" id="withdraw-receipt-url" class="form-control" 
+                               placeholder="https://example.com/receipt.jpg">
+                    </div>
+
+                    <div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Lưu ý:</strong> Rút tiền sẽ được thực hiện ngay lập tức không cần vote.
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeWithdrawFundModal()">Hủy</button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-check"></i> Xác nhận rút tiền
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+</div>
+

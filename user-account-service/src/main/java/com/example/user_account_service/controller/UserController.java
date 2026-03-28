@@ -70,12 +70,8 @@ public class UserController {
      */
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
-        try {
-            LoginResponse response = userService.loginUser(loginRequest);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body("Sai email hoặc mật khẩu");
-        }
+        LoginResponse response = userService.loginUser(loginRequest);
+        return ResponseEntity.ok(response);
     }
 
     /**

@@ -8,8 +8,10 @@ import com.example.user_account_service.entity.RefreshToken;
 import com.example.user_account_service.entity.User;
 import com.example.user_account_service.enums.ProfileStatus;
 import com.example.user_account_service.enums.Role;
+import com.example.user_account_service.exception.TooManyRequestsException;
 import com.example.user_account_service.repository.RefreshTokenRepository;
 import com.example.user_account_service.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,6 +40,10 @@ public class UserService {
     private AuthenticationManager authenticationManager;
     @Autowired
     private JwtService jwtService;
+    @Autowired
+    private LoginAttemptService loginAttemptService;
+    @Autowired
+    private HttpServletRequest httpServletRequest;
 
     // Tìm user bằng email (hỗ trợ Controller và Security)
     public Optional<User> findByEmail(String email) {
@@ -75,24 +81,54 @@ public class UserService {
         return buildAuthResponse(saved, createRefreshToken(saved));
     }
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserService.class);
+
     /**
      * Đăng nhập: xác thực, phát access token + refresh token.
      */
     public LoginResponse loginUser(LoginRequest request) {
+        // Lấy IP thật từ X-Forwarded-For (do chạy qua API Gateway) hoặc RemoteAddr mặc định
+        String clientIp = httpServletRequest.getHeader("X-Forwarded-For");
+        if (clientIp == null || clientIp.isEmpty()) {
+            clientIp = httpServletRequest.getRemoteAddr();
+        } else {
+            // X-Forwarded-For có thể chứa chuỗi IP phân tách bởi dấu phẩy, lấy cái đầu tiên
+            clientIp = clientIp.split(",")[0].trim();
+        }
+
+        String key = clientIp + ":" + request.getEmail();
+        
+        log.info(">>> LOGIN_PROCESS_START: email=[{}], ip=[{}], key=[{}]", request.getEmail(), clientIp, key);
+
+        // PHẢI KIỂM TRA BLOCK ĐẦU TIÊN
+        if (loginAttemptService.isBlocked(key)) {
+            log.warn(">>> ACCESS_DENIED_BRUTE_FORCE: Key [{}] is currently blocked.", key);
+            throw new TooManyRequestsException("Tài khoản đã bị khóa tạm thời do nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.");
+        }
+
         if (request.getEmail() == null || request.getEmail().trim().isEmpty() ||
             request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            log.error(">>> LOGIN_ERROR: Email or password is empty");
             throw new RuntimeException("Email và mật khẩu không được để trống!");
         }
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng sau khi đăng nhập"));
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng sau khi đăng nhập"));
 
-        RefreshToken refreshToken = createRefreshToken(user);
-        return buildAuthResponse(user, refreshToken);
+            log.info("Đăng nhập THÀNH CÔNG cho Key: [{}]", key);
+            loginAttemptService.loginSucceeded(key);
+            RefreshToken refreshToken = createRefreshToken(user);
+            return buildAuthResponse(user, refreshToken);
+        } catch (Exception e) {
+            log.error("Đăng nhập THẤT BẠI cho Key: [{}]. Lỗi: {}", key, e.getMessage());
+            loginAttemptService.loginFailed(key);
+            throw e;
+        }
     }
 
     /**
@@ -113,7 +149,6 @@ public class UserService {
         refreshTokenRepository.save(storedToken);
 
         // Load lại user từ database để đảm bảo có profileStatus mới nhất
-        // (không dùng storedToken.getUser() vì có thể bị cache)
         Long userId = storedToken.getUser().getUserId();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));

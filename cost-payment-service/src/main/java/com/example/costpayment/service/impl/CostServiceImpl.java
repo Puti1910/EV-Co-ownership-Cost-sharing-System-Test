@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Service
 public class CostServiceImpl implements CostService {
@@ -80,26 +82,26 @@ public class CostServiceImpl implements CostService {
 
     // ✅ Tìm kiếm theo khoảng số tiền
     @Override
-    public List<Cost> getCostsByAmountRange(Double minAmount, Double maxAmount) {
+    public List<Cost> getCostsByAmountRange(BigDecimal minAmount, BigDecimal maxAmount) {
         return costRepository.findByAmountBetween(minAmount, maxAmount);
     }
 
     @Override
-    public List<Cost> getCostsByVehicleIdAndAmountRange(Integer vehicleId, Double minAmount, Double maxAmount) {
+    public List<Cost> getCostsByVehicleIdAndAmountRange(Integer vehicleId, BigDecimal minAmount, BigDecimal maxAmount) {
         return costRepository.findByVehicleIdAndAmountBetween(vehicleId, minAmount, maxAmount);
     }
 
     // ✅ Tìm kiếm nâng cao với nhiều điều kiện
     @Override
-    public List<Cost> searchCosts(Integer vehicleId, String costType, Double minAmount, Double maxAmount, 
+    public List<Cost> searchCosts(Integer vehicleId, String costType, BigDecimal minAmount, BigDecimal maxAmount, 
                                   LocalDateTime startDate, LocalDateTime endDate) {
         List<Cost> allCosts = costRepository.findAll();
         
         return allCosts.stream()
             .filter(cost -> vehicleId == null || cost.getVehicleId().equals(vehicleId))
             .filter(cost -> costType == null || cost.getCostType().name().equals(costType))
-            .filter(cost -> minAmount == null || cost.getAmount() >= minAmount)
-            .filter(cost -> maxAmount == null || cost.getAmount() <= maxAmount)
+            .filter(cost -> minAmount == null || cost.getAmount().compareTo(minAmount) >= 0)
+            .filter(cost -> maxAmount == null || cost.getAmount().compareTo(maxAmount) <= 0)
             .filter(cost -> startDate == null || cost.getCreatedAt().isAfter(startDate) || cost.getCreatedAt().isEqual(startDate))
             .filter(cost -> endDate == null || cost.getCreatedAt().isBefore(endDate) || cost.getCreatedAt().isEqual(endDate))
             .collect(Collectors.toList());
@@ -112,22 +114,26 @@ public class CostServiceImpl implements CostService {
         
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalCosts", allCosts.size());
-        stats.put("totalAmount", allCosts.stream().mapToDouble(Cost::getAmount).sum());
-        stats.put("averageAmount", allCosts.stream().mapToDouble(Cost::getAmount).average().orElse(0.0));
+        
+        BigDecimal totalAmount = allCosts.stream().map(Cost::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        stats.put("totalAmount", totalAmount);
+        BigDecimal averageAmount = allCosts.isEmpty() ? BigDecimal.ZERO : 
+            totalAmount.divide(new BigDecimal(allCosts.size()), 2, RoundingMode.HALF_UP);
+        stats.put("averageAmount", averageAmount);
         
         // Group by cost type
-        Map<String, Double> costTypeStats = allCosts.stream()
+        Map<String, BigDecimal> costTypeStats = allCosts.stream()
             .collect(Collectors.groupingBy(
                 cost -> cost.getCostType().name(),
-                Collectors.summingDouble(Cost::getAmount)
+                Collectors.mapping(Cost::getAmount, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
             ));
         stats.put("costTypeBreakdown", costTypeStats);
         
         // Group by vehicle
-        Map<Integer, Double> vehicleStats = allCosts.stream()
+        Map<Integer, BigDecimal> vehicleStats = allCosts.stream()
             .collect(Collectors.groupingBy(
                 Cost::getVehicleId,
-                Collectors.summingDouble(Cost::getAmount)
+                Collectors.mapping(Cost::getAmount, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
             ));
         stats.put("vehicleBreakdown", vehicleStats);
         
@@ -141,14 +147,18 @@ public class CostServiceImpl implements CostService {
         Map<String, Object> stats = new HashMap<>();
         stats.put("vehicleId", vehicleId);
         stats.put("totalCosts", vehicleCosts.size());
-        stats.put("totalAmount", vehicleCosts.stream().mapToDouble(Cost::getAmount).sum());
-        stats.put("averageAmount", vehicleCosts.stream().mapToDouble(Cost::getAmount).average().orElse(0.0));
+        
+        BigDecimal totalAmount = vehicleCosts.stream().map(Cost::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        stats.put("totalAmount", totalAmount);
+        BigDecimal averageAmount = vehicleCosts.isEmpty() ? BigDecimal.ZERO : 
+            totalAmount.divide(new BigDecimal(vehicleCosts.size()), 2, RoundingMode.HALF_UP);
+        stats.put("averageAmount", averageAmount);
         
         // Group by cost type for this vehicle
-        Map<String, Double> costTypeStats = vehicleCosts.stream()
+        Map<String, BigDecimal> costTypeStats = vehicleCosts.stream()
             .collect(Collectors.groupingBy(
                 cost -> cost.getCostType().name(),
-                Collectors.summingDouble(Cost::getAmount)
+                Collectors.mapping(Cost::getAmount, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
             ));
         stats.put("costTypeBreakdown", costTypeStats);
         
@@ -162,14 +172,18 @@ public class CostServiceImpl implements CostService {
         Map<String, Object> stats = new HashMap<>();
         stats.put("costType", costType);
         stats.put("totalCosts", typeCosts.size());
-        stats.put("totalAmount", typeCosts.stream().mapToDouble(Cost::getAmount).sum());
-        stats.put("averageAmount", typeCosts.stream().mapToDouble(Cost::getAmount).average().orElse(0.0));
+        
+        BigDecimal totalAmount = typeCosts.stream().map(Cost::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        stats.put("totalAmount", totalAmount);
+        BigDecimal averageAmount = typeCosts.isEmpty() ? BigDecimal.ZERO : 
+            totalAmount.divide(new BigDecimal(typeCosts.size()), 2, RoundingMode.HALF_UP);
+        stats.put("averageAmount", averageAmount);
         
         // Group by vehicle for this cost type
-        Map<Integer, Double> vehicleStats = typeCosts.stream()
+        Map<Integer, BigDecimal> vehicleStats = typeCosts.stream()
             .collect(Collectors.groupingBy(
                 Cost::getVehicleId,
-                Collectors.summingDouble(Cost::getAmount)
+                Collectors.mapping(Cost::getAmount, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
             ));
         stats.put("vehicleBreakdown", vehicleStats);
         
@@ -184,22 +198,26 @@ public class CostServiceImpl implements CostService {
         stats.put("startDate", startDate);
         stats.put("endDate", endDate);
         stats.put("totalCosts", rangeCosts.size());
-        stats.put("totalAmount", rangeCosts.stream().mapToDouble(Cost::getAmount).sum());
-        stats.put("averageAmount", rangeCosts.stream().mapToDouble(Cost::getAmount).average().orElse(0.0));
+        
+        BigDecimal totalAmount = rangeCosts.stream().map(Cost::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        stats.put("totalAmount", totalAmount);
+        BigDecimal averageAmount = rangeCosts.isEmpty() ? BigDecimal.ZERO : 
+            totalAmount.divide(new BigDecimal(rangeCosts.size()), 2, RoundingMode.HALF_UP);
+        stats.put("averageAmount", averageAmount);
         
         // Group by cost type
-        Map<String, Double> costTypeStats = rangeCosts.stream()
+        Map<String, BigDecimal> costTypeStats = rangeCosts.stream()
             .collect(Collectors.groupingBy(
                 cost -> cost.getCostType().name(),
-                Collectors.summingDouble(Cost::getAmount)
+                Collectors.mapping(Cost::getAmount, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
             ));
         stats.put("costTypeBreakdown", costTypeStats);
         
         // Group by vehicle
-        Map<Integer, Double> vehicleStats = rangeCosts.stream()
+        Map<Integer, BigDecimal> vehicleStats = rangeCosts.stream()
             .collect(Collectors.groupingBy(
                 Cost::getVehicleId,
-                Collectors.summingDouble(Cost::getAmount)
+                Collectors.mapping(Cost::getAmount, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
             ));
         stats.put("vehicleBreakdown", vehicleStats);
         
@@ -208,21 +226,23 @@ public class CostServiceImpl implements CostService {
 
     // ✅ Tính tổng chi phí
     @Override
-    public Double getTotalAmountByVehicleId(Integer vehicleId) {
-        Double total = costRepository.getTotalAmountByVehicleId(vehicleId);
-        return total != null ? total : 0.0;
+    public BigDecimal getTotalAmountByVehicleId(Integer vehicleId) {
+        BigDecimal total = costRepository.getTotalAmountByVehicleId(vehicleId);
+        return total != null ? total : BigDecimal.ZERO;
     }
 
     @Override
-    public Double getTotalAmountByCostType(String costType) {
-        Double total = costRepository.getTotalAmountByCostType(Enum.valueOf(Cost.CostType.class, costType));
-        return total != null ? total : 0.0;
+    public BigDecimal getTotalAmountByCostType(String costType) {
+        BigDecimal total = costRepository.getTotalAmountByCostType(Enum.valueOf(Cost.CostType.class, costType));
+        return total != null ? total : BigDecimal.ZERO;
     }
 
     @Override
-    public Double getTotalAmountByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+    public BigDecimal getTotalAmountByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         List<Cost> rangeCosts = getCostsByDateRange(startDate, endDate);
-        return rangeCosts.stream().mapToDouble(Cost::getAmount).sum();
+        return rangeCosts.stream()
+                .map(Cost::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     // ✅ Đếm số lượng chi phí

@@ -2,6 +2,7 @@ package com.example.costpayment.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "costsplitdetail", catalog = "Cost_Payment_DB")
@@ -17,11 +18,11 @@ public class CostSplitDetail {
     @Column(name = "memberId", nullable = false)
     private Integer memberId;
 
-    @Column(name = "amount", nullable = false)
-    private Double amount;
+    @Column(name = "amount", nullable = false, precision = 15, scale = 2)
+    private BigDecimal amount;
 
-    @Column(name = "percentage", nullable = false)
-    private Double percentage;
+    @Column(name = "percentage", nullable = false, precision = 5, scale = 2)
+    private BigDecimal percentage;
 
     @Column(name = "createdAt")
     private LocalDateTime createdAt;
@@ -31,7 +32,7 @@ public class CostSplitDetail {
         this.createdAt = LocalDateTime.now();
     }
 
-    public CostSplitDetail(Integer costId, Integer memberId, Double amount, Double percentage) {
+    public CostSplitDetail(Integer costId, Integer memberId, BigDecimal amount, BigDecimal percentage) {
         this();
         this.costId = costId;
         this.memberId = memberId;
@@ -64,19 +65,19 @@ public class CostSplitDetail {
         this.memberId = memberId;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
-    public Double getPercentage() {
+    public BigDecimal getPercentage() {
         return percentage;
     }
 
-    public void setPercentage(Double percentage) {
+    public void setPercentage(BigDecimal percentage) {
         this.percentage = percentage;
     }
 

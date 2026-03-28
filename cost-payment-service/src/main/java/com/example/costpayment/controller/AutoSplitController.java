@@ -153,9 +153,9 @@ public class AutoSplitController {
                     throw new IllegalArgumentException("groupId là bắt buộc");
                 }
                 
-                Double amount;
+                java.math.BigDecimal amount;
                 if (amountObj instanceof Number) {
-                    amount = ((Number) amountObj).doubleValue();
+                    amount = new java.math.BigDecimal(amountObj.toString());
                 } else {
                     throw new IllegalArgumentException("amount phải là số");
                 }
@@ -307,7 +307,7 @@ public class AutoSplitController {
                 java.time.LocalDate.now().getYear();
 
             // Lấy amount: từ costId hoặc từ request
-            Double amount;
+            java.math.BigDecimal amount;
             if (costId != null) {
                 // Lấy amount từ cost đã tồn tại
                 Cost cost = costService.getCostById(costId)
@@ -320,7 +320,7 @@ public class AutoSplitController {
                     throw new IllegalArgumentException("Cần có costId hoặc amount để preview");
                 }
                 if (amountObj instanceof Number) {
-                    amount = ((Number) amountObj).doubleValue();
+                    amount = new java.math.BigDecimal(amountObj.toString());
                 } else {
                     throw new IllegalArgumentException("amount phải là số");
                 }
@@ -348,7 +348,8 @@ public class AutoSplitController {
                     Map<String, Object> share = new HashMap<>();
                     share.put("userId", entry.getKey());
                     share.put("percent", entry.getValue());
-                    double shareAmount = amount * entry.getValue() / 100;
+                    java.math.BigDecimal shareAmount = amount.multiply(new java.math.BigDecimal(entry.getValue().toString()))
+                        .divide(new java.math.BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
                     share.put("amountShare", shareAmount);
                     share.put("amount", shareAmount); // Frontend expects amount
                     shares.add(share);
@@ -391,7 +392,8 @@ public class AutoSplitController {
                     share.put("userId", usage.getUserId());
                     double percent = (usage.getKmDriven() / totalKm) * 100;
                     share.put("percent", Math.round(percent * 100.0) / 100.0);
-                    double shareAmount = amount * percent / 100;
+                    java.math.BigDecimal shareAmount = amount.multiply(new java.math.BigDecimal(String.valueOf(percent)))
+                        .divide(new java.math.BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
                     share.put("amountShare", shareAmount);
                     share.put("amount", shareAmount); // Frontend expects amount
                     share.put("kmDriven", usage.getKmDriven()); // Thêm km để hiển thị
@@ -402,7 +404,7 @@ public class AutoSplitController {
                 Map<Integer, Double> ownership = autoSplitService.getGroupOwnership(groupId, token);
                 int memberCount = ownership.size();
                 double equalPercent = 100.0 / memberCount;
-                double equalAmount = amount / memberCount;
+                java.math.BigDecimal equalAmount = amount.divide(new java.math.BigDecimal(memberCount), 2, java.math.RoundingMode.HALF_UP);
                 
                 for (Integer userId : ownership.keySet()) {
                     Map<String, Object> share = new HashMap<>();

@@ -230,9 +230,9 @@ public class PaymentController {
             List<Map<String, Object>> payments = paymentService.getPaymentsWithFilters(status, startDate, endDate, search);
             
             // Calculate statistics
-            double totalAmount = payments.stream()
-                .mapToDouble(p -> ((Number) p.get("amount")).doubleValue())
-                .sum();
+            java.math.BigDecimal totalAmount = payments.stream()
+                .map(p -> new java.math.BigDecimal(p.get("amount").toString()))
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
             
             long paidCount = payments.stream()
                 .filter(p -> "PAID".equals(p.get("status")))
@@ -395,7 +395,7 @@ public class PaymentController {
             if (paymentDataMap.containsKey("amount")) {
                 Object amountObj = paymentDataMap.get("amount");
                 if (amountObj != null) {
-                    paymentData.setAmount(((Number) amountObj).doubleValue());
+                    paymentData.setAmount(new java.math.BigDecimal(amountObj.toString()));
                 }
             }
             

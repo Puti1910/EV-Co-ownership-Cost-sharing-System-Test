@@ -1,15 +1,16 @@
 package com.example.costpayment.dto;
 
 import java.util.List;
+import java.math.BigDecimal;
 
 public class CostSplitRequestDto {
     private List<Integer> userIds;
-    private List<Double> percentages;
+    private List<BigDecimal> percentages;
 
     // Constructors
     public CostSplitRequestDto() {}
 
-    public CostSplitRequestDto(List<Integer> userIds, List<Double> percentages) {
+    public CostSplitRequestDto(List<Integer> userIds, List<BigDecimal> percentages) {
         this.userIds = userIds;
         this.percentages = percentages;
     }
@@ -23,11 +24,11 @@ public class CostSplitRequestDto {
         this.userIds = userIds;
     }
 
-    public List<Double> getPercentages() {
+    public List<BigDecimal> getPercentages() {
         return percentages;
     }
 
-    public void setPercentages(List<Double> percentages) {
+    public void setPercentages(List<BigDecimal> percentages) {
         this.percentages = percentages;
     }
 

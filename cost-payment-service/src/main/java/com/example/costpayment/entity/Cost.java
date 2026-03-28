@@ -2,6 +2,7 @@ package com.example.costpayment.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "cost", catalog = "Cost_Payment_DB")
@@ -18,8 +19,8 @@ public class Cost {
     @Column(name = "costType", nullable = false)
     private CostType costType;
 
-    @Column(name = "amount", nullable = false)
-    private Double amount;
+    @Column(name = "amount", nullable = false, precision = 15, scale = 2)
+    private BigDecimal amount;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
@@ -37,7 +38,7 @@ public class Cost {
         this.status = CostStatus.PENDING;
     }
 
-    public Cost(Integer vehicleId, CostType costType, Double amount, String description) {
+    public Cost(Integer vehicleId, CostType costType, BigDecimal amount, String description) {
         this();
         this.vehicleId = vehicleId;
         this.costType = costType;
@@ -70,11 +71,11 @@ public class Cost {
         this.costType = costType;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 

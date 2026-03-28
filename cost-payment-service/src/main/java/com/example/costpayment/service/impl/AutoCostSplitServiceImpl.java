@@ -180,7 +180,10 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
 
         // Tạo danh sách userId và % từ map
         List<Integer> userIds = new ArrayList<>(ownershipMap.keySet());
-        List<Double> percentages = new ArrayList<>(ownershipMap.values());
+        List<java.math.BigDecimal> percentages = new ArrayList<>();
+        for (Integer userId : userIds) {
+            percentages.add(java.math.BigDecimal.valueOf(ownershipMap.get(userId)));
+        }
 
         // Sử dụng service có sẵn
         return costShareService.calculateCostShares(costId, userIds, percentages);
@@ -213,7 +216,10 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
 
         // Tạo danh sách userId và %
         List<Integer> userIds = new ArrayList<>(percentageMap.keySet());
-        List<Double> percentages = new ArrayList<>(percentageMap.values());
+        List<java.math.BigDecimal> percentages = new ArrayList<>();
+        for (Integer userId : userIds) {
+            percentages.add(java.math.BigDecimal.valueOf(percentageMap.get(userId)));
+        }
 
         // Sử dụng service có sẵn
         return costShareService.calculateCostShares(costId, userIds, percentages);
@@ -237,9 +243,9 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
 
         // Tính % đều cho mỗi người
         double percentPerPerson = 100.0 / userIds.size();
-        List<Double> percentages = new ArrayList<>();
+        List<java.math.BigDecimal> percentages = new ArrayList<>();
         for (int i = 0; i < userIds.size(); i++) {
-            percentages.add(percentPerPerson);
+            percentages.add(java.math.BigDecimal.valueOf(percentPerPerson));
         }
 
         // Sử dụng service có sẵn
@@ -251,7 +257,7 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
      */
     @Override
     public Map<Integer, Double> getGroupOwnership(Integer groupId) {
-        return getGroupOwnership(groupId, null);
+        return getGroupOwnership(groupId, getCurrentToken());
     }
     
     /**
@@ -359,7 +365,7 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
      * Lấy danh sách userId của nhóm từ Group Management Service
      */
     private List<Integer> getUserIdsByGroup(Integer groupId) {
-        return getUserIdsByGroup(groupId, null);
+        return getUserIdsByGroup(groupId, getCurrentToken());
     }
     
     /**
@@ -421,6 +427,20 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
         if (!existingShares.isEmpty()) {
             costShareRepository.deleteAll(existingShares);
         }
+    }
+
+    private String getCurrentToken() {
+        try {
+            org.springframework.web.context.request.ServletRequestAttributes attributes = 
+                (org.springframework.web.context.request.ServletRequestAttributes) org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                jakarta.servlet.http.HttpServletRequest request = attributes.getRequest();
+                return request.getHeader("Authorization");
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return null;
     }
 }
 

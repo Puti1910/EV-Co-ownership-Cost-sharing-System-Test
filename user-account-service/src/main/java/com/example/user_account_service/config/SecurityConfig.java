@@ -73,7 +73,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration conf = new CorsConfiguration();
-                    conf.setAllowedOrigins(List.of("http://localhost:8080"));
+                    conf.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost:8083"));
                     conf.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     conf.setAllowedHeaders(List.of("*"));
                     conf.setAllowCredentials(true);
@@ -81,8 +81,10 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(auth -> auth
                         // API Public
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/auth/users/register", "/api/auth/users/login", "/api/auth/users/refresh", "/api/auth/users/logout").permitAll()
+
+                        // Swagger UI (cho phép truy cập không cần đăng nhập)
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs.yaml", "/webjars/**").permitAll()
 
                         // Endpoint trung gian để nhận JWT và set cookie (public)
                         .requestMatchers("/user/auth").permitAll()

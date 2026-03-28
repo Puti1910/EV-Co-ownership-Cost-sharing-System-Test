@@ -59,7 +59,7 @@ public class CostController {
                     cost.setCostId(resultSet.getInt("costId"));
                     cost.setVehicleId(resultSet.getInt("vehicleId"));
                     cost.setCostType(resultSet.getString("costType"));
-                    cost.setAmount(resultSet.getDouble("amount"));
+                    cost.setAmount(resultSet.getBigDecimal("amount"));
                     cost.setDescription(resultSet.getString("description"));
                     
                     // Get status from database (default to PENDING if null)
@@ -183,27 +183,7 @@ public class CostController {
         }
     }
 
-    @GetMapping("/simple")
-    public String getSimpleCosts() {
-        try {
-            Connection connection = dataSource.getConnection();
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) as count FROM cost");
-            
-            int count = 0;
-            if (resultSet.next()) {
-                count = resultSet.getInt("count");
-            }
-            
-            resultSet.close();
-            statement.close();
-            connection.close();
-            
-            return "Database connected! Found " + count + " costs.";
-        } catch (Exception e) {
-            return "Database error: " + e.getMessage();
-        }
-    }
+
 
     // ========== COST SHARING ENDPOINTS ==========
 
@@ -227,15 +207,7 @@ public class CostController {
         }
     }
 
-    /**
-     * Lấy thông tin chia chi phí cho một cost cụ thể (alias cho /splits để tương thích)
-     */
-    @GetMapping("/{costId}/shares")
-    public ResponseEntity<List<CostShareDto>> getCostShares(@PathVariable Integer costId) {
-        logger.info("=== getCostShares() method called for costId: {} ===", costId);
-        // Delegate to getCostSplits method
-        return getCostSplits(costId);
-    }
+
 
     /**
      * Tạo chia chi phí mới cho một cost
@@ -256,8 +228,9 @@ public class CostController {
             }
 
             // Validate percentages sum to 100
-            double totalPercent = request.getPercentages().stream().mapToDouble(Double::doubleValue).sum();
-            if (Math.abs(totalPercent - 100.0) > 0.01) {
+            java.math.BigDecimal totalPercent = request.getPercentages().stream()
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+            if (Math.abs(totalPercent.doubleValue() - 100.0) > 0.01) {
                 logger.error("Invalid percentages: total must be 100%, got: {}%", totalPercent);
                 return ResponseEntity.badRequest().build();
             }
@@ -297,65 +270,9 @@ public class CostController {
         }
     }
 
-    /**
-     * Lấy tất cả cost shares (alias cho /splits)
-     */
-    @GetMapping("/shares")
-    public ResponseEntity<List<CostShareDto>> getAllCostShares() {
-        logger.info("=== getAllCostShares() method called ===");
-        try {
-            List<CostShare> costShares = costShareService.getAllCostShares();
-            List<CostShareDto> costShareDtos = costShares.stream()
-                    .map(this::convertToDto)
-                    .collect(Collectors.toList());
-            
-            logger.info("Found {} total cost shares", costShareDtos.size());
-            return ResponseEntity.ok(costShareDtos);
-        } catch (Exception e) {
-            logger.error("Error getting all cost shares: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().build();
-        }
-    }
 
-    /**
-     * Tính toán chia chi phí theo phần trăm
-     */
-    @PostMapping("/{costId}/calculate-shares")
-    public ResponseEntity<List<CostShareDto>> calculateCostShares(
-            @PathVariable Integer costId,
-            @RequestBody CostSplitRequestDto request) {
-        logger.info("=== calculateCostShares() method called for costId: {} ===", costId);
-        logger.info("Request: {}", request);
-        
-        try {
-            // Validate request
-            if (request.getUserIds() == null || request.getPercentages() == null ||
-                request.getUserIds().size() != request.getPercentages().size()) {
-                logger.error("Invalid request: userIds and percentages must have same size");
-                return ResponseEntity.badRequest().build();
-            }
 
-            // Validate percentages sum to 100
-            double totalPercent = request.getPercentages().stream().mapToDouble(Double::doubleValue).sum();
-            if (Math.abs(totalPercent - 100.0) > 0.01) {
-                logger.error("Invalid percentages: total must be 100%, got: {}%", totalPercent);
-                return ResponseEntity.badRequest().build();
-            }
 
-            List<CostShare> costShares = costShareService.calculateCostShares(
-                    costId, request.getUserIds(), request.getPercentages());
-            
-            List<CostShareDto> costShareDtos = costShares.stream()
-                    .map(this::convertToDto)
-                    .collect(Collectors.toList());
-            
-            logger.info("Calculated {} cost shares for costId: {}", costShareDtos.size(), costId);
-            return ResponseEntity.ok(costShareDtos);
-        } catch (Exception e) {
-            logger.error("Error calculating cost shares for costId {}: {}", costId, e.getMessage(), e);
-            return ResponseEntity.internalServerError().build();
-        }
-    }
 
     /**
      * Lấy cost share theo ID
@@ -379,28 +296,7 @@ public class CostController {
         }
     }
 
-    /**
-     * Cập nhật cost share
-     */
-    @PutMapping("/shares/{id}")
-    public ResponseEntity<CostShareDto> updateCostShare(@PathVariable Integer id, @RequestBody CostShareDto costShareDto) {
-        logger.info("=== updateCostShare() method called for ID: {} ===", id);
-        try {
-            CostShare costShare = convertToEntity(costShareDto);
-            CostShare updatedCostShare = costShareService.updateCostShare(id, costShare);
-            if (updatedCostShare != null) {
-                CostShareDto updatedDto = convertToDto(updatedCostShare);
-                logger.info("Updated cost share with ID: {}", id);
-                return ResponseEntity.ok(updatedDto);
-            } else {
-                logger.warn("Cost share not found for update with ID: {}", id);
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            logger.error("Error updating cost share with ID {}: {}", id, e.getMessage(), e);
-            return ResponseEntity.internalServerError().build();
-        }
-    }
+
 
     /**
      * Xóa cost share
@@ -418,47 +314,7 @@ public class CostController {
         }
     }
 
-    /**
-     * 🔍 Tìm kiếm chi phí theo ID
-     */
-    @GetMapping("/search/{id}")
-    public ResponseEntity<CostDto> searchCostById(@PathVariable Integer id) {
-        logger.info("=== searchCostById() method called for ID: {} ===", id);
-        try {
-            CostDto cost = new CostDto();
-            Connection connection = dataSource.getConnection();
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM cost WHERE costId = " + id);
-            
-            if (resultSet.next()) {
-                cost.setCostId(resultSet.getInt("costId"));
-                cost.setVehicleId(resultSet.getInt("vehicleId"));
-                cost.setCostType(resultSet.getString("costType"));
-                cost.setAmount(resultSet.getDouble("amount"));
-                cost.setDescription(resultSet.getString("description"));
-                
-                java.sql.Timestamp timestamp = resultSet.getTimestamp("createdAt");
-                if (timestamp != null) {
-                    cost.setCreatedAt(timestamp.toLocalDateTime());
-                }
-                
-                logger.info("Found cost: ID={}, Amount={}", cost.getCostId(), cost.getAmount());
-                resultSet.close();
-                statement.close();
-                connection.close();
-                return ResponseEntity.ok(cost);
-            } else {
-                logger.info("No cost found with ID: {}", id);
-                resultSet.close();
-                statement.close();
-                connection.close();
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            logger.error("Error searching cost by ID {}: {}", id, e.getMessage(), e);
-            return ResponseEntity.internalServerError().build();
-        }
-    }
+
 
     /**
      * 📊 Lấy thống kê chia sẻ chi phí cho một user
@@ -506,7 +362,9 @@ public class CostController {
             status.put("costId", costId);
             status.put("isShared", isShared);
             status.put("shareCount", shares.size());
-            status.put("totalSharedAmount", shares.stream().mapToDouble(CostShare::getAmountShare).sum());
+            status.put("totalSharedAmount", shares.stream()
+                .map(cs -> cs.getAmountShare() != null ? cs.getAmountShare() : java.math.BigDecimal.ZERO)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add));
             
             logger.info("Cost {} share status: isShared={}, shareCount={}", costId, isShared, shares.size());
             return ResponseEntity.ok(status);

@@ -7,6 +7,7 @@ import com.example.costpayment.entity.GroupFund;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.math.BigDecimal;
 
 /**
  * Service Interface: Quản lý Quỹ chung
@@ -155,17 +156,17 @@ public interface FundService {
     /**
      * Tổng tiền nạp
      */
-    Double getTotalDeposit(Integer fundId);
+    BigDecimal getTotalDeposit(Integer fundId);
 
     /**
      * Tổng tiền rút
      */
-    Double getTotalWithdraw(Integer fundId);
+    BigDecimal getTotalWithdraw(Integer fundId);
 
     /**
      * Số dư hiện tại
      */
-    Double getCurrentBalance(Integer fundId);
+    BigDecimal getCurrentBalance(Integer fundId);
 
     /**
      * Đếm số yêu cầu chờ duyệt

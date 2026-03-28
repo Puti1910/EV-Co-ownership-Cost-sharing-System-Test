@@ -22,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.math.BigDecimal;
 
 @Service
 public class ReportServiceImpl implements ReportService {
@@ -62,13 +63,13 @@ public class ReportServiceImpl implements ReportService {
         report.put("period", String.format("%02d/%d", month, year));
         report.put("vehicleId", vehicleId);
         report.put("totalCosts", costs.size());
-        report.put("totalAmount", costs.stream().mapToDouble(Cost::getAmount).sum());
+        report.put("totalAmount", costs.stream().map(Cost::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add));
         
         // Thống kê theo loại
-        Map<String, Double> byType = costs.stream()
+        Map<String, BigDecimal> byType = costs.stream()
             .collect(Collectors.groupingBy(
                 c -> c.getCostType().getDisplayName(),
-                Collectors.summingDouble(Cost::getAmount)
+                Collectors.mapping(Cost::getAmount, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
             ));
         report.put("costsByType", byType);
         
@@ -104,26 +105,26 @@ public class ReportServiceImpl implements ReportService {
         report.put("period", String.format("Q%d/%d", quarter, year));
         report.put("vehicleId", vehicleId);
         report.put("totalCosts", costs.size());
-        report.put("totalAmount", costs.stream().mapToDouble(Cost::getAmount).sum());
+        report.put("totalAmount", costs.stream().map(Cost::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add));
         
         // Thống kê theo tháng trong quý
-        Map<String, Double> byMonth = new LinkedHashMap<>();
+        Map<String, BigDecimal> byMonth = new LinkedHashMap<>();
         for (int m = startMonth; m < startMonth + 3; m++) {
             LocalDateTime monthStart = LocalDateTime.of(year, m, 1, 0, 0);
             LocalDateTime monthEnd = monthStart.plusMonths(1).minusSeconds(1);
-            double monthTotal = costs.stream()
+            BigDecimal monthTotal = costs.stream()
                 .filter(c -> !c.getCreatedAt().isBefore(monthStart) && !c.getCreatedAt().isAfter(monthEnd))
-                .mapToDouble(Cost::getAmount)
-                .sum();
+                .map(Cost::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
             byMonth.put(String.format("%02d/%d", m, year), monthTotal);
         }
         report.put("costsByMonth", byMonth);
         
         // Thống kê theo loại
-        Map<String, Double> byType = costs.stream()
+        Map<String, BigDecimal> byType = costs.stream()
             .collect(Collectors.groupingBy(
                 c -> c.getCostType().getDisplayName(),
-                Collectors.summingDouble(Cost::getAmount)
+                Collectors.mapping(Cost::getAmount, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
             ));
         report.put("costsByType", byType);
         
@@ -143,39 +144,39 @@ public class ReportServiceImpl implements ReportService {
         report.put("period", String.valueOf(year));
         report.put("vehicleId", vehicleId);
         report.put("totalCosts", costs.size());
-        report.put("totalAmount", costs.stream().mapToDouble(Cost::getAmount).sum());
+        report.put("totalAmount", costs.stream().map(Cost::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add));
         
         // Thống kê theo tháng
-        Map<String, Double> byMonth = new LinkedHashMap<>();
+        Map<String, BigDecimal> byMonth = new LinkedHashMap<>();
         for (int m = 1; m <= 12; m++) {
             LocalDateTime monthStart = LocalDateTime.of(year, m, 1, 0, 0);
             LocalDateTime monthEnd = monthStart.plusMonths(1).minusSeconds(1);
-            double monthTotal = costs.stream()
+            BigDecimal monthTotal = costs.stream()
                 .filter(c -> !c.getCreatedAt().isBefore(monthStart) && !c.getCreatedAt().isAfter(monthEnd))
-                .mapToDouble(Cost::getAmount)
-                .sum();
+                .map(Cost::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
             byMonth.put(String.format("%02d/%d", m, year), monthTotal);
         }
         report.put("costsByMonth", byMonth);
         
         // Thống kê theo loại
-        Map<String, Double> byType = costs.stream()
+        Map<String, BigDecimal> byType = costs.stream()
             .collect(Collectors.groupingBy(
                 c -> c.getCostType().getDisplayName(),
-                Collectors.summingDouble(Cost::getAmount)
+                Collectors.mapping(Cost::getAmount, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
             ));
         report.put("costsByType", byType);
         
         // Thống kê theo quý
-        Map<String, Double> byQuarter = new LinkedHashMap<>();
+        Map<String, BigDecimal> byQuarter = new LinkedHashMap<>();
         for (int q = 1; q <= 4; q++) {
             int startMonth = (q - 1) * 3 + 1;
             LocalDateTime quarterStart = LocalDateTime.of(year, startMonth, 1, 0, 0);
             LocalDateTime quarterEnd = quarterStart.plusMonths(3).minusSeconds(1);
-            double quarterTotal = costs.stream()
+            BigDecimal quarterTotal = costs.stream()
                 .filter(c -> !c.getCreatedAt().isBefore(quarterStart) && !c.getCreatedAt().isAfter(quarterEnd))
-                .mapToDouble(Cost::getAmount)
-                .sum();
+                .map(Cost::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
             byQuarter.put(String.format("Q%d/%d", q, year), quarterTotal);
         }
         report.put("costsByQuarter", byQuarter);
@@ -284,9 +285,9 @@ public class ReportServiceImpl implements ReportService {
             .collect(Collectors.toList());
         
         // Tính tổng chi phí phải trả
-        double totalCostShare = filteredShares.stream()
-            .mapToDouble(cs -> cs.getAmountShare() != null ? cs.getAmountShare() : 0.0)
-            .sum();
+        BigDecimal totalCostShare = filteredShares.stream()
+            .map(cs -> cs.getAmountShare() != null ? cs.getAmountShare() : BigDecimal.ZERO)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         // Lấy thanh toán
         List<Payment> payments = paymentRepository.findByUserId(userId);
@@ -297,15 +298,15 @@ public class ReportServiceImpl implements ReportService {
             })
             .collect(Collectors.toList());
         
-        double totalPaid = filteredPayments.stream()
+        BigDecimal totalPaid = filteredPayments.stream()
             .filter(p -> "PAID".equals(p.getStatus().toString()))
-            .mapToDouble(p -> p.getAmount() != null ? p.getAmount() : 0.0)
-            .sum();
+            .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
         
-        double totalPending = filteredPayments.stream()
+        BigDecimal totalPending = filteredPayments.stream()
             .filter(p -> "PENDING".equals(p.getStatus().toString()))
-            .mapToDouble(p -> p.getAmount() != null ? p.getAmount() : 0.0)
-            .sum();
+            .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         // Lấy lịch sử sử dụng
         List<UsageTracking> usageHistory = usageTrackingRepository.findAll().stream()
@@ -332,12 +333,14 @@ public class ReportServiceImpl implements ReportService {
         analysis.put("paymentRecords", filteredPayments.size());
         
         // Chi tiết theo loại chi phí
-        Map<String, Double> costByType = new HashMap<>();
+        Map<String, BigDecimal> costByType = new HashMap<>();
         for (CostShare share : filteredShares) {
             Cost cost = costRepository.findById(share.getCostId()).orElse(null);
             if (cost != null) {
                 String type = cost.getCostType().getDisplayName();
-                costByType.put(type, costByType.getOrDefault(type, 0.0) + share.getAmountShare());
+                BigDecimal current = costByType.getOrDefault(type, BigDecimal.ZERO);
+                BigDecimal addAmount = share.getAmountShare() != null ? share.getAmountShare() : BigDecimal.ZERO;
+                costByType.put(type, current.add(addAmount));
             }
         }
         analysis.put("costByType", costByType);
@@ -395,10 +398,10 @@ public class ReportServiceImpl implements ReportService {
             Integer vehicleId = group != null && group.containsKey("vehicleId") 
                 ? ((Number) group.get("vehicleId")).intValue() : null;
             
-            double totalCosts = 0.0;
+            BigDecimal totalCosts = BigDecimal.ZERO;
             if (vehicleId != null) {
                 List<Cost> costs = costRepository.findByVehicleIdAndCreatedAtBetween(vehicleId, startDate, endDate);
-                totalCosts = costs.stream().mapToDouble(Cost::getAmount).sum();
+                totalCosts = costs.stream().map(Cost::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
             }
             
             Map<String, Object> report = new HashMap<>();
@@ -407,7 +410,7 @@ public class ReportServiceImpl implements ReportService {
             report.put("period", Map.of("start", startDate, "end", endDate));
             report.put("totalMembers", members != null ? members.size() : 0);
             report.put("fundBalance", fund != null && fund.containsKey("currentBalance") 
-                ? fund.get("currentBalance") : 0.0);
+                ? fund.get("currentBalance") : BigDecimal.ZERO);
             report.put("totalCosts", totalCosts);
             report.put("totalTransactions", filteredTransactions.size());
             report.put("transactions", filteredTransactions);
@@ -430,7 +433,7 @@ public class ReportServiceImpl implements ReportService {
         statistics.put("vehicleId", vehicleId);
         statistics.put("period", Map.of("start", startDate, "end", endDate));
         statistics.put("totalCosts", costs.size());
-        statistics.put("totalAmount", costs.stream().mapToDouble(Cost::getAmount).sum());
+        statistics.put("totalAmount", costs.stream().map(Cost::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add));
         
         // Thống kê theo loại
         Map<String, Map<String, Object>> byType = new HashMap<>();
@@ -442,10 +445,20 @@ public class ReportServiceImpl implements ReportService {
             if (!typeCosts.isEmpty()) {
                 Map<String, Object> typeStats = new HashMap<>();
                 typeStats.put("count", typeCosts.size());
-                typeStats.put("totalAmount", typeCosts.stream().mapToDouble(Cost::getAmount).sum());
-                typeStats.put("averageAmount", typeCosts.stream().mapToDouble(Cost::getAmount).average().orElse(0.0));
-                typeStats.put("minAmount", typeCosts.stream().mapToDouble(Cost::getAmount).min().orElse(0.0));
-                typeStats.put("maxAmount", typeCosts.stream().mapToDouble(Cost::getAmount).max().orElse(0.0));
+                
+                BigDecimal totalAmount = typeCosts.stream().map(Cost::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                typeStats.put("totalAmount", totalAmount);
+                
+                BigDecimal averageAmount = typeCosts.isEmpty() ? BigDecimal.ZERO : 
+                    totalAmount.divide(new BigDecimal(typeCosts.size()), 2, java.math.RoundingMode.HALF_UP);
+                typeStats.put("averageAmount", averageAmount);
+                
+                BigDecimal minAmount = typeCosts.stream().map(Cost::getAmount).min(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
+                typeStats.put("minAmount", minAmount);
+                
+                BigDecimal maxAmount = typeCosts.stream().map(Cost::getAmount).max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
+                typeStats.put("maxAmount", maxAmount);
+                
                 byType.put(type.getDisplayName(), typeStats);
             }
         }
@@ -469,9 +482,9 @@ public class ReportServiceImpl implements ReportService {
             })
             .collect(Collectors.toList());
         
-        double totalShareAmount = filteredShares.stream()
-            .mapToDouble(cs -> cs.getAmountShare() != null ? cs.getAmountShare() : 0.0)
-            .sum();
+        BigDecimal totalShareAmount = filteredShares.stream()
+            .map(cs -> cs.getAmountShare() != null ? cs.getAmountShare() : BigDecimal.ZERO)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         // Lấy payments
         List<Payment> payments = paymentRepository.findByUserId(userId);
@@ -482,15 +495,15 @@ public class ReportServiceImpl implements ReportService {
             })
             .collect(Collectors.toList());
         
-        double totalPaid = filteredPayments.stream()
+        BigDecimal totalPaid = filteredPayments.stream()
             .filter(p -> "PAID".equals(p.getStatus().toString()))
-            .mapToDouble(p -> p.getAmount() != null ? p.getAmount() : 0.0)
-            .sum();
+            .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
         
-        double totalPending = filteredPayments.stream()
+        BigDecimal totalPending = filteredPayments.stream()
             .filter(p -> "PENDING".equals(p.getStatus().toString()))
-            .mapToDouble(p -> p.getAmount() != null ? p.getAmount() : 0.0)
-            .sum();
+            .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         Map<String, Object> summary = new HashMap<>();
         summary.put("userId", userId);
@@ -498,7 +511,7 @@ public class ReportServiceImpl implements ReportService {
         summary.put("totalShareAmount", totalShareAmount);
         summary.put("totalPaid", totalPaid);
         summary.put("totalPending", totalPending);
-        summary.put("balance", totalShareAmount - totalPaid);
+        summary.put("balance", totalShareAmount.subtract(totalPaid));
         summary.put("costShareCount", filteredShares.size());
         summary.put("paymentCount", filteredPayments.size());
         
@@ -506,7 +519,23 @@ public class ReportServiceImpl implements ReportService {
     }
 
     private <T> T exchangeForObject(String url, ParameterizedTypeReference<T> typeReference) {
-        ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, null, typeReference);
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        try {
+            org.springframework.web.context.request.ServletRequestAttributes attributes = 
+                (org.springframework.web.context.request.ServletRequestAttributes) org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                jakarta.servlet.http.HttpServletRequest request = attributes.getRequest();
+                String authHeader = request.getHeader("Authorization");
+                if (authHeader != null) {
+                    headers.set("Authorization", authHeader);
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Could not attach Authorization header: {}", e.getMessage());
+        }
+        
+        org.springframework.http.HttpEntity<String> entity = new org.springframework.http.HttpEntity<>("parameters", headers);
+        ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, entity, typeReference);
         return response.getBody();
     }
 }

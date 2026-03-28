@@ -1,29 +1,30 @@
 package com.example.costpayment.dto;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 public class CostShareDto {
     private Integer shareId;
     private Integer costId;
     private Integer userId;
-    private Double percent;
-    private Double amountShare;
+    private BigDecimal percent;
+    private BigDecimal amountShare;
     private LocalDateTime calculatedAt;
     private String status;
     private String description; // Added for displaying cost description
     private String costType; // Loại chi phí (ElectricCharge, Maintenance, etc.)
     private String costTypeDisplay; // Tên hiển thị (Sạc điện, Bảo dưỡng, etc.)
-    private Double totalAmount; // Tổng chi phí gốc
+    private BigDecimal totalAmount; // Tổng chi phí gốc
     private String splitMethod; // Phương thức chia (BY_OWNERSHIP, BY_USAGE, EQUAL)
     private String splitMethodDisplay; // Tên hiển thị phương thức chia
     private Double kmDriven; // Số km đã chạy (nếu chia theo usage)
     private Double totalKm; // Tổng km của nhóm (nếu chia theo usage)
-    private Double ownershipPercent; // Tỷ lệ sở hữu (nếu chia theo ownership)
+    private BigDecimal ownershipPercent; // Tỷ lệ sở hữu (nếu chia theo ownership)
 
     // Constructors
     public CostShareDto() {}
 
-    public CostShareDto(Integer shareId, Integer costId, Integer userId, Double percent, Double amountShare, LocalDateTime calculatedAt) {
+    public CostShareDto(Integer shareId, Integer costId, Integer userId, BigDecimal percent, BigDecimal amountShare, LocalDateTime calculatedAt) {
         this.shareId = shareId;
         this.costId = costId;
         this.userId = userId;
@@ -33,7 +34,7 @@ public class CostShareDto {
         this.status = "PENDING"; // Default status
     }
 
-    public CostShareDto(Integer shareId, Integer costId, Integer userId, Double percent, Double amountShare, LocalDateTime calculatedAt, String status) {
+    public CostShareDto(Integer shareId, Integer costId, Integer userId, BigDecimal percent, BigDecimal amountShare, LocalDateTime calculatedAt, String status) {
         this.shareId = shareId;
         this.costId = costId;
         this.userId = userId;
@@ -68,19 +69,19 @@ public class CostShareDto {
         this.userId = userId;
     }
 
-    public Double getPercent() {
+    public BigDecimal getPercent() {
         return percent;
     }
 
-    public void setPercent(Double percent) {
+    public void setPercent(BigDecimal percent) {
         this.percent = percent;
     }
 
-    public Double getAmountShare() {
+    public BigDecimal getAmountShare() {
         return amountShare;
     }
 
-    public void setAmountShare(Double amountShare) {
+    public void setAmountShare(BigDecimal amountShare) {
         this.amountShare = amountShare;
     }
 
@@ -124,11 +125,11 @@ public class CostShareDto {
         this.costTypeDisplay = costTypeDisplay;
     }
 
-    public Double getTotalAmount() {
+    public BigDecimal getTotalAmount() {
         return totalAmount;
     }
 
-    public void setTotalAmount(Double totalAmount) {
+    public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
     }
 
@@ -164,11 +165,11 @@ public class CostShareDto {
         this.totalKm = totalKm;
     }
 
-    public Double getOwnershipPercent() {
+    public BigDecimal getOwnershipPercent() {
         return ownershipPercent;
     }
 
-    public void setOwnershipPercent(Double ownershipPercent) {
+    public void setOwnershipPercent(BigDecimal ownershipPercent) {
         this.ownershipPercent = ownershipPercent;
     }
 

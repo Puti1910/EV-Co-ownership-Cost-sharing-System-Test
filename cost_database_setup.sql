@@ -16,7 +16,7 @@ CREATE TABLE cost (
     `costId` INT AUTO_INCREMENT PRIMARY KEY,
     `vehicleId` INT NOT NULL,
     `costType` ENUM('ElectricCharge','Maintenance','Insurance','Inspection','Cleaning','Other') DEFAULT 'Other',
-    `amount` DOUBLE NOT NULL,
+    `amount` DECIMAL(15, 2) NOT NULL,
     `description` TEXT,
     `status` ENUM('PENDING','SHARED') DEFAULT 'PENDING',
     `createdAt` DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -27,8 +27,8 @@ CREATE TABLE costshare (
     `shareId` INT AUTO_INCREMENT PRIMARY KEY,
     `costId` INT NOT NULL,
     `userId` INT NOT NULL,
-    `percent` DOUBLE DEFAULT 0,
-    `amountShare` DOUBLE DEFAULT 0,
+    `percent` DECIMAL(5, 2) DEFAULT 0,
+    `amountShare` DECIMAL(15, 2) DEFAULT 0,
     `calculatedAt` DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`costId`) REFERENCES cost(`costId`) ON DELETE CASCADE
 );
@@ -39,7 +39,7 @@ CREATE TABLE payment (
     `userId` INT NOT NULL,
     `costId` INT,
     `method` ENUM('EWALLET','BANKING','CASH') DEFAULT 'EWALLET',
-    `amount` DOUBLE NOT NULL,
+    `amount` DECIMAL(15, 2) NOT NULL,
     `transactionCode` VARCHAR(100),
     `paymentDate` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `status` ENUM('PENDING','PAID','OVERDUE','CANCELLED') DEFAULT 'PENDING',
@@ -50,8 +50,8 @@ CREATE TABLE payment (
 CREATE TABLE groupfund (
     `fundId` INT AUTO_INCREMENT PRIMARY KEY,
     `groupId` INT NOT NULL,
-    `totalContributed` DOUBLE DEFAULT 0,
-    `currentBalance` DOUBLE DEFAULT 0,
+    `totalContributed` DECIMAL(15, 2) DEFAULT 0,
+    `currentBalance` DECIMAL(15, 2) DEFAULT 0,
     `updatedAt` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `note` TEXT
 );
@@ -62,7 +62,7 @@ CREATE TABLE fundtransaction (
     `fundId` INT NOT NULL,
     `userId` INT,
     `transactionType` ENUM('Deposit','Withdraw') DEFAULT 'Deposit',
-    `amount` DOUBLE NOT NULL,
+    `amount` DECIMAL(15, 2) NOT NULL,
     `purpose` VARCHAR(255),
     `date` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `status` ENUM('Pending','Approved','Rejected','Completed') DEFAULT 'Completed',
@@ -104,8 +104,8 @@ CREATE TABLE costsplitdetail (
     `splitDetailId` INT AUTO_INCREMENT PRIMARY KEY,
     `costId` INT NOT NULL,
     `memberId` INT NOT NULL,
-    `amount` DOUBLE NOT NULL,
-    `percentage` DOUBLE NOT NULL,
+    `amount` DECIMAL(15, 2) NOT NULL,
+    `percentage` DECIMAL(5, 2) NOT NULL,
     `createdAt` DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`costId`) REFERENCES cost(`costId`) ON DELETE CASCADE,
     INDEX idx_cost (`costId`),

@@ -369,9 +369,10 @@ public class FundServiceImpl implements FundService {
         FundTransaction transaction = transactionRepository.findById(transactionId)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch"));
 
-        // Kiểm tra trạng thái
-        if (transaction.getStatus() != TransactionStatus.Pending) {
-            throw new IllegalStateException("Chỉ có thể hủy yêu cầu đang ở trạng thái Pending");
+        // Kiểm tra trạng thái: cho phép hủy khi đang Pending hoặc Approved (chưa giải ngân)
+        if (transaction.getStatus() != TransactionStatus.Pending && 
+            transaction.getStatus() != TransactionStatus.Approved) {
+            throw new IllegalStateException("Chỉ có thể hủy yêu cầu đang ở trạng thái Pending hoặc Approved");
         }
 
         // Kiểm tra quyền: chỉ người tạo yêu cầu mới có thể hủy

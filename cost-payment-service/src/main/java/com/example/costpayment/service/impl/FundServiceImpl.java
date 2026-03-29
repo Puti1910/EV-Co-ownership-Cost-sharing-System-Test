@@ -270,10 +270,11 @@ public class FundServiceImpl implements FundService {
         FundTransaction transaction = transactionRepository.findById(request.getTransactionId())
             .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch"));
 
-        // Kiểm tra trạng thái: CHỈ approve khi status = Pending
-        if (transaction.getStatus() != TransactionStatus.Pending) {
+        // Kiểm tra trạng thái: CHỈ approve khi status = Pending HOẶC Approved (đã qua vote duyệt)
+        if (transaction.getStatus() != TransactionStatus.Pending && 
+            transaction.getStatus() != TransactionStatus.Approved) {
             throw new IllegalStateException(
-                "Chỉ có thể phê duyệt yêu cầu đang ở trạng thái Pending. " +
+                "Chỉ có thể phê duyệt yêu cầu đang ở trạng thái Pending hoặc Approved. " +
                 "Hiện tại trạng thái: " + transaction.getStatus());
         }
 
@@ -514,25 +515,20 @@ public class FundServiceImpl implements FundService {
                 return;
             }
             
-            // Nếu > 50% đồng ý, tự động trừ tiền và hoàn tất
+            // Nếu > 50% đồng ý, đổi trạng thái sang Approved (chờ Admin)
             if (approvalRate > 0.5) {
-                // Kiểm tra số dư trước khi trừ
+                // Kiểm tra số dư trước khi cập nhật trạng thái
                 if (fund.hasSufficientBalance(transaction.getAmount())) {
-                    // Trừ tiền quỹ
-                    fund.withdraw(transaction.getAmount());
-                    groupFundRepository.save(fund);
-                    
-                    // Chuyển status sang Completed
-                    transaction.setStatus(TransactionStatus.Completed);
-                    transaction.setApprovedAt(LocalDateTime.now());
+                    // Chuyển status sang Approved, chưa trừ tiền quỹ
+                    transaction.setStatus(TransactionStatus.Approved);
                     transactionRepository.save(transaction);
                     
-                    logger.info("✅ Rút tiền thành công và yêu cầu đã được đóng! Transaction {} đã được hoàn tất. " +
-                        "Số tiền: {} VND, ApprovalRate: {}% (>50%), Số dư còn lại: {} VND", 
+                    logger.info("✅ Vote thành công! Giao dịch quỹ {} (mã {}) chuyển sang chờ Admin duyệt hoàn tất. " +
+                        "Số tiền: {} VND, Tỷ lệ đồng thuận: {}% (>50%)", 
+                        fund.getFundId(),
                         transaction.getTransactionId(), 
                         transaction.getAmount(),
-                        String.format("%.2f", approvalRate * 100),
-                        fund.getCurrentBalance());
+                        String.format("%.2f", approvalRate * 100));
                 } else {
                     // Số dư không đủ, từ chối
                     transaction.setStatus(TransactionStatus.Rejected);

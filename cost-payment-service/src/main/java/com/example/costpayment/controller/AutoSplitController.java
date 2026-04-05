@@ -160,6 +160,13 @@ public class AutoSplitController {
                     throw new IllegalArgumentException("amount phải là số");
                 }
                 
+                if (amount.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                    throw new IllegalArgumentException("Số tiền (amount) không hợp lệ. Vui lòng nhập số lớn hơn 0.");
+                }
+                if (amount.compareTo(new java.math.BigDecimal("1000000000")) > 0) {
+                    throw new IllegalArgumentException("Số tiền (amount) quá lớn, vượt mức trần hệ thống (1.000.000.000 VND).");
+                }
+                
                 String description = (String) request.get("description");
                 
                 System.out.println("Vehicle ID: " + vehicleId);

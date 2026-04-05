@@ -20,7 +20,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.organization=puti1910
-            -Dsonar.projectKey=Puti1910_EV-Co-ownership-Cost-sharing-System-Test
+            -Dsonar.organization=dydymerho
+            -Dsonar.projectKey=Dydymerho_EV-Co-ownership-Cost-sharing-System-Test
             -Dsonar.sources=.
             -Dsonar.java.binaries=.

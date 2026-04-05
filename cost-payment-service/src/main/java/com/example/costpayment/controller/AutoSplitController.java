@@ -429,5 +429,18 @@ public class AutoSplitController {
             return ResponseEntity.badRequest().body(error);
         }
     }
+
+    /**
+     * Xử lý Exception chung cho toàn bộ controller
+     * Để tránh lỗi 500 Internal Server Error khi dữ liệu không tìm thấy
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
+        ex.printStackTrace();
+        Map<String, Object> error = new HashMap<>();
+        // Nếu lỗi là "Không tìm thấy chi phí..." thì báo về 404 hoặc 400
+        error.put("error", ex.getMessage());
+        return ResponseEntity.badRequest().body(error);
+    }
 }
 

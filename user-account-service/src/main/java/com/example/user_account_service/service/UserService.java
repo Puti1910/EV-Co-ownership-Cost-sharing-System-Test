@@ -58,6 +58,11 @@ public class UserService {
             throw new RuntimeException("Mật khẩu không được để trống!");
         }
 
+        // Kiểm tra độ dài họ tên 2-50 ký tự
+        if (request.getFullName() == null || request.getFullName().length() < 2 || request.getFullName().length() > 50) {
+            throw new RuntimeException("Họ tên phải từ 2 đến 50 ký tự!");
+        }
+
         // Kiểm tra độ dài mật khẩu 8-32 ký tự
         if (request.getPassword().length() < 8 || request.getPassword().length() > 32) {
             throw new RuntimeException("Mật khẩu phải từ 8 đến 32 ký tự!");

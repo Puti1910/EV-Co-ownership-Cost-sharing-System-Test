@@ -12,6 +12,7 @@ public class RegisterRequest {
 
     // Tên đăng nhập (sẽ map sang fullName)
     @NotBlank(message = "Họ tên không được để trống")
+    @Size(min = 2, max = 50, message = "Họ tên phải từ 2 đến 50 ký tự")
     private String fullName;
 
     @NotBlank(message = "Email không được để trống")

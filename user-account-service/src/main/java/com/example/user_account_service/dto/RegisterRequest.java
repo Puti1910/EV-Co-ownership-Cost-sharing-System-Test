@@ -17,6 +17,7 @@ public class RegisterRequest {
 
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không đúng định dạng")
+    @Size(min = 5, max = 100, message = "Email phải từ 5 đến 100 ký tự")
     private String email;
 
     @NotBlank(message = "Mật khẩu không được để trống")

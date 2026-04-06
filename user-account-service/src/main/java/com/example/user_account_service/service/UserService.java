@@ -73,6 +73,17 @@ public class UserService {
         if (request.getEmail() == null || !request.getEmail().matches(emailRegex)) {
             throw new RuntimeException("Email không đúng định dạng!");
         }
+
+        // Kiểm tra độ dài local part (trước @) <= 64 và domain part (sau @) <= 100
+        String[] emailParts = request.getEmail().split("@");
+        if (emailParts.length == 2) {
+            if (emailParts[0].length() > 64) {
+                throw new RuntimeException("Phần tên người dùng của email (trước @) không được vượt quá 64 ký tự!");
+            }
+            if (emailParts[1].length() > 100) {
+                throw new RuntimeException("Phần tên miền của email (sau @) không được vượt quá 100 ký tự!");
+            }
+        }
         
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email đã tồn tại trong hệ thống!");

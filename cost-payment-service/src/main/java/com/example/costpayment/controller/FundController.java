@@ -684,16 +684,16 @@ public class FundController {
             
             // Lấy thống kê với xử lý lỗi cho từng method
             try {
-                Double totalDeposit = fundService.getTotalDeposit(fundId);
-                stats.put("totalDeposit", totalDeposit != null ? totalDeposit : 0.0);
+                java.math.BigDecimal totalDeposit = fundService.getTotalDeposit(fundId);
+                stats.put("totalDeposit", totalDeposit != null ? totalDeposit : java.math.BigDecimal.ZERO);
             } catch (Exception e) {
                 logger.warn("Error getting totalDeposit for fundId={}: {}", fundId, e.getMessage());
                 stats.put("totalDeposit", 0.0);
             }
             
             try {
-                Double totalWithdraw = fundService.getTotalWithdraw(fundId);
-                stats.put("totalWithdraw", totalWithdraw != null ? totalWithdraw : 0.0);
+                java.math.BigDecimal totalWithdraw = fundService.getTotalWithdraw(fundId);
+                stats.put("totalWithdraw", totalWithdraw != null ? totalWithdraw : java.math.BigDecimal.ZERO);
             } catch (Exception e) {
                 logger.warn("Error getting totalWithdraw for fundId={}: {}", fundId, e.getMessage());
                 stats.put("totalWithdraw", 0.0);
@@ -751,13 +751,13 @@ public class FundController {
                 .collect(java.util.stream.Collectors.toList());
             
             // Tính tổng
-            double totalDeposit = deposits.stream()
-                .mapToDouble(t -> t.getAmount() != null ? t.getAmount() : 0.0)
-                .sum();
+            java.math.BigDecimal totalDeposit = deposits.stream()
+                .map(t -> t.getAmount() != null ? t.getAmount() : java.math.BigDecimal.ZERO)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
             
-            double totalWithdraw = withdraws.stream()
-                .mapToDouble(t -> t.getAmount() != null ? t.getAmount() : 0.0)
-                .sum();
+            java.math.BigDecimal totalWithdraw = withdraws.stream()
+                .map(t -> t.getAmount() != null ? t.getAmount() : java.math.BigDecimal.ZERO)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
             
             // Thống kê theo user
             Map<Integer, Map<String, Object>> userStats = new HashMap<>();
@@ -768,13 +768,13 @@ public class FundController {
                     Map<String, Object> stats = userStats.get(userId);
                     
                     if ("Deposit".equals(transaction.getTransactionType().toString())) {
-                        stats.put("totalDeposit", 
-                            ((Double) stats.getOrDefault("totalDeposit", 0.0)) + transaction.getAmount());
+                        java.math.BigDecimal currentDep = (java.math.BigDecimal) stats.getOrDefault("totalDeposit", java.math.BigDecimal.ZERO);
+                        stats.put("totalDeposit", currentDep.add(transaction.getAmount()));
                         stats.put("depositCount", 
                             ((Integer) stats.getOrDefault("depositCount", 0)) + 1);
                     } else if ("Withdraw".equals(transaction.getTransactionType().toString())) {
-                        stats.put("totalWithdraw", 
-                            ((Double) stats.getOrDefault("totalWithdraw", 0.0)) + transaction.getAmount());
+                        java.math.BigDecimal currentWith = (java.math.BigDecimal) stats.getOrDefault("totalWithdraw", java.math.BigDecimal.ZERO);
+                        stats.put("totalWithdraw", currentWith.add(transaction.getAmount()));
                         stats.put("withdrawCount", 
                             ((Integer) stats.getOrDefault("withdrawCount", 0)) + 1);
                     }
@@ -790,7 +790,7 @@ public class FundController {
             report.put("summary", Map.of(
                 "totalDeposit", totalDeposit,
                 "totalWithdraw", totalWithdraw,
-                "netChange", totalDeposit - totalWithdraw,
+                "netChange", totalDeposit.subtract(totalWithdraw),
                 "transactionCount", transactions.size()
             ));
             report.put("deposits", deposits.size());

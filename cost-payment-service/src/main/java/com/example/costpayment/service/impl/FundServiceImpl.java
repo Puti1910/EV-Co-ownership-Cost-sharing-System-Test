@@ -28,6 +28,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Service Implementation: Quản lý Quỹ chung
@@ -81,8 +84,8 @@ public class FundServiceImpl implements FundService {
 
         GroupFund fund = new GroupFund();
         fund.setGroupId(groupId);
-        fund.setTotalContributed(0.0);
-        fund.setCurrentBalance(0.0);
+        fund.setTotalContributed(java.math.BigDecimal.ZERO);
+        fund.setCurrentBalance(java.math.BigDecimal.ZERO);
         fund.setUpdatedAt(LocalDateTime.now());
         fund.setNote("Quỹ chung nhóm " + groupId);
 
@@ -97,8 +100,8 @@ public class FundServiceImpl implements FundService {
             .orElseThrow(() -> new RuntimeException("Không tìm thấy quỹ với ID: " + fundId));
 
         Long pendingCount = transactionRepository.countPendingTransactions(fundId);
-        Double totalDeposit = transactionRepository.getTotalDeposit(fundId);
-        Double totalWithdraw = transactionRepository.getTotalWithdraw(fundId);
+        BigDecimal totalDeposit = transactionRepository.getTotalDeposit(fundId);
+        BigDecimal totalWithdraw = transactionRepository.getTotalWithdraw(fundId);
 
         FundSummaryDto summary = new FundSummaryDto();
         summary.setFundId(fund.getFundId());
@@ -121,7 +124,7 @@ public class FundServiceImpl implements FundService {
     @Transactional
     public FundTransaction deposit(DepositRequestDto request) {
         // Validate
-        if (request.getAmount() <= 0) {
+        if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Số tiền nạp phải > 0");
         }
 
@@ -157,7 +160,7 @@ public class FundServiceImpl implements FundService {
     @Transactional
     public FundTransaction createWithdrawRequest(WithdrawRequestDto request) {
         // Validate
-        if (request.getAmount() <= 0) {
+        if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Số tiền rút phải > 0");
         }
 
@@ -167,7 +170,7 @@ public class FundServiceImpl implements FundService {
 
         if (!fund.hasSufficientBalance(request.getAmount())) {
             throw new IllegalStateException(
-                String.format("Số dư không đủ. Hiện có: %.2f VND, yêu cầu: %.2f VND",
+                String.format("Số dư không đủ. Hiện có: %s VND, yêu cầu: %s VND",
                     fund.getCurrentBalance(), request.getAmount())
             );
         }
@@ -219,7 +222,7 @@ public class FundServiceImpl implements FundService {
     @Transactional
     public FundTransaction adminDirectWithdraw(WithdrawRequestDto request) {
         // Validate
-        if (request.getAmount() <= 0) {
+        if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Số tiền rút phải > 0");
         }
 
@@ -230,7 +233,7 @@ public class FundServiceImpl implements FundService {
         // Kiểm tra số dư
         if (!fund.hasSufficientBalance(request.getAmount())) {
             throw new IllegalStateException(
-                String.format("Số dư không đủ. Hiện có: %.2f VND, yêu cầu: %.2f VND",
+                String.format("Số dư không đủ. Hiện có: %s VND, yêu cầu: %s VND",
                     fund.getCurrentBalance(), request.getAmount())
             );
         }
@@ -267,10 +270,11 @@ public class FundServiceImpl implements FundService {
         FundTransaction transaction = transactionRepository.findById(request.getTransactionId())
             .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch"));
 
-        // Kiểm tra trạng thái: CHỈ approve khi status = Pending
-        if (transaction.getStatus() != TransactionStatus.Pending) {
+        // Kiểm tra trạng thái: CHỈ approve khi status = Pending HOẶC Approved (đã qua vote duyệt)
+        if (transaction.getStatus() != TransactionStatus.Pending && 
+            transaction.getStatus() != TransactionStatus.Approved) {
             throw new IllegalStateException(
-                "Chỉ có thể phê duyệt yêu cầu đang ở trạng thái Pending. " +
+                "Chỉ có thể phê duyệt yêu cầu đang ở trạng thái Pending hoặc Approved. " +
                 "Hiện tại trạng thái: " + transaction.getStatus());
         }
 
@@ -365,9 +369,10 @@ public class FundServiceImpl implements FundService {
         FundTransaction transaction = transactionRepository.findById(transactionId)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch"));
 
-        // Kiểm tra trạng thái
-        if (transaction.getStatus() != TransactionStatus.Pending) {
-            throw new IllegalStateException("Chỉ có thể hủy yêu cầu đang ở trạng thái Pending");
+        // Kiểm tra trạng thái: cho phép hủy khi đang Pending hoặc Approved (chưa giải ngân)
+        if (transaction.getStatus() != TransactionStatus.Pending && 
+            transaction.getStatus() != TransactionStatus.Approved) {
+            throw new IllegalStateException("Chỉ có thể hủy yêu cầu đang ở trạng thái Pending hoặc Approved");
         }
 
         // Kiểm tra quyền: chỉ người tạo yêu cầu mới có thể hủy
@@ -511,25 +516,20 @@ public class FundServiceImpl implements FundService {
                 return;
             }
             
-            // Nếu > 50% đồng ý, tự động trừ tiền và hoàn tất
+            // Nếu > 50% đồng ý, đổi trạng thái sang Approved (chờ Admin)
             if (approvalRate > 0.5) {
-                // Kiểm tra số dư trước khi trừ
+                // Kiểm tra số dư trước khi cập nhật trạng thái
                 if (fund.hasSufficientBalance(transaction.getAmount())) {
-                    // Trừ tiền quỹ
-                    fund.withdraw(transaction.getAmount());
-                    groupFundRepository.save(fund);
-                    
-                    // Chuyển status sang Completed
-                    transaction.setStatus(TransactionStatus.Completed);
-                    transaction.setApprovedAt(LocalDateTime.now());
+                    // Chuyển status sang Approved, chưa trừ tiền quỹ
+                    transaction.setStatus(TransactionStatus.Approved);
                     transactionRepository.save(transaction);
                     
-                    logger.info("✅ Rút tiền thành công và yêu cầu đã được đóng! Transaction {} đã được hoàn tất. " +
-                        "Số tiền: {} VND, ApprovalRate: {}% (>50%), Số dư còn lại: {} VND", 
+                    logger.info("✅ Vote thành công! Giao dịch quỹ {} (mã {}) chuyển sang chờ Admin duyệt hoàn tất. " +
+                        "Số tiền: {} VND, Tỷ lệ đồng thuận: {}% (>50%)", 
+                        fund.getFundId(),
                         transaction.getTransactionId(), 
                         transaction.getAmount(),
-                        String.format("%.2f", approvalRate * 100),
-                        fund.getCurrentBalance());
+                        String.format("%.2f", approvalRate * 100));
                 } else {
                     // Số dư không đủ, từ chối
                     transaction.setStatus(TransactionStatus.Rejected);
@@ -631,17 +631,17 @@ public class FundServiceImpl implements FundService {
     // ========================================
 
     @Override
-    public Double getTotalDeposit(Integer fundId) {
+    public BigDecimal getTotalDeposit(Integer fundId) {
         return transactionRepository.getTotalDeposit(fundId);
     }
 
     @Override
-    public Double getTotalWithdraw(Integer fundId) {
+    public BigDecimal getTotalWithdraw(Integer fundId) {
         return transactionRepository.getTotalWithdraw(fundId);
     }
 
     @Override
-    public Double getCurrentBalance(Integer fundId) {
+    public BigDecimal getCurrentBalance(Integer fundId) {
         GroupFund fund = groupFundRepository.findById(fundId)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy quỹ"));
         return fund.getCurrentBalance();

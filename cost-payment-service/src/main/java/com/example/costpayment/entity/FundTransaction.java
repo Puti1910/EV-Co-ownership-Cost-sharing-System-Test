@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 /**
  * Entity: Giao dịch quỹ chung
@@ -32,8 +33,8 @@ public class FundTransaction {
     @Column(nullable = false)
     private TransactionType transactionType = TransactionType.Deposit;
 
-    @Column(nullable = false)
-    private Double amount;
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal amount;
 
     @Column(length = 255)
     private String purpose; // Mục đích: "Mua bảo hiểm", "Sửa xe", "Đổ xăng"...
@@ -85,7 +86,7 @@ public class FundTransaction {
      * Tạo yêu cầu rút tiền (USER)
      */
     public static FundTransaction createWithdrawRequest(
-        Integer fundId, Integer userId, Double amount, String purpose
+        Integer fundId, Integer userId, BigDecimal amount, String purpose
     ) {
         FundTransaction tx = new FundTransaction();
         tx.setFundId(fundId);
@@ -102,7 +103,7 @@ public class FundTransaction {
      * Rút tiền trực tiếp (ADMIN)
      */
     public static FundTransaction createDirectWithdraw(
-        Integer fundId, Integer adminId, Double amount, String purpose
+        Integer fundId, Integer adminId, BigDecimal amount, String purpose
     ) {
         FundTransaction tx = new FundTransaction();
         tx.setFundId(fundId);
@@ -121,7 +122,7 @@ public class FundTransaction {
      * Nạp tiền (USER/ADMIN)
      */
     public static FundTransaction createDeposit(
-        Integer fundId, Integer userId, Double amount, String purpose
+        Integer fundId, Integer userId, BigDecimal amount, String purpose
     ) {
         FundTransaction tx = new FundTransaction();
         tx.setFundId(fundId);

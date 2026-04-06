@@ -1,12 +1,13 @@
 package com.example.costpayment.dto;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 public class CostDto {
     private Integer costId;
     private Integer vehicleId;
     private String costType;
-    private Double amount;
+    private BigDecimal amount;
     private String description;
     private LocalDateTime createdAt;
     private String status = "PENDING";
@@ -14,7 +15,7 @@ public class CostDto {
     // Constructors
     public CostDto() {}
 
-    public CostDto(Integer costId, Integer vehicleId, String costType, Double amount, String description, LocalDateTime createdAt) {
+    public CostDto(Integer costId, Integer vehicleId, String costType, BigDecimal amount, String description, LocalDateTime createdAt) {
         this.costId = costId;
         this.vehicleId = vehicleId;
         this.costType = costType;
@@ -33,8 +34,8 @@ public class CostDto {
     public String getCostType() { return costType; }
     public void setCostType(String costType) { this.costType = costType; }
 
-    public Double getAmount() { return amount; }
-    public void setAmount(Double amount) { this.amount = amount; }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }

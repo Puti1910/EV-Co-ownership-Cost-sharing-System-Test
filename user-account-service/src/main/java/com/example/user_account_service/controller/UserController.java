@@ -48,9 +48,11 @@ public class UserController {
             String errorMessage = e.getMessage();
             if (errorMessage != null && errorMessage.contains("Duplicate entry")) {
                 if (errorMessage.contains("email") || errorMessage.contains("UK6dotkott2kjsp8vw4d0m25fb7")) {
-                    return ResponseEntity.badRequest().body("Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập.");
+                    return ResponseEntity.badRequest()
+                            .body("Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập.");
                 } else if (errorMessage.contains("phone_number")) {
-                    return ResponseEntity.badRequest().body("Số điện thoại này đã được đăng ký. Vui lòng sử dụng số điện thoại khác.");
+                    return ResponseEntity.badRequest()
+                            .body("Số điện thoại này đã được đăng ký. Vui lòng sử dụng số điện thoại khác.");
                 } else if (errorMessage.contains("id_card_number")) {
                     return ResponseEntity.badRequest().body("Số CMND/CCCD này đã được đăng ký.");
                 } else if (errorMessage.contains("license_number")) {
@@ -70,8 +72,12 @@ public class UserController {
      */
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
-        LoginResponse response = userService.loginUser(loginRequest);
-        return ResponseEntity.ok(response);
+        try {
+            LoginResponse response = userService.loginUser(loginRequest);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Sai email hoặc mật khẩu");
+        }
     }
 
     /**
@@ -106,15 +112,14 @@ public class UserController {
         logger.info("Authentication name: {}", authentication != null ? authentication.getName() : "N/A");
         logger.info("Authentication authorities: {}", authentication != null ? authentication.getAuthorities() : "N/A");
         logger.info("Authentication class: {}", authentication != null ? authentication.getClass().getName() : "N/A");
-        
+
         if (authentication == null || authentication.getName() == null) {
             logger.warn("GET /profile - Authentication is null or missing name");
             return ResponseEntity.status(401).body(Map.of(
-                "error", "Unauthorized",
-                "message", "Bạn cần đăng nhập để truy cập hồ sơ cá nhân. Vui lòng đăng nhập lại."
-            ));
+                    "error", "Unauthorized",
+                    "message", "Bạn cần đăng nhập để truy cập hồ sơ cá nhân. Vui lòng đăng nhập lại."));
         }
-        
+
         try {
             logger.info("GET /profile - Calling getAuthenticatedUser for: {}", authentication.getName());
             User user = getAuthenticatedUser(authentication);
@@ -126,20 +131,17 @@ public class UserController {
             logger.error("GET /profile - Exception stack trace:", e);
             if (e.getMessage() != null && e.getMessage().contains("không xác định")) {
                 return ResponseEntity.status(401).body(Map.of(
-                    "error", "Unauthorized",
-                    "message", "Không thể xác định người dùng. Vui lòng đăng nhập lại."
-                ));
+                        "error", "Unauthorized",
+                        "message", "Không thể xác định người dùng. Vui lòng đăng nhập lại."));
             }
             return ResponseEntity.status(404).body(Map.of(
-                "error", "Not Found",
-                "message", "Không tìm thấy hồ sơ người dùng."
-            ));
+                    "error", "Not Found",
+                    "message", "Không tìm thấy hồ sơ người dùng."));
         } catch (Exception e) {
             logger.error("GET /profile - Unexpected error: {}", e.getMessage(), e);
             return ResponseEntity.status(500).body(Map.of(
-                "error", "Internal Server Error",
-                "message", "Lỗi máy chủ: " + e.getMessage()
-            ));
+                    "error", "Internal Server Error",
+                    "message", "Lỗi máy chủ: " + e.getMessage()));
         }
     }
 
@@ -147,17 +149,17 @@ public class UserController {
      * API CẬP NHẬT hồ sơ cá nhân (BẢO VỆ)
      */
     @PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(@RequestBody UserProfileUpdateRequest request, Authentication authentication) {
+    public ResponseEntity<?> updateProfile(@RequestBody UserProfileUpdateRequest request,
+            Authentication authentication) {
         logger.info("PUT /profile - Authentication: {}", authentication != null ? authentication.getName() : "NULL");
-        
+
         if (authentication == null || authentication.getName() == null) {
             logger.warn("PUT /profile - Authentication is null or missing name");
             return ResponseEntity.status(401).body(Map.of(
-                "error", "Unauthorized",
-                "message", "Bạn cần đăng nhập để cập nhật hồ sơ cá nhân. Vui lòng đăng nhập lại."
-            ));
+                    "error", "Unauthorized",
+                    "message", "Bạn cần đăng nhập để cập nhật hồ sơ cá nhân. Vui lòng đăng nhập lại."));
         }
-        
+
         try {
             User currentUser = getAuthenticatedUser(authentication);
             logger.info("PUT /profile - Updating profile for user: {}", currentUser.getEmail());
@@ -168,23 +170,22 @@ public class UserController {
             logger.error("PUT /profile - Error updating profile: {}", e.getMessage(), e);
             if (e.getMessage() != null && e.getMessage().contains("không xác định")) {
                 return ResponseEntity.status(401).body(Map.of(
-                    "error", "Unauthorized",
-                    "message", "Không thể xác định người dùng. Vui lòng đăng nhập lại."
-                ));
+                        "error", "Unauthorized",
+                        "message", "Không thể xác định người dùng. Vui lòng đăng nhập lại."));
             }
             return ResponseEntity.badRequest().body(Map.of(
-                "error", "Bad Request",
-                "message", e.getMessage() != null ? e.getMessage() : "Không thể cập nhật hồ sơ."
-            ));
+                    "error", "Bad Request",
+                    "message", e.getMessage() != null ? e.getMessage() : "Không thể cập nhật hồ sơ."));
         }
     }
+
     /**
      * NÂNG CẤP: API UPLOAD FILE (BẢO VỆ)
      * URL: POST http://localhost:8081/api/users/profile/upload
      */
     @PostMapping("/profile/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file,
-                                        Authentication authentication) {
+            Authentication authentication) {
         try {
             User user = getAuthenticatedUser(authentication);
 
@@ -214,8 +215,7 @@ public class UserController {
             @RequestParam(value = "idCardFront", required = false) MultipartFile idCardFront,
             @RequestParam(value = "idCardBack", required = false) MultipartFile idCardBack,
             @RequestParam(value = "driverLicense", required = false) MultipartFile driverLicense,
-            @RequestParam(value = "portrait", required = false) MultipartFile portrait
-    ) {
+            @RequestParam(value = "portrait", required = false) MultipartFile portrait) {
         try {
             User user = getAuthenticatedUser(authentication);
             Map<String, String> uploadedUrls = new HashMap<>();
@@ -251,10 +251,10 @@ public class UserController {
             logger.error("getAuthenticatedUser - Authentication is null or name is null");
             throw new RuntimeException("Người dùng không xác định");
         }
-        
+
         String email = authentication.getName();
         logger.debug("getAuthenticatedUser - Looking up user with email: {}", email);
-        
+
         return userService.findByEmail(email)
                 .orElseThrow(() -> {
                     logger.error("getAuthenticatedUser - User not found with email: {}", email);

@@ -19,7 +19,7 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Mật khẩu không được để trống")
-    @Size(min = 6, message = "Mật khẩu phải từ 6 ký tự trở lên")
+    @Size(min = 8, max = 32, message = "Mật khẩu phải từ 8 đến 32 ký tự")
     private String password;
     
     // Chúng ta không cần 'confirmPassword' ở backend,

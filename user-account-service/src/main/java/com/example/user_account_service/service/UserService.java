@@ -58,6 +58,11 @@ public class UserService {
             throw new RuntimeException("Mật khẩu không được để trống!");
         }
 
+        // Kiểm tra độ dài mật khẩu 8-32 ký tự
+        if (request.getPassword().length() < 8 || request.getPassword().length() > 32) {
+            throw new RuntimeException("Mật khẩu phải từ 8 đến 32 ký tự!");
+        }
+
         // Kiểm tra định dạng email (Regex đơn giản)
         String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
         if (request.getEmail() == null || !request.getEmail().matches(emailRegex)) {

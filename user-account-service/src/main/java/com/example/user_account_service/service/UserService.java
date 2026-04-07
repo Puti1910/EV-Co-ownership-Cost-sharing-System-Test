@@ -108,28 +108,28 @@ public class UserService {
      * Đăng nhập: xác thực, phát access token + refresh token.
      */
     public LoginResponse loginUser(LoginRequest request) {
-        // Lấy IP thật từ X-Forwarded-For (do chạy qua API Gateway) hoặc RemoteAddr mặc định
+        // Lấy IP thật từ X-Forwarded-For hoặc RemoteAddr (ưu tiên IP từ Gateway)
         String clientIp = httpServletRequest.getHeader("X-Forwarded-For");
         if (clientIp == null || clientIp.isEmpty()) {
             clientIp = httpServletRequest.getRemoteAddr();
         } else {
-            // X-Forwarded-For có thể chứa chuỗi IP phân tách bởi dấu phẩy, lấy cái đầu tiên
+            // Lấy cái đầu tiên nếu có nhiều IP (do đi qua nhiều proxy)
             clientIp = clientIp.split(",")[0].trim();
         }
 
-        String key = clientIp + ":" + request.getEmail();
+        // Tạo Key: IP + Email để chặn Brute-force
+        String key = clientIp + ":" + (request.getEmail() != null ? request.getEmail() : "unknown");
         
-        log.info(">>> LOGIN_PROCESS_START: email=[{}], ip=[{}], key=[{}]", request.getEmail(), clientIp, key);
+        log.info(">>> LOGIN_CHECK: Key=[{}], IP=[{}]", key, clientIp);
 
         // PHẢI KIỂM TRA BLOCK ĐẦU TIÊN
         if (loginAttemptService.isBlocked(key)) {
-            log.warn(">>> ACCESS_DENIED_BRUTE_FORCE: Key [{}] is currently blocked.", key);
+            log.warn(">>> SECURITY_BLOCK: Key [{}] bị chặn do Brute-force.", key);
             throw new TooManyRequestsException("Tài khoản đã bị khóa tạm thời do nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.");
         }
 
         if (request.getEmail() == null || request.getEmail().trim().isEmpty() ||
             request.getPassword() == null || request.getPassword().trim().isEmpty()) {
-            log.error(">>> LOGIN_ERROR: Email or password is empty");
             throw new RuntimeException("Email và mật khẩu không được để trống!");
         }
 
@@ -138,11 +138,12 @@ public class UserService {
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
 
+            log.info(">>> LOGIN_SUCCESS: Key=[{}]", key);
+            loginAttemptService.loginSucceeded(key);
+            
             User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng sau khi đăng nhập"));
 
-            log.info("Đăng nhập THÀNH CÔNG cho Key: [{}]", key);
-            loginAttemptService.loginSucceeded(key);
             RefreshToken refreshToken = createRefreshToken(user);
             return buildAuthResponse(user, refreshToken);
         } catch (Exception e) {

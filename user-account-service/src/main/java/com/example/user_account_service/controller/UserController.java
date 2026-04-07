@@ -81,7 +81,7 @@ public class UserController {
      * API Refresh Token (PUBLIC - dựa vào refresh token hợp lệ)
      */
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         try {
             LoginResponse response = userService.refreshSession(request.getRefreshToken());
             return ResponseEntity.ok(response);
@@ -94,10 +94,11 @@ public class UserController {
      * Thu hồi refresh token (Logout)
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<?> logout(@Valid @RequestBody RefreshTokenRequest request) {
         userService.logout(request.getRefreshToken());
         return ResponseEntity.ok().build();
     }
+
 
     /**
      * API TẢI DỮ LIỆU hồ sơ cá nhân (BẢO VỆ)

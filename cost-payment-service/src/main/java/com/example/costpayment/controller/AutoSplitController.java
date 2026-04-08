@@ -170,6 +170,14 @@ public class AutoSplitController {
                 String description = (String) request.get("description");
                 
                 System.out.println("Vehicle ID: " + vehicleId);
+                
+                // MOCK VALIDATION: Chặn vehicleId rác (tránh leak Data)
+                if (vehicleId == null || vehicleId <= 0 || vehicleId > 1000) {
+                    throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, 
+                        "Mã xe (Vehicle ID) không tồn tại. Yêu cầu tạo chi phí bị từ chối.");
+                }
+
                 System.out.println("Cost Type: " + costType);
                 System.out.println("Amount: " + amount);
 
@@ -206,6 +214,9 @@ public class AutoSplitController {
 
             return ResponseEntity.ok(result);
             
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            // Rethrow ResponseStatusException so the ControllerAdvice/ExceptionHandler can handle it properly
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             Map<String, Object> error = new HashMap<>();
@@ -428,6 +439,9 @@ public class AutoSplitController {
 
             return ResponseEntity.ok(preview);
             
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            // Rethrow ResponseStatusException so the ControllerAdvice/ExceptionHandler can handle it properly
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             Map<String, Object> error = new HashMap<>();
@@ -445,7 +459,15 @@ public class AutoSplitController {
     public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
         ex.printStackTrace();
         Map<String, Object> error = new HashMap<>();
-        // Nếu lỗi là "Không tìm thấy chi phí..." thì báo về 404 hoặc 400
+        
+        // Nếu là ResponseStatusException (từ Spring), lấy đúng mã lỗi (404, 400...)
+        if (ex instanceof org.springframework.web.server.ResponseStatusException) {
+            org.springframework.web.server.ResponseStatusException rse = (org.springframework.web.server.ResponseStatusException) ex;
+            error.put("error", rse.getReason() != null ? rse.getReason() : rse.getMessage());
+            return ResponseEntity.status(rse.getStatusCode()).body(error);
+        }
+        
+        // Mặc định trả về 400 Bad Request cho các RuntimeException khác
         error.put("error", ex.getMessage());
         return ResponseEntity.badRequest().body(error);
     }

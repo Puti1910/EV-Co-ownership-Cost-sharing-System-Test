@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile; // <-- THÊM IMPORT
 
@@ -146,8 +147,9 @@ public class UserController {
     /**
      * API CẬP NHẬT hồ sơ cá nhân (BẢO VỆ)
      */
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(@RequestBody UserProfileUpdateRequest request,
+    public ResponseEntity<?> updateProfile(@Valid @RequestBody UserProfileUpdateRequest request,
             Authentication authentication) {
         logger.info("PUT /profile - Authentication: {}", authentication != null ? authentication.getName() : "NULL");
 

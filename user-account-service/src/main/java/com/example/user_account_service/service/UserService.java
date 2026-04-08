@@ -20,6 +20,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -195,6 +197,22 @@ public class UserService {
     public User updateProfile(Long userId, UserProfileUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng."));
+
+        // 1. Kiểm tra tuổi (18-100)
+        if (request.getDateOfBirth() != null) {
+            Period ageCount = Period.between(request.getDateOfBirth(), LocalDate.now());
+            if (ageCount.getYears() < 18 || ageCount.getYears() > 100) {
+                throw new RuntimeException("Tuổi phải từ 18 đến 100 tuổi.");
+            }
+        }
+
+        // 2. Kiểm tra logid ngày GPLX (Ngày hết hạn phải sau ngày cấp)
+        if (request.getLicenseIssueDate() != null && request.getLicenseExpiryDate() != null) {
+            if (request.getLicenseExpiryDate().isBefore(request.getLicenseIssueDate()) || 
+                request.getLicenseExpiryDate().isEqual(request.getLicenseIssueDate())) {
+                throw new RuntimeException("Ngày hết hạn GPLX phải sau ngày cấp.");
+            }
+        }
 
         if (request.getFullName() != null) user.setFullName(request.getFullName());
         if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());

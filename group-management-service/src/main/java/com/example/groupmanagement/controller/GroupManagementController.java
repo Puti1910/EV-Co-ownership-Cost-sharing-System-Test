@@ -188,6 +188,17 @@ public class GroupManagementController {
                     adminOwnershipPercent = ((Number) ownershipObj).doubleValue();
                 }
             }
+
+            if (group.getAdminId() != null) {
+                String validationError = validateOwnershipPercent(adminOwnershipPercent);
+                if (validationError != null) {
+                    logger.error("❌ [CREATE GROUP] Invalid admin ownershipPercent: {}", adminOwnershipPercent);
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Invalid ownershipPercent",
+                        "message", validationError
+                    ));
+                }
+            }
             
             // Bước 1: Tạo Group trong database Group_Management_DB
             logger.info("🔵 [CREATE GROUP] Attempting to save group to database...");
@@ -379,6 +390,19 @@ public class GroupManagementController {
             .findFirst();
     }
 
+    private String validateOwnershipPercent(Double ownershipPercent) {
+        if (ownershipPercent == null) {
+            return "ownershipPercent is required and must be a number";
+        }
+        if (ownershipPercent <= 0.0) {
+            return "ownershipPercent must be greater than 0";
+        }
+        if (ownershipPercent > 100.0) {
+            return "ownershipPercent must be less than or equal to 100";
+        }
+        return null;
+    }
+
     // GroupMember endpoints
     @GetMapping("/{groupId}/members")
     public List<GroupMember> getGroupMembers(@PathVariable Integer groupId) {
@@ -438,9 +462,13 @@ public class GroupManagementController {
             }
             
             // Validation: Check if ownershipPercent is valid
-            if (groupMember.getOwnershipPercent() == null) {
-                logger.warn("⚠️ [GroupManagementController] ownershipPercent is null, setting to 0.0");
-                groupMember.setOwnershipPercent(0.0);
+            String memberValidationError = validateOwnershipPercent(groupMember.getOwnershipPercent());
+            if (memberValidationError != null) {
+                logger.error("❌ [GroupManagementController] Invalid ownershipPercent for member: {}", groupMember.getOwnershipPercent());
+                return ResponseEntity.status(400).body(Map.of(
+                    "error", "Invalid ownershipPercent",
+                    "message", memberValidationError
+                ));
             }
             
             // Check if group exists
@@ -654,6 +682,14 @@ public class GroupManagementController {
             }
             if (requestData.containsKey("ownershipPercent")) {
                 Double newOwnership = ((Number) requestData.get("ownershipPercent")).doubleValue();
+                String validationError = validateOwnershipPercent(newOwnership);
+                if (validationError != null) {
+                    logger.error("❌ [GroupManagementController] Invalid ownershipPercent for update: {}", newOwnership);
+                    return ResponseEntity.status(400).body(Map.of(
+                        "error", "Invalid ownershipPercent",
+                        "message", validationError
+                    ));
+                }
                 
                 // Rule 3: Validate total ownership
                 List<GroupMember> allMembers = groupMemberRepository.findByGroup_GroupId(groupId);

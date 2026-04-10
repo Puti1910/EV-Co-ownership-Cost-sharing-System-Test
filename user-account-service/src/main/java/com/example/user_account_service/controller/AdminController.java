@@ -36,7 +36,20 @@ public class AdminController {
     @GetMapping("/users")
     public ResponseEntity<List<User>> getUsersByStatus(@RequestParam(defaultValue = "PENDING") String status) {
         try {
-            ProfileStatus profileStatus = ProfileStatus.valueOf(status.toUpperCase());
+            // Kiểm tra xem status có khớp chính xác (phân biệt hoa thường) với enum không
+            boolean isValid = false;
+            for (ProfileStatus ps : ProfileStatus.values()) {
+                if (ps.name().equals(status)) {
+                    isValid = true;
+                    break;
+                }
+            }
+
+            if (!isValid) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            ProfileStatus profileStatus = ProfileStatus.valueOf(status);
             return ResponseEntity.ok(userService.getProfilesByStatus(profileStatus));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().build();

@@ -65,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        if (jwt == null) {
+        if (jwt == null || jwt.trim().isEmpty()) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -92,13 +92,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     logger.info("Authentication set successfully for user: {}", userEmail);
                 } else {
                     logger.warn("JWT token is invalid for user: {}", userEmail);
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Token không hợp lệ cho người dùng này\"}");
+                    return;
                 }
-            } else {
-                if (userEmail == null) {
-                    logger.warn("Could not extract email from JWT token");
-                } else {
-                    logger.debug("User already authenticated: {}", userEmail);
-                }
+            } else if (userEmail == null) {
+                logger.warn("Could not extract email from JWT token");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Token không hợp lệ (không chứa email)\"}");
+                return;
             }
         } catch (io.jsonwebtoken.ExpiredJwtException e) {
             logger.warn("JWT token has expired: {}", e.getMessage());

@@ -100,6 +100,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     logger.debug("User already authenticated: {}", userEmail);
                 }
             }
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            logger.warn("JWT token has expired: {}", e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Token đã hết hạn\"}");
+            return; // Dừng filter chain luôn, trả về 401 lập tức
+        } catch (io.jsonwebtoken.MalformedJwtException | io.jsonwebtoken.security.SignatureException e) {
+            logger.warn("JWT token is invalid/malformed: {}", e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Token sai định dạng\"}");
+            return; // Dừng filter chain luôn
         } catch (Exception e) {
             logger.error("Error processing JWT token: {}", e.getMessage(), e);
             // Không set authentication, để Spring Security xử lý như request chưa được xác thực

@@ -8,6 +8,7 @@ import com.example.user_account_service.entity.RefreshToken;
 import com.example.user_account_service.entity.User;
 import com.example.user_account_service.enums.ProfileStatus;
 import com.example.user_account_service.enums.Role;
+import com.example.user_account_service.exception.ResourceNotFoundException;
 import com.example.user_account_service.exception.TooManyRequestsException;
 import com.example.user_account_service.repository.RefreshTokenRepository;
 import com.example.user_account_service.repository.UserRepository;
@@ -195,8 +196,11 @@ public class UserService {
      * Logic Cập nhật hồ sơ (Onboarding) + reset trạng thái.
      */
     public User updateProfile(Long userId, UserProfileUpdateRequest request) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("ID người dùng không hợp lệ (ID phải lớn hơn 0)");
+        }
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng."));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
 
         // 1. Kiểm tra tuổi (18-100)
         if (request.getDateOfBirth() != null) {
@@ -242,8 +246,11 @@ public class UserService {
      * Cập nhật URL hồ sơ KYC (khi user upload ảnh).
      */
     public User updateKycDocuments(Long userId, Map<String, String> documentUrls) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("ID người dùng không hợp lệ (ID phải lớn hơn 0)");
+        }
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng."));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
 
         documentUrls.forEach((key, value) -> {
             switch (key) {
@@ -268,8 +275,16 @@ public class UserService {
     }
 
     public User approveProfile(Long userId) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("ID người dùng không hợp lệ (ID phải lớn hơn 0)");
+        }
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng."));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+
+        // Nếu hồ sơ đã được duyệt rồi, không cần làm gì thêm (Idempotent)
+        if (user.getProfileStatus() == ProfileStatus.APPROVED) {
+            return user;
+        }
 
         user.setProfileStatus(ProfileStatus.APPROVED);
         user.setVerified(true);
@@ -277,8 +292,19 @@ public class UserService {
     }
 
     public User rejectProfile(Long userId) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("ID người dùng không hợp lệ (ID phải lớn hơn 0)");
+        }
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng."));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+
+        // Chặn logic: Không thể từ chối hồ sơ đã được duyệt (APPROVED) hoặc hồ sơ đang định chỉ (SUSPENDED)
+        if (user.getProfileStatus() == ProfileStatus.APPROVED) {
+            throw new RuntimeException("Chặn logic: Không thể từ chối hồ sơ đã ở trạng thái APPROVED.");
+        }
+        if (user.getProfileStatus() == ProfileStatus.SUSPENDED) {
+            throw new RuntimeException("Chặn logic: Không thể từ chối hồ sơ đang bị đình chỉ (SUSPENDED).");
+        }
 
         user.setProfileStatus(ProfileStatus.REJECTED);
         user.setVerified(false);
@@ -286,8 +312,11 @@ public class UserService {
     }
 
     public User updateUserRole(Long userId, Role role) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("ID người dùng không hợp lệ (ID phải lớn hơn 0)");
+        }
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng."));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
         user.setRole(role);
         return userRepository.save(user);
     }

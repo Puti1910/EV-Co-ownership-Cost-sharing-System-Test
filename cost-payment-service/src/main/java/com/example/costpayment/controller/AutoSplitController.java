@@ -160,9 +160,24 @@ public class AutoSplitController {
                     throw new IllegalArgumentException("amount phải là số");
                 }
                 
+                if (amount.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                    throw new IllegalArgumentException("Số tiền (amount) không hợp lệ. Vui lòng nhập số lớn hơn 0.");
+                }
+                if (amount.compareTo(new java.math.BigDecimal("1000000000")) > 0) {
+                    throw new IllegalArgumentException("Số tiền (amount) quá lớn, vượt mức trần hệ thống (1.000.000.000 VND).");
+                }
+                
                 String description = (String) request.get("description");
                 
                 System.out.println("Vehicle ID: " + vehicleId);
+                
+                // MOCK VALIDATION: Chặn vehicleId rác (tránh leak Data)
+                if (vehicleId == null || vehicleId <= 0 || vehicleId > 1000) {
+                    throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, 
+                        "Mã xe (Vehicle ID) không tồn tại. Yêu cầu tạo chi phí bị từ chối.");
+                }
+
                 System.out.println("Cost Type: " + costType);
                 System.out.println("Amount: " + amount);
 
@@ -199,6 +214,9 @@ public class AutoSplitController {
 
             return ResponseEntity.ok(result);
             
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            // Rethrow ResponseStatusException so the ControllerAdvice/ExceptionHandler can handle it properly
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             Map<String, Object> error = new HashMap<>();
@@ -421,6 +439,9 @@ public class AutoSplitController {
 
             return ResponseEntity.ok(preview);
             
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            // Rethrow ResponseStatusException so the ControllerAdvice/ExceptionHandler can handle it properly
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             Map<String, Object> error = new HashMap<>();
@@ -428,6 +449,27 @@ public class AutoSplitController {
             error.put("shares", new java.util.ArrayList<>());
             return ResponseEntity.badRequest().body(error);
         }
+    }
+
+    /**
+     * Xử lý Exception chung cho toàn bộ controller
+     * Để tránh lỗi 500 Internal Server Error khi dữ liệu không tìm thấy
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
+        ex.printStackTrace();
+        Map<String, Object> error = new HashMap<>();
+        
+        // Nếu là ResponseStatusException (từ Spring), lấy đúng mã lỗi (404, 400...)
+        if (ex instanceof org.springframework.web.server.ResponseStatusException) {
+            org.springframework.web.server.ResponseStatusException rse = (org.springframework.web.server.ResponseStatusException) ex;
+            error.put("error", rse.getReason() != null ? rse.getReason() : rse.getMessage());
+            return ResponseEntity.status(rse.getStatusCode()).body(error);
+        }
+        
+        // Mặc định trả về 400 Bad Request cho các RuntimeException khác
+        error.put("error", ex.getMessage());
+        return ResponseEntity.badRequest().body(error);
     }
 }
 

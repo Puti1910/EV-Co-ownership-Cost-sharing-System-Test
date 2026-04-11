@@ -235,7 +235,10 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chi phí ID: " + costId));
 
         if (userIds == null || userIds.isEmpty()) {
-            throw new RuntimeException("Danh sách user không được rỗng");
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.NOT_FOUND,
+                "Không tìm thấy thông tin thành viên cho nhóm, hoặc nhóm không tồn tại."
+            );
         }
 
         // Xóa các chia sẻ cũ
@@ -288,7 +291,10 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
             
             Map<String, Object> responseBody = response.getBody();
             if (responseBody == null || !responseBody.containsKey("members")) {
-                throw new RuntimeException("Không lấy được thông tin thành viên từ Group Management Service");
+                throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND,
+                    "Không tìm thấy thông tin thành viên cho Group ID: " + groupId
+                );
             }
             
             @SuppressWarnings("unchecked")
@@ -312,6 +318,12 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
         } catch (Exception e) {
             System.err.println("Lỗi khi gọi Group Management Service: " + e.getMessage());
             e.printStackTrace();
+            if (e instanceof org.springframework.web.client.HttpClientErrorException.NotFound) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND,
+                    "Không tìm thấy Group ID: " + groupId
+                );
+            }
             throw new RuntimeException("Không thể lấy thông tin ownership từ Group Management Service: " + e.getMessage());
         }
     }
@@ -354,8 +366,10 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
         }
 
         if (usageMap.isEmpty()) {
-            throw new RuntimeException("Không có dữ liệu km cho nhóm " + groupId +
-                    " trong tháng " + month + "/" + year);
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.NOT_FOUND,
+                "Không có dữ liệu km cho nhóm " + groupId + " trong tháng " + month + "/" + year
+            );
         }
 
         return usageMap;
@@ -395,7 +409,10 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
             
             Map<String, Object> responseBody = response.getBody();
             if (responseBody == null || !responseBody.containsKey("members")) {
-                throw new RuntimeException("Không lấy được thông tin thành viên từ Group Management Service");
+                throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND,
+                    "Không tìm thấy thông tin thành viên cho Group ID: " + groupId
+                );
             }
             
             @SuppressWarnings("unchecked")
@@ -415,6 +432,12 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
         } catch (Exception e) {
             System.err.println("Lỗi khi gọi Group Management Service: " + e.getMessage());
             e.printStackTrace();
+            if (e instanceof org.springframework.web.client.HttpClientErrorException.NotFound) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND,
+                    "Không tìm thấy Group ID: " + groupId
+                );
+            }
             throw new RuntimeException("Không thể lấy danh sách thành viên từ Group Management Service: " + e.getMessage());
         }
     }

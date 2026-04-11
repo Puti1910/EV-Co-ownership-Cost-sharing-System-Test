@@ -6,13 +6,17 @@ import com.example.VehicleServiceManagementService.repository.VehicleRepository;
 import com.example.VehicleServiceManagementService.repository.VehicleGroupRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,6 +24,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/vehicles")
 @CrossOrigin(origins = "*")
+@Validated
 public class VehicleAPI {
 
     @Autowired
@@ -36,7 +41,17 @@ public class VehicleAPI {
      * @return Danh sách tất cả xe
      */
     @GetMapping
-    public ResponseEntity<List<Vehicle>> getAllVehicles() {
+    public ResponseEntity<?> getAllVehicles(
+            @RequestParam(required = false, defaultValue = "20") @Min(1) @Max(200) Integer size) {
+        
+        // Manual validation to guarantee 400 Bad Request
+        if (size != null && (size < 1 || size > 200)) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Dữ liệu không hợp lệ: size must be between 1 and 200");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+        
         try {
             List<Vehicle> vehicles = vehicleRepository.findAll();
             return ResponseEntity.ok(vehicles);

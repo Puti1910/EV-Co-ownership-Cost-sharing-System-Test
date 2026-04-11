@@ -3,11 +3,15 @@ package com.example.VehicleServiceManagementService.controller;
 import com.example.VehicleServiceManagementService.model.ServiceType;
 import com.example.VehicleServiceManagementService.service.ServiceService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -18,6 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/services")
 @CrossOrigin(origins = "*")
+@Validated
 public class ServiceAPI {
 
     @Autowired
@@ -28,7 +33,17 @@ public class ServiceAPI {
      * @return Danh sách tất cả dịch vụ dưới dạng Map
      */
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> getAllServices() {
+    public ResponseEntity<?> getAllServices(
+            @RequestParam(required = false, defaultValue = "10") @Min(1) @Max(100) Integer size) {
+        
+        // Manual validation to guarantee 400 Bad Request
+        if (size != null && (size < 1 || size > 100)) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Dữ liệu không hợp lệ: size must be between 1 and 100");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+        
         try {
             List<ServiceType> services = serviceService.getAllServices();
             System.out.println("✅ API: Đã lấy " + services.size() + " dịch vụ từ bảng service");
@@ -207,7 +222,8 @@ public class ServiceAPI {
      * @return ResponseEntity với danh sách loại dịch vụ
      */
     @GetMapping("/types")
-    public ResponseEntity<?> getServiceTypes() {
+    public ResponseEntity<?> getServiceTypes(
+            @RequestParam(required = false) @Size(min = 4, max = 10) String category) {
         try {
             List<String> serviceTypes = serviceService.getDistinctServiceTypes();
             return ResponseEntity.ok(serviceTypes);
@@ -238,7 +254,8 @@ public class ServiceAPI {
      * @return ResponseEntity với số lượng dịch vụ
      */
     @GetMapping("/count")
-    public ResponseEntity<?> getServiceCount() {
+    public ResponseEntity<?> getServiceCount(
+            @RequestParam(required = false) @Size(min = 3, max = 15) String status) {
         try {
             long count = serviceService.count();
             Map<String, Object> response = new HashMap<>();
@@ -255,7 +272,8 @@ public class ServiceAPI {
      * @return ResponseEntity với service_id tiếp theo
      */
     @GetMapping("/next-id")
-    public ResponseEntity<?> getNextServiceId() {
+    public ResponseEntity<?> getNextServiceId(
+            @RequestParam(required = false, defaultValue = "SRV") @Size(min = 2, max = 5) String prefix) {
         try {
             String nextId = serviceService.generateNextServiceId();
             Map<String, Object> response = new HashMap<>();
@@ -272,7 +290,8 @@ public class ServiceAPI {
      * @return ResponseEntity với danh sách Map từ vehicleservice
      */
     @GetMapping("/templates")
-    public ResponseEntity<List<Map<String, Object>>> getServiceTemplatesFromVehicleService() {
+    public ResponseEntity<List<Map<String, Object>>> getServiceTemplatesFromVehicleService(
+            @RequestParam(required = false, defaultValue = "10") @Min(1) @Max(50) Integer limit) {
         try {
             System.out.println("🔵 [ServiceAPI] Nhận request GET /api/services/templates");
             List<ServiceType> templates = serviceService.getDistinctServiceTemplatesFromVehicleService();

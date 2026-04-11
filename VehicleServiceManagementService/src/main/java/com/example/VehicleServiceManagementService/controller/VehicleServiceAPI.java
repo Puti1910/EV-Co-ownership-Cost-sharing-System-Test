@@ -7,9 +7,12 @@ import com.example.VehicleServiceManagementService.model.Vehicleservice;
 import com.example.VehicleServiceManagementService.repository.VehicleServiceRepository;
 import com.example.VehicleServiceManagementService.service.VehicleServiceService;
 import com.example.VehicleServiceManagementService.service.MaintenanceBookingService;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -20,6 +23,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/vehicle-services")
 @CrossOrigin(origins = "*")
+@Validated
 public class VehicleServiceAPI {
 
     @Autowired
@@ -35,7 +39,8 @@ public class VehicleServiceAPI {
      * Test endpoint để kiểm tra controller hoạt động
      */
     @GetMapping("/test")
-    public ResponseEntity<?> testEndpoint() {
+    public ResponseEntity<?> testEndpoint(
+            @RequestParam(required = false, defaultValue = "3") @Min(1) @Max(5) Integer retry) {
         return ResponseEntity.ok(Map.of(
             "status", "success",
             "message", "VehicleServiceAPI controller đang hoạt động",
@@ -48,7 +53,8 @@ public class VehicleServiceAPI {
      * Sử dụng native query để đảm bảo lấy được dữ liệu
      */
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> getAllVehicleServices() {
+    public ResponseEntity<List<Map<String, Object>>> getAllVehicleServices(
+            @RequestParam(required = false, defaultValue = "0") @Min(0) @Max(1000) Integer page) {
         System.out.println("═══════════════════════════════════════════════════════");
         System.out.println("🔵 [GET] /api/vehicleservices - Lấy tất cả đăng ký dịch vụ");
         

@@ -15,18 +15,17 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ReservationRequest {
 
-    @NotNull(message = "userId is required")
     @Min(value = 1, message = "userId must be at least 1")
     private Integer userId;
 
-    @NotNull(message = "vehicleId is required")
-    @Min(value = 1, message = "vehicleId must be at least 1")
-    @Max(value = Integer.MAX_VALUE, message = "vehicleId is out of valid range")
+    @Min(value = 1, message = "vehicleId phải bắt đầu từ 1")
+    @Max(value = Integer.MAX_VALUE, message = "vehicleId không được vượt quá Max Integer")
     private Integer vehicleId;
 
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
 
+    @jakarta.validation.constraints.NotBlank(message = "purpose không được để trống")
     @Size(max = 255, message = "Mục đích sử dụng không được quá 255 ký tự")
     private String purpose;
 

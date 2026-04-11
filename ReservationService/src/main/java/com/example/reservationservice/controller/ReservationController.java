@@ -16,6 +16,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -396,14 +397,80 @@ public class ReservationController {
      * Cập nhật reservation
      */
     @PutMapping("/reservations/{id}")
-    public Reservation updateReservation(
+    public ResponseEntity<?> updateReservation(
             @PathVariable Long id,
-            @RequestBody ReservationRequest request) {
+            @Valid @RequestBody ReservationRequest request) {
         try {
-            Reservation reservation = reservationRepo.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Reservation not found: " + id));
+            Reservation reservation = reservationRepo.findById(id).orElse(null);
+            if (reservation == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                        "error", "Not Found",
+                        "message", "Reservation not found: " + id
+                ));
+            }
 
-            // Cập nhật các field nếu có trong request
+            // Cập nhật các trường cần thiết
+            LocalDateTime finalStart = request.getStartDatetime() != null ? request.getStartDatetime() : reservation.getStartDatetime();
+            LocalDateTime finalEnd = request.getEndDatetime() != null ? request.getEndDatetime() : reservation.getEndDatetime();
+
+            // Lỗi RS_BVA_31: Purpose 256 ký tự
+            if (request.getPurpose() != null && request.getPurpose().length() > 255) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Validation failed",
+                        "message", "purpose must not exceed 255 characters"
+                ));
+            }
+
+            // Lỗi logic thời gian: endDatetime phải sau startDatetime
+            if (finalStart != null && finalEnd != null) {
+                if (!finalEnd.isAfter(finalStart)) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                            "error", "Validation failed",
+                            "message", "endDatetime phải sau startDatetime"
+                    ));
+                }
+                // Giới hạn năm 2050
+                if (finalStart.getYear() > 2050 || finalEnd.getYear() > 2050) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                            "error", "Validation failed",
+                            "message", "Thời gian không được vượt quá năm 2050"
+                    ));
+                }
+            }
+
+            // Chặn đặt vào quá khứ (Iteration 8)
+            if (request.getStartDatetime() != null && request.getStartDatetime().isBefore(LocalDateTime.now())) {
+                 return ResponseEntity.badRequest().body(Map.of(
+                            "error", "Validation failed",
+                            "message", "Không thể đặt xe trong quá khứ"
+                    ));
+            }
+
+            // Xóa rác, format status
+            String newStatusStr = request.getStatus() != null ? request.getStatus().trim().toUpperCase() : reservation.getStatus().name();
+            
+            // Lỗi status không hợp lệ
+            try {
+                Reservation.Status st = Reservation.Status.valueOf(newStatusStr);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Validation failed",
+                        "message", "Invalid status: " + request.getStatus() + ". Valid values: BOOKED, IN_USE, COMPLETED, CANCELLED"
+                ));
+            }
+
+            // Check overlap (nếu status là BOOKED/IN_USE)
+            if (newStatusStr.equals("BOOKED") || newStatusStr.equals("IN_USE")) {
+               Reservation overlapping = bookingService.findOverlappingReservation(reservation.getVehicleId(), finalStart, finalEnd);
+               if (overlapping != null && !overlapping.getReservationId().equals(reservation.getReservationId())) {
+                     return ResponseEntity.badRequest().body(Map.of(
+                            "error", "Validation failed",
+                            "message", "OVERLAP: Trùng lịch với ID " + overlapping.getReservationId()
+                    ));
+               }
+            }
+
+            // Hoàn tất cập nhật state
             if (request.getStartDatetime() != null) {
                 reservation.setStartDatetime(request.getStartDatetime());
             }
@@ -413,17 +480,8 @@ public class ReservationController {
             if (request.getPurpose() != null) {
                 reservation.setPurpose(request.getPurpose());
             }
-            
-            // Xử lý status với error handling
-            if (request.getStatus() != null && !request.getStatus().trim().isEmpty()) {
-                try {
-                    String statusStr = request.getStatus().trim().toUpperCase();
-                    reservation.setStatus(Reservation.Status.valueOf(statusStr));
-                    System.out.println("✅ Updated reservation " + id + " status to: " + statusStr);
-                } catch (IllegalArgumentException e) {
-                    System.err.println("❌ Invalid status: " + request.getStatus() + ". Valid values: BOOKED, IN_USE, COMPLETED, CANCELLED");
-                    throw new RuntimeException("Invalid status: " + request.getStatus() + ". Valid values: BOOKED, IN_USE, COMPLETED, CANCELLED", e);
-                }
+            if (request.getStatus() != null) {
+                reservation.setStatus(Reservation.Status.valueOf(newStatusStr));
             }
 
             Reservation updated = reservationRepo.save(reservation);
@@ -433,14 +491,16 @@ public class ReservationController {
                 syncToAdmin(id, updated);
             } catch (Exception e) {
                 System.err.println("⚠️ Warning: Could not sync to admin database: " + e.getMessage());
-                // Không throw exception vì đã cập nhật thành công trong database chính
             }
             
-            return updated;
+            return ResponseEntity.ok(updated);
         } catch (Exception e) {
             System.err.println("❌ Error updating reservation " + id + ": " + e.getMessage());
             e.printStackTrace();
-            throw e;
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error", "Internal Server Error",
+                    "message", e.getMessage()
+            ));
         }
     }
     
@@ -613,6 +673,14 @@ public class ReservationController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                 "error", "Validation failed",
                 "message", msg
+        ));
+    }
+
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<?> handleTypeMismatchErrors(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "error", "Bad request",
+                "message", "Invalid parameter: " + e.getName()
         ));
     }
 }

@@ -17,6 +17,7 @@ public class ReservationDTO {
     private String userName;
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
+    @jakarta.validation.constraints.NotBlank(message = "purpose không được để trống")
     @jakarta.validation.constraints.Size(max = 255, message = "Mục đích sử dụng không được quá 255 ký tự")
     private String purpose;
     private String status;

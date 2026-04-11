@@ -553,19 +553,53 @@ public class ReservationController {
      * Cập nhật trạng thái reservation
      */
     @PutMapping("/reservations/{id}/status")
-    public Reservation updateStatus(
+    public ResponseEntity<?> updateStatus(
             @PathVariable Long id,
-            @RequestParam String status) {
-        Reservation reservation = reservationRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+            @RequestParam(required = false) String status) {
+        try {
+            if (status == null || status.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Validation failed",
+                    "message", "Status parameter is required"
+                ));
+            }
 
-        reservation.setStatus(Reservation.Status.valueOf(status.toUpperCase()));
-        Reservation updated = reservationRepo.save(reservation);
-        
-        // Đồng bộ sang admin database
-        syncToAdmin(id, updated);
-        
-        return updated;
+            Reservation reservation = reservationRepo.findById(id).orElse(null);
+            if (reservation == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                        "error", "Not Found",
+                        "message", "Reservation not found: " + id
+                ));
+            }
+
+            Reservation.Status newStatus;
+            try {
+                newStatus = Reservation.Status.valueOf(status.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Validation failed",
+                        "message", "Invalid status: " + status + ". Valid values: BOOKED, IN_USE, COMPLETED, CANCELLED"
+                ));
+            }
+
+            reservation.setStatus(newStatus);
+            Reservation updated = reservationRepo.save(reservation);
+            
+            // Đồng bộ sang admin database
+            try {
+                syncToAdmin(id, updated);
+            } catch (Exception e) {
+                System.err.println("⚠️ Warning: Could not sync to admin database: " + e.getMessage());
+            }
+            
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error", "Internal Server Error",
+                    "message", e.getMessage()
+            ));
+        }
     }
 
     private Map<Long, Map<String, Object>> loadAdminVehicles() {

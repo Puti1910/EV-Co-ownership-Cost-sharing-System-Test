@@ -1,0 +1,5 @@
+Trường	Giá trị
+Project Name	EV Co ownership Cost sharing System
+Project Code	ECOCSS
+Normal number of Test cases/KLOC	35
+Test Environment Setup Description	1. OS: Windows/Linux | 2. JDK: Java 17+ (Spring Boot) | 3. ReservationService: http://localhost:8086, MySQL co_ownership_booking :3306 | 4. ReservationAdminService: http://localhost:8087, MySQL co_ownership_booking_admin | 5. Phụ thuộc: Group/Vehicle/User services theo application.properties | 6. Postman: Reservation-Admin-Service.postman_collection.json, biến baseUrl8086 baseUrl8087 reservationId userId vehicleId checkpointId | 7. Browser: Chrome/Edge/Firefox (UI ~8080)

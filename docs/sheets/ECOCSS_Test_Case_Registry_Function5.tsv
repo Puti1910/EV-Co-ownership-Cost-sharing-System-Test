@@ -1,0 +1,36 @@
+# No	Requirement Name	Function Name	Sheet Name	Description
+1	Lấy toàn bộ đặt chỗ (booking chính)	getAllReservations	Function5	Lấy danh sách reservation từ DB booking chính, trả JSON array.
+2	Lấy chi tiết đặt chỗ theo ID	getReservationById	Function5	Lấy một reservation theo reservationId; kiểm tra các field bắt buộc.
+3	Tạo đặt chỗ mới	createReservation	Function5	POST vehicleId userId start/end purpose status; kỳ vọng 200 hoặc 201, status BOOKED.
+4	Cập nhật đặt chỗ	updateReservation	Function5	PUT cập nhật thời gian mục đích status; có thể đồng bộ sang admin.
+5	Cập nhật trạng thái đặt chỗ	updateReservationStatus	Function5	PUT query status BOOKED IN_USE COMPLETED CANCELLED.
+6	Xóa đặt chỗ	deleteReservation	Function5	Xóa reservation; HTTP 200 hoặc 204.
+7	Lịch đặt theo xe	getVehicleReservations	Function5	Lấy danh sách reservation theo vehicleId, sắp xếp theo startDatetime.
+8	Thông tin nhóm sở hữu theo xe	getVehicleGroupInfo	Function5	Lấy group và members phục vụ UI booking; có thể cần Authorization.
+9	Danh sách xe của người dùng	getUserVehicles	Function5	Lấy xe đồng sở hữu theo userId; có thể cần JWT.
+10	Lịch đặt theo user và xe	getUserVehicleReservations	Function5	Lấy lịch theo cặp userId và vehicleId.
+11	Kiểm tra khả dụng slot	checkAvailability	Function5	GET vehicleId start end ISO datetime; response boolean true/false.
+12	Liệt kê checkpoint của reservation	listReservationCheckpoints	Function5	GET danh sách checkpoint theo reservationId.
+13	Phát hành checkpoint	issueReservationCheckpoint	Function5	POST type issuedBy notes validMinutes.
+14	Quét checkpoint	scanCheckpoint	Function5	POST token và tọa độ GPS.
+15	Ký checkpoint	signCheckpoint	Function5	POST signerName signerIdNumber signatureData theo checkpointId.
+16	Tóm tắt công bằng sử dụng xe	getFairnessSummary	Function5	GET fairness theo vehicleId và rangeDays.
+17	Gợi ý slot công bằng	suggestFairnessSlot	Function5	POST userId desiredStart durationHours.
+18	Đăng nhập admin	adminLogin	Function5	POST username password; trả token cho luồng admin.
+19	Danh sách reservation (admin DTO)	getAllAdminReservations	Function5	GET api/admin/reservations có vehicleName userName.
+20	Chi tiết reservation (admin)	getAdminReservationById	Function5	GET theo id; 200 hoặc 404.
+21	Cập nhật reservation (admin)	updateAdminReservation	Function5	PUT DTO; header X-Sync-Origin tùy chọn.
+22	Xóa reservation (admin)	deleteAdminReservation	Function5	DELETE; thường 204 No Content.
+23	Đồng bộ từ Reservation Service	syncReservationFromBooking	Function5	POST sync payload reservationId vehicleId userId datetime status.
+24	Danh sách quản lý lịch (manage)	getManageReservations	Function5	GET manage list id vehicleName bookedBy startDate endDate status.
+25	Tạo lịch qua manage	createManageReservation	Function5	POST trả message và id.
+26	Cập nhật lịch manage	updateManageReservation	Function5	PUT start end status.
+27	Xóa lịch manage	deleteManageReservation	Function5	DELETE theo id.
+28	Danh sách xe (admin)	getAdminVehicles	Function5	GET vehicles phục vụ UI admin.
+29	Proxy lấy tất cả reservation	proxyGetAllReservations	Function5	GET /api/reservations trên port 8087.
+30	Proxy lấy reservation theo ID	proxyGetReservationById	Function5	GET /api/reservations/{id} trên port 8087.
+31	Proxy tạo reservation	proxyCreateReservation	Function5	POST /api/reservations trên port 8087.
+32	Proxy cập nhật reservation	proxyUpdateReservation	Function5	PUT /api/reservations/{id} trên port 8087.
+33	Proxy cập nhật status	proxyUpdateReservationStatus	Function5	PUT /api/reservations/{id}/status gọi Reservation Service.
+34	Proxy xóa reservation	proxyDeleteReservation	Function5	DELETE /api/reservations/{id} trên port 8087.
+35	Test tra cứu user (debug)	getTestUserById	Function5	GET /api/test/user/{userId} kiểm tra tích hợp user.

@@ -1,0 +1,434 @@
+{
+	"info": {
+		"_postman_id": "reservation-api-test",
+		"name": "Reservation API Test",
+		"description": "Test cho 2 chức năng: Reservation Service & Reservation Admin",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "RESERVATION SERVICE (8086)",
+			"item": [
+				{
+					"name": "1. Get All Reservations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is JSON array\", function () {",
+									"    pm.response.to.be.json;",
+									"    pm.expect(pm.response.json()).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 1000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});",
+									"",
+									"pm.test(\"Each reservation has required fields\", function () {",
+									"    const reservations = pm.response.json();",
+									"    if (reservations.length > 0) {",
+									"        pm.expect(reservations[0]).to.have.property('reservationId');",
+									"        pm.expect(reservations[0]).to.have.property('vehicleId');",
+									"        pm.expect(reservations[0]).to.have.property('userId');",
+									"        pm.expect(reservations[0]).to.have.property('status');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": "http://localhost:8086/api/reservations"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get Reservations By Vehicle ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": "http://localhost:8086/api/vehicles/1/reservations"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Check Availability",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8086/api/availability?vehicleId=1&start=2026-03-25T08:00:00&end=2026-03-25T10:00:00",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8086",
+							"path": ["api", "availability"],
+							"query": [
+								{"key": "vehicleId", "value": "1"},
+								{"key": "start", "value": "2026-03-25T08:00:00"},
+								{"key": "end", "value": "2026-03-25T10:00:00"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Create Reservation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 201\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"});",
+									"",
+									"pm.test(\"Response contains reservation data\", function () {",
+									"    const reservation = pm.response.json();",
+									"    pm.expect(reservation).to.have.property('reservationId');",
+									"    pm.expect(reservation).to.have.property('vehicleId');",
+									"    pm.expect(reservation).to.have.property('userId');",
+									"    pm.expect(reservation).to.have.property('startDatetime');",
+									"    pm.expect(reservation).to.have.property('endDatetime');",
+									"    pm.expect(reservation).to.have.property('status');",
+									"});",
+									"",
+									"pm.test(\"Reservation status is BOOKED\", function () {",
+									"    const reservation = pm.response.json();",
+									"    pm.expect(reservation.status).to.equal('BOOKED');",
+									"});",
+									"",
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    const reservation = pm.response.json();",
+									"    pm.environment.set(\"lastReservationId\", reservation.reservationId);",
+									"    pm.environment.set(\"lastVehicleId\", reservation.vehicleId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vehicleId\": 1,\n  \"userId\": 1,\n  \"startDatetime\": \"2026-03-25T08:00:00\",\n  \"endDatetime\": \"2026-03-25T10:00:00\",\n  \"purpose\": \"Di lam\"\n}"
+						},
+						"url": "http://localhost:8086/api/reservations"
+					},
+					"response": []
+				},
+				{
+					"name": "5. Get Reservation By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": "http://localhost:8086/api/reservations/1"
+					},
+					"response": []
+				},
+				{
+					"name": "6. Update Reservation",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"startDatetime\": \"2026-03-25T09:00:00\",\n  \"endDatetime\": \"2026-03-25T11:00:00\",\n  \"purpose\": \"Di cong tac\",\n  \"status\": \"BOOKED\"\n}"
+						},
+						"url": "http://localhost:8086/api/reservations/1"
+					},
+					"response": []
+				},
+				{
+					"name": "7. Update Status (BOOKED/IN_USE/COMPLETED/CANCELLED)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Status was updated correctly\", function () {",
+									"    const reservation = pm.response.json();",
+									"    const newStatus = pm.request.url.query.get('status');",
+									"    pm.expect(reservation.status).to.equal(newStatus);",
+									"});",
+									"",
+									"pm.test(\"Status is valid enum value\", function () {",
+									"    const reservation = pm.response.json();",
+									"    const validStatuses = ['BOOKED', 'IN_USE', 'COMPLETED', 'CANCELLED'];",
+									"    pm.expect(validStatuses).to.include(reservation.status);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8086/api/reservations/1/status?status=IN_USE",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8086",
+							"path": ["api", "reservations", "1", "status"],
+							"query": [
+								{"key": "status", "value": "IN_USE"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "8. Delete Reservation",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": "http://localhost:8086/api/reservations/6"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "RESERVATION ADMIN (8087)",
+			"item": [
+				{
+					"name": "1. Get All Reservations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is JSON array\", function () {",
+									"    pm.response.to.be.json;",
+									"    pm.expect(pm.response.json()).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Each reservation has admin fields\", function () {",
+									"    const reservations = pm.response.json();",
+									"    if (reservations.length > 0) {",
+									"        pm.expect(reservations[0]).to.have.property('reservationId');",
+									"        pm.expect(reservations[0]).to.have.property('vehicleName');",
+									"        pm.expect(reservations[0]).to.have.property('userName');",
+									"        pm.expect(reservations[0]).to.have.property('status');",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 1000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": "http://localhost:8087/api/admin/reservations"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get Reservation By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": "http://localhost:8087/api/admin/reservations/1"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Create Reservation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 201\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"});",
+									"",
+									"pm.test(\"Response contains success message\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('message');",
+									"    pm.expect(response).to.have.property('id');",
+									"});",
+									"",
+									"pm.test(\"Reservation ID is a number\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.id).to.be.a('number');",
+									"});",
+									"",
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set(\"lastAdminReservationId\", response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vehicleId\": 1,\n  \"userId\": 1,\n  \"startDatetime\": \"2026-03-26T08:00:00\",\n  \"endDatetime\": \"2026-03-26T12:00:00\",\n  \"status\": \"BOOKED\"\n}"
+						},
+						"url": "http://localhost:8087/api/admin/reservations/manage"
+					},
+					"response": []
+				},
+				{
+					"name": "4. Update Reservation",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"startDatetime\": \"2026-03-26T09:00:00\",\n  \"endDatetime\": \"2026-03-26T13:00:00\",\n  \"status\": \"IN_USE\"\n}"
+						},
+						"url": "http://localhost:8087/api/admin/reservations/manage/1"
+					},
+					"response": []
+				},
+				{
+					"name": "5. Delete Reservation",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": "http://localhost:8087/api/admin/reservations/manage/6"
+					},
+					"response": []
+				},
+				{
+					"name": "6. Get All Reservations (Manage)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is JSON array\", function () {",
+									"    pm.response.to.be.json;",
+									"    pm.expect(pm.response.json()).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Each reservation has manage fields\", function () {",
+									"    const reservations = pm.response.json();",
+									"    if (reservations.length > 0) {",
+									"        pm.expect(reservations[0]).to.have.property('id');",
+									"        pm.expect(reservations[0]).to.have.property('vehicleName');",
+									"        pm.expect(reservations[0]).to.have.property('bookedBy');",
+									"        pm.expect(reservations[0]).to.have.property('startDate');",
+									"        pm.expect(reservations[0]).to.have.property('endDate');",
+									"        pm.expect(reservations[0]).to.have.property('status');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": "http://localhost:8087/api/admin/reservations/manage"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,506 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="header">
+    <header class="admin-header">
+        <div class="header-content">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb-section">
+                <nav class="breadcrumb-nav">
+                    <a href="/admin" class="breadcrumb-item">
+                        <i class="fas fa-home"></i> Trang chủ
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current" th:text="${pageTitle} ?: 'Dashboard'">Dashboard</span>
+                </nav>
+            </div>
+
+            <!-- Page Title Section -->
+            <div class="page-title-section">
+                <div class="title-left">
+                    <h1 class="page-title" th:text="${pageTitle} ?: 'Dashboard'">Dashboard</h1>
+                    <p class="page-subtitle" th:text="${pageSubtitle} ?: 'Quản lý hệ thống chia sẻ chi phí xe điện'">
+                        Quản lý hệ thống chia sẻ chi phí xe điện
+                    </p>
+                </div>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="header-actions">
+                <!-- Search Box -->
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Tìm kiếm..." id="globalSearch">
+                </div>
+
+                <!-- Notifications -->
+                <div class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </div>
+
+                <!-- User Menu -->
+                <div class="user-menu" id="userMenu">
+                    <div class="user-avatar-header">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="user-info-header">
+                        <div class="user-name-header">Admin</div>
+                        <div class="user-role-header">Quản trị viên</div>
+                    </div>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Notification Dropdown -->
+    <div class="notification-dropdown" id="notificationDropdown" style="display: none;">
+        <div class="notification-header">
+            <h3>Thông báo</h3>
+            <span class="mark-all-read">Đánh dấu tất cả đã đọc</span>
+        </div>
+        <div class="notification-list">
+            <div class="notification-item unread">
+                <div class="notification-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">Có 3 yêu cầu thanh toán mới</div>
+                    <div class="notification-time">5 phút trước</div>
+                </div>
+            </div>
+            <div class="notification-item unread">
+                <div class="notification-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">2 xe cần bảo dưỡng</div>
+                    <div class="notification-time">1 giờ trước</div>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notification-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">Chi phí tháng này đã được chia</div>
+                    <div class="notification-time">2 giờ trước</div>
+                </div>
+            </div>
+        </div>
+        <div class="notification-footer">
+            <a href="/admin/notifications">Xem tất cả thông báo</a>
+        </div>
+    </div>
+
+    <!-- User Dropdown -->
+    <div class="user-dropdown" id="userDropdown" style="display: none;">
+        <div class="user-dropdown-item">
+            <i class="fas fa-user"></i>
+            <span>Hồ sơ</span>
+        </div>
+        <div class="user-dropdown-item">
+            <i class="fas fa-cog"></i>
+            <span>Cài đặt</span>
+        </div>
+        <div class="user-dropdown-divider"></div>
+        <div class="user-dropdown-item">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Đăng xuất</span>
+        </div>
+    </div>
+
+    <style>
+        .admin-header {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin-bottom: 24px;
+        }
+
+        .header-content {
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .breadcrumb-section {
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .breadcrumb-item {
+            color: #64748b;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb-item:hover {
+            color: #667eea;
+        }
+
+        .breadcrumb-separator {
+            color: #cbd5e1;
+        }
+
+        .breadcrumb-current {
+            color: #1a202c;
+            font-weight: 600;
+        }
+
+        .page-title-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .title-left {
+            flex: 1;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a202c;
+            margin: 0 0 4px 0;
+            line-height: 1.2;
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .search-box input {
+            padding: 10px 12px 10px 36px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 300px;
+            transition: all 0.2s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .notification-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #64748b;
+        }
+
+        .notification-btn:hover {
+            background: #f1f5f9;
+            color: #667eea;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .user-menu:hover {
+            background: #f8fafc;
+        }
+
+        .user-avatar-header {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+
+        .user-info-header {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a202c;
+            line-height: 1.2;
+        }
+
+        .user-role-header {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.2;
+        }
+
+        .user-menu i.fa-chevron-down {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            width: 360px;
+            max-height: 500px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .notification-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .mark-all-read {
+            font-size: 12px;
+            color: #667eea;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .mark-all-read:hover {
+            color: #5568d3;
+        }
+
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+            background: #f8fafc;
+        }
+
+        .notification-item.unread {
+            background: #f0f9ff;
+        }
+
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #e0f2fe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0ea5e9;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a202c;
+            margin-bottom: 4px;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .notification-footer {
+            padding: 12px 20px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .notification-footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .notification-footer a:hover {
+            color: #5568d3;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            width: 200px;
+            padding: 8px;
+            z-index: 1000;
+        }
+
+        .user-dropdown-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+            font-size: 14px;
+            color: #1a202c;
+        }
+
+        .user-dropdown-item:hover {
+            background: #f8fafc;
+        }
+
+        .user-dropdown-item i {
+            width: 20px;
+            color: #64748b;
+        }
+
+        .user-dropdown-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 4px 0;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 16px;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+
+            .search-box input {
+                width: 200px;
+            }
+
+            .header-actions {
+                gap: 8px;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Notification dropdown
+            const notificationBtn = document.getElementById('notificationBtn');
+            const notificationDropdown = document.getElementById('notificationDropdown');
+            
+            if (notificationBtn && notificationDropdown) {
+                notificationBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    notificationDropdown.style.display = notificationDropdown.style.display === 'none' ? 'block' : 'none';
+                    if (userDropdown) userDropdown.style.display = 'none';
+                });
+            }
+
+            // User dropdown
+            const userMenu = document.getElementById('userMenu');
+            const userDropdown = document.getElementById('userDropdown');
+            
+            if (userMenu && userDropdown) {
+                userMenu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    userDropdown.style.display = userDropdown.style.display === 'none' ? 'block' : 'none';
+                    if (notificationDropdown) notificationDropdown.style.display = 'none';
+                });
+            }
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (notificationDropdown && !notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+                    notificationDropdown.style.display = 'none';
+                }
+                if (userDropdown && !userMenu.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</div>
+

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý nhóm - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/admin-layout.css" rel="stylesheet">
+    <link href="/css/admin-groups.css" rel="stylesheet">
+    <th:block th:replace="fragments/admin-guard :: scripts"></th:block>
+    <style>
+        body {
+            background: #F9FAFB;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            padding: 0;
+        }
+
+        .content-wrapper {
+            padding: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .group-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+
+        .group-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .group-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+
+        .group-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 4px;
+        }
+
+        .group-card-meta {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .group-card-body {
+            margin-bottom: 16px;
+        }
+
+        .group-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .group-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .group-info-item i {
+            width: 16px;
+            color: #667eea;
+        }
+
+        .group-card-actions {
+            display: flex;
+            gap: 8px;
+            padding-top: 16px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-edit {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-view {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9CA3AF;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 16px;
+            display: block;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div th:replace="fragments/admin-sidebar :: sidebar"
+         th:with="activePage='groups'"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header Fragment -->
+        <div th:replace="fragments/admin-header :: header"></div>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+        <!-- GROUP MANAGEMENT SECTION -->
+        <section id="group-management-section" class="content-section">
+            <div class="card">
+                <div class="section-header">
+                    <button class="btn btn-primary" id="btn-create-group">
+                        <i class="fas fa-plus"></i> Tạo nhóm mới
+                    </button>
+                </div>
+
+                <div class="groups-grid" id="groups-grid">
+                    <!-- Groups will be loaded here -->
+                </div>
+            </div>
+        </section>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <th:block th:replace="fragments/admin-modals :: modals"></th:block>
+    <script>
+        window.IS_CUSTOM_ADMIN_GROUPS_PAGE = true;
+    </script>
+    <script th:src="@{/js/admin-common.js}"></script>
+    <script th:src="@{/js/admin-groups.js}"></script>
+</body>
+</html>
+

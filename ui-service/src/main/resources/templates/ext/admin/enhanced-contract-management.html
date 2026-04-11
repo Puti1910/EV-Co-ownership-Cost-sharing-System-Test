@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarShare Admin - Quản Lý Hợp Đồng Điện Tử</title>
+    <link rel="stylesheet" th:href="@{/ext/css/enhanced-contract.css}">
+    <link rel="stylesheet" th:href="@{/ext/css/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/ext/css/header.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+<div class="admin-container">
+    <aside th:replace="ext/fragments/sidebar :: sidebar"></aside>
+
+    <main class="main-content">
+        <div th:replace="ext/fragments/header :: header"
+             th:with="pageTitle='Quản Lý Hợp Đồng Điện Tử', pageDescription='Quản lý hợp đồng pháp lý cho nhóm đồng sở hữu'"></div>
+
+        <div class="main-section" style="grid-template-columns: 1fr 1fr;">
+            <div class="form-panel" id="contract-form-panel">
+                <div class="form-header">
+                    <h3>Thông Tin Hợp Đồng</h3>
+                </div>
+
+                <div class="form-content">
+                    <div class="form-group">
+                        <label><i class="fas fa-barcode"></i> Mã Hợp Đồng</label>
+                        <input type="text" id="contract-code" placeholder="Tự động tạo mã">
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-tag"></i> Loại Hợp Đồng</label>
+                        <div class="select-group">
+                            <select id="contract-type">
+                                <option value="co_ownership">Đồng sở hữu</option>
+                                <option value="rental">Cho thuê</option>
+                                <option value="maintenance">Bảo trì</option>
+                                <option value="insurance">Bảo hiểm</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-users"></i> Nhóm Đồng Sở Hữu</label>
+                        <div class="select-group">
+                            <select id="vehicle-group">
+                                <option value="">Chọn nhóm</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-user-friends"></i> Các Bên Ký Kết</label>
+                        <div class="parties-list" id="parties-list">
+                            <div class="party-item">
+                                <input type="text" placeholder="Tên bên thứ nhất">
+                                <button class="btn-remove-party"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <button class="btn-add-party" id="addPartyBtn">
+                            <i class="fas fa-plus"></i> Thêm Bên
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-file-alt"></i> Mô Tả Hợp Đồng</label>
+                        <textarea id="contract-description" rows="4" placeholder="Mô tả chi tiết nội dung hợp đồng..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-flag"></i> Trạng Thái</label>
+                        <div class="select-group">
+                            <select id="contract-status">
+                                <option value="draft">Dự thảo</option>
+                                <option value="pending">Chờ ký</option>
+                                <option value="signed">Đã ký</option>
+                                <option value="archived">Đã lưu trữ</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Ngày Tạo</label>
+                            <input type="date" id="creation-date" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Ngày Ký</label>
+                            <input type="date" id="signed-date" readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="signature-group" style="display: none;">
+                        <label><i class="fas fa-signature"></i> Chữ Ký Điện Tử</label>
+                        <div class="signature-container">
+                            <canvas id="signature-canvas" class="signature-canvas"></canvas>
+                            <div class="signature-controls">
+                                <button type="button" class="btn-clear-signature">
+                                    <i class="fas fa-undo"></i> Xóa
+                                </button>
+                            </div>
+                            <input type="hidden" id="signature-image">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" id="cancelBtn">Hủy</button>
+                        <button type="button" class="btn-confirm" id="confirmBtn">Lưu Hợp Đồng</button>
+                        <button type="button" class="btn-sign" id="signBtn" style="display: none;">
+                            <i class="fas fa-pen-fancy"></i> Ký Hợp Đồng
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="activities-panel">
+                <div class="activities-header">
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" data-filter="all">
+                            <i class="fas fa-list"></i> Tất Cả
+                        </button>
+                        <button class="filter-tab" data-filter="draft">
+                            <i class="fas fa-file-edit"></i> Dự thảo
+                        </button>
+                        <button class="filter-tab" data-filter="pending">
+                            <i class="fas fa-clock"></i> Chờ ký
+                        </button>
+                        <button class="filter-tab" data-filter="signed">
+                            <i class="fas fa-check"></i> Đã ký
+                        </button>
+                        <button class="filter-tab" data-filter="archived">
+                            <i class="fas fa-archive"></i> Đã lưu
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <i class="fas fa-file-contract"></i>
+                        <span>Tổng hợp đồng</span>
+                        <strong id="total-contracts">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-clock"></i>
+                        <span>Chờ ký</span>
+                        <strong id="pending-contracts">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-check"></i>
+                        <span>Đã ký</span>
+                        <strong id="signed-contracts">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-archive"></i>
+                        <span>Đã lưu</span>
+                        <strong id="archived-contracts">0</strong>
+                    </div>
+                </div>
+
+                <div class="schedule">
+                    <h4>Danh Sách Hợp Đồng</h4>
+                    <div id="contracts-list" class="services-list">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<template id="contract-item-template">
+    <div class="schedule-item service-item">
+        <div class="service-info">
+            <div class="service-icon">
+                <i class="fas fa-file-contract"></i>
+            </div>
+            <div>
+                <div class="service-name"></div>
+                <div class="service-vehicle"></div>
+                <div class="service-date"></div>
+            </div>
+        </div>
+        <div class="service-status">
+            <span class="status-badge"></span>
+            <div class="service-actions">
+                <button class="btn-action btn-edit-contract" title="Sửa"><i class="fas fa-edit"></i></button>
+                <button class="btn-action btn-sign-contract" title="Ký"><i class="fas fa-signature"></i></button>
+                <button class="btn-action btn-delete-contract" title="Xóa"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script th:src="@{/ext/js/enhanced-contract-management.js}"></script>
+</body>
+</html>
+

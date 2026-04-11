@@ -1,0 +1,440 @@
+<!-- User Dashboard Modals Fragment -->
+<div th:fragment="modals">
+    <!-- Deposit Modal (Nạp tiền) -->
+    <div id="depositModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-arrow-up"></i>
+                    Nạp tiền vào quỹ
+                </h3>
+                <button class="modal-close" onclick="closeDepositModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="depositForm" class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Tiền nạp sẽ được cập nhật ngay lập tức vào quỹ chung</span>
+                </div>
+                <div class="form-group">
+                    <label for="depositGroup">Nhóm</label>
+                    <select id="depositGroup" name="groupId" required>
+                        <option value="">Đang tải...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="depositAmount">Số tiền (VNĐ)</label>
+                    <input type="number" id="depositAmount" name="amount" required min="1000" step="1000" 
+                           placeholder="VD: 500000">
+                </div>
+                <div class="form-group">
+                    <label for="depositPurpose">Mục đích</label>
+                    <textarea id="depositPurpose" name="purpose" rows="3" 
+                              placeholder="VD: Đóng quỹ tháng 11/2024" required></textarea>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDepositModal()">
+                    Hủy
+                </button>
+                <button type="submit" form="depositForm" class="btn btn-success">
+                    <i class="fas fa-check"></i>
+                    Xác nhận nạp tiền
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw Vote Modal (Tạo phiếu rút tiền) -->
+    <div id="withdrawVoteModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-vote-yea"></i>
+                    Tạo phiếu bỏ phiếu rút tiền
+                </h3>
+                <button class="modal-close" onclick="closeWithdrawVoteModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="withdrawVoteForm" class="modal-body">
+                <div class="form-group">
+                    <label for="withdrawGroup">Nhóm</label>
+                    <select id="withdrawGroup" name="groupId" required>
+                        <option value="">Đang tải...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="withdrawAmount">Số tiền muốn rút (VNĐ)</label>
+                    <input type="number" id="withdrawAmount" name="amount" required min="1000" step="1000" 
+                           placeholder="VD: 200000">
+                    <small class="form-text">Số dư khả dụng: <span id="availableBalance">0 VNĐ</span></small>
+                </div>
+                <div class="form-group">
+                    <label for="withdrawPurpose">Mục đích rút tiền (Sẽ hiển thị trong phiếu vote)</label>
+                    <textarea id="withdrawPurpose" name="purpose" rows="4" 
+                              placeholder="VD: Sửa chữa động cơ xe, chi phí dự kiến 200.000 VNĐ" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="withdrawReceipt">Link hóa đơn/báo giá (Tùy chọn)</label>
+                    <input type="url" id="withdrawReceipt" name="receiptUrl" 
+                           placeholder="https://example.com/receipt.pdf">
+                    <small class="form-text">Đính kèm hóa đơn giúp tăng khả năng vote thông qua</small>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeWithdrawVoteModal()">
+                    Hủy
+                </button>
+                <button type="submit" form="withdrawVoteForm" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i>
+                    Tạo phiếu bỏ phiếu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw Request Vote Detail Modal (Chi tiết yêu cầu rút tiền và bỏ phiếu) -->
+    <div id="withdrawRequestVoteModal" class="modal-overlay">
+        <div class="modal" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-vote-yea"></i>
+                    Chi tiết yêu cầu rút tiền
+                </h3>
+                <button class="modal-close" onclick="closeWithdrawRequestVoteModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="withdrawRequestVoteModalBody">
+                <!-- Nội dung sẽ được load động -->
+            </div>
+            <div class="modal-footer" id="withdrawRequestVoteModalFooter">
+                <!-- Nút bỏ phiếu sẽ được load động -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Decision Modal (Tạo quyết định chung) -->
+    <div id="createDecisionModal" class="modal-overlay">
+        <div class="modal" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-hand-paper"></i>
+                    Tạo quyết định chung
+                </h3>
+                <button class="modal-close" onclick="closeCreateDecisionModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="createDecisionForm" class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Quyết định chung:</strong> Tạo phiếu bỏ phiếu cho các quyết định quan trọng của nhóm như nâng cấp pin, bảo hiểm, bán xe, v.v.
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="decisionGroup">Nhóm</label>
+                    <select id="decisionGroup" name="groupId" required>
+                        <option value="">Đang tải...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="decisionType">Loại quyết định</label>
+                    <select id="decisionType" name="decisionType" required>
+                        <option value="">Chọn loại quyết định</option>
+                        <option value="battery_upgrade">🔋 Nâng cấp pin</option>
+                        <option value="insurance">🛡️ Bảo hiểm</option>
+                        <option value="sell_vehicle">🚗 Bán xe</option>
+                        <option value="maintenance">🔧 Bảo dưỡng lớn</option>
+                        <option value="upgrade">⚡ Nâng cấp khác</option>
+                        <option value="other">📋 Khác</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="decisionTopic">Chủ đề quyết định</label>
+                    <input type="text" id="decisionTopic" name="topic" required 
+                           placeholder="VD: Nâng cấp pin từ 50kWh lên 75kWh" maxlength="255">
+                    <small class="form-text">Mô tả ngắn gọn về quyết định cần bỏ phiếu</small>
+                </div>
+                <div class="form-group">
+                    <label for="decisionOptionA">Lựa chọn A (Đồng ý)</label>
+                    <input type="text" id="decisionOptionA" name="optionA" required 
+                           placeholder="VD: Đồng ý nâng cấp pin" maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label for="decisionOptionB">Lựa chọn B (Không đồng ý)</label>
+                    <input type="text" id="decisionOptionB" name="optionB" required 
+                           placeholder="VD: Không đồng ý nâng cấp pin" maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label for="decisionDescription">Mô tả chi tiết (Tùy chọn)</label>
+                    <textarea id="decisionDescription" name="description" rows="4" 
+                              placeholder="Mô tả chi tiết về quyết định, lý do, chi phí dự kiến, v.v."></textarea>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateDecisionModal()">
+                    Hủy
+                </button>
+                <button type="submit" form="createDecisionForm" class="btn btn-info">
+                    <i class="fas fa-paper-plane"></i>
+                    Tạo quyết định
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Group Modal -->
+    <div id="joinGroupModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-user-plus"></i>
+                    Tham gia nhóm
+                </h3>
+                <button class="modal-close" onclick="closeJoinGroupModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="joinGroupForm" class="modal-body" novalidate>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Thông tin nhóm:</strong>
+                        <div id="join-group-info" style="margin-top: 0.5rem;">
+                            <!-- Group info loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="joinOwnershipPercent">Tỷ lệ sở hữu của bạn (%)</label>
+                    <input type="number" id="joinOwnershipPercent" name="ownershipPercent" 
+                           min="0" max="100" step="0.01" 
+                           placeholder="VD: 25.5">
+                    <small class="form-text">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Vui lòng nhập tỷ lệ sở hữu của bạn trong nhóm này. 
+                        Tổng tỷ lệ sở hữu của tất cả thành viên không được vượt quá 100%.
+                    </small>
+                </div>
+                <input type="hidden" id="join-group-id" name="groupId">
+                <input type="hidden" id="join-user-id" name="userId">
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeJoinGroupModal()">
+                    Hủy
+                </button>
+                <button type="button" id="joinGroupSubmitBtn" class="btn btn-primary">
+                    <i class="fas fa-check"></i>
+                    Tham gia nhóm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Group Modal -->
+    <div id="createGroupModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-plus-circle"></i>
+                    Tạo nhóm mới
+                </h3>
+                <button class="modal-close" onclick="closeCreateGroupModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="createGroupForm" class="modal-body" novalidate>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Khi tạo nhóm mới, bạn sẽ tự động trở thành Admin của nhóm đó.</span>
+                </div>
+                <div class="form-group">
+                    <label for="createGroupName">Tên nhóm <span class="required">*</span></label>
+                    <input type="text" id="createGroupName" name="groupName" 
+                           required placeholder="VD: Nhóm đồng sở hữu Tesla Model 3">
+                    <small class="form-text">Tên nhóm sẽ hiển thị cho tất cả thành viên</small>
+                </div>
+                <div class="form-group">
+                    <label for="createGroupVehicleId">Vehicle ID (Tùy chọn)</label>
+                    <input type="number" id="createGroupVehicleId" name="vehicleId" 
+                           min="1" placeholder="VD: 1">
+                    <small class="form-text">ID của xe điện trong hệ thống (nếu có)</small>
+                </div>
+                <div class="form-group">
+                    <label for="createGroupOwnershipPercent">Tỷ lệ sở hữu của bạn (%)</label>
+                    <input type="number" id="createGroupOwnershipPercent" name="ownershipPercent" 
+                           min="0" max="100" step="0.01" placeholder="VD: 50.00">
+                    <small class="form-text">Tỷ lệ sở hữu của bạn trong nhóm (0-100%). Có thể để trống hoặc cập nhật sau.</small>
+                </div>
+                <div class="form-group">
+                    <label for="createGroupStatus">Trạng thái</label>
+                    <select id="createGroupStatus" name="status">
+                        <option value="Active">Đang hoạt động</option>
+                        <option value="Inactive">Tạm ngưng</option>
+                    </select>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateGroupModal()">
+                    Hủy
+                </button>
+                <button type="button" id="createGroupSubmitBtn" class="btn btn-primary">
+                    <i class="fas fa-check"></i>
+                    Tạo nhóm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Group Modal -->
+    <div id="manageGroupModal" class="modal-overlay">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-users-cog"></i>
+                    Quản lý nhóm: <span id="manage-group-name"></span>
+                </h3>
+                <button class="modal-close" onclick="closeManageGroupModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Add Member Section -->
+                <div class="manage-section">
+                    <h4><i class="fas fa-user-plus"></i> Thêm thành viên</h4>
+                    <form id="addMemberForm" class="form-inline">
+                        <div class="form-group">
+                            <label for="newMemberUserId">User ID:</label>
+                            <input type="number" id="newMemberUserId" name="userId" 
+                                   min="1" required placeholder="Nhập User ID">
+                        </div>
+                        <div class="form-group">
+                            <label for="newMemberOwnership">Tỷ lệ sở hữu (%):</label>
+                            <input type="number" id="newMemberOwnership" name="ownershipPercent" 
+                                   min="0" max="100" step="0.01" required placeholder="VD: 25.5">
+                        </div>
+                        <div class="form-group">
+                            <label for="newMemberRole">Quyền:</label>
+                            <select id="newMemberRole" name="role">
+                                <option value="Member">Thành viên</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Thêm
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Members List Section -->
+                <div class="manage-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 style="margin: 0;"><i class="fas fa-users"></i> Danh sách thành viên</h4>
+                        <button class="btn btn-warning btn-sm" onclick="openLeaveRequestsModalFromManage()">
+                            <i class="fas fa-clipboard-list"></i> Yêu cầu rời nhóm
+                        </button>
+                    </div>
+                    <div id="members-list-container">
+                        <div class="loading-spinner">
+                            <i class="fas fa-spinner fa-spin"></i> Đang tải...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeManageGroupModal()">
+                    Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Group Modal -->
+    <div id="viewGroupModal" class="modal-overlay">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-info-circle"></i>
+                    Thông tin nhóm: <span id="view-group-name"></span>
+                </h3>
+                <button class="modal-close" onclick="closeViewGroupModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- My Membership Info -->
+                <div class="manage-section">
+                    <h4><i class="fas fa-user"></i> Thông tin thành viên của tôi</h4>
+                    <div id="my-membership-info" class="membership-info-card">
+                        <div class="loading-spinner">
+                            <i class="fas fa-spinner fa-spin"></i> Đang tải...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group Members List -->
+                <div class="manage-section">
+                    <h4><i class="fas fa-users"></i> Danh sách thành viên</h4>
+                    <div id="view-members-list-container">
+                        <div class="loading-spinner">
+                            <i class="fas fa-spinner fa-spin"></i> Đang tải...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leave Group Section -->
+                <div class="manage-section">
+                    <h4><i class="fas fa-sign-out-alt"></i> Rời nhóm</h4>
+                    <div id="leave-request-status"></div>
+                    <form id="leaveGroupForm" class="form-inline">
+                        <div class="form-group full-width">
+                            <label for="leaveReason">Lý do rời nhóm (tùy chọn):</label>
+                            <textarea id="leaveReason" name="reason" rows="3" 
+                                      placeholder="Nhập lý do bạn muốn rời nhóm..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger" id="submitLeaveRequestBtn">
+                            <i class="fas fa-sign-out-alt"></i> Gửi yêu cầu rời nhóm
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeViewGroupModal()">
+                    Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Requests Modal (Admin) -->
+    <div id="leaveRequestsModal" class="modal-overlay">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-clipboard-list"></i>
+                    Yêu cầu rời nhóm: <span id="leave-requests-group-name"></span>
+                </h3>
+                <button class="modal-close" onclick="closeLeaveRequestsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="leave-requests-container">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i> Đang tải...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeLeaveRequestsModal()">
+                    Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+

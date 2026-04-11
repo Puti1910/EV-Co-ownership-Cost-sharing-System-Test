@@ -1,0 +1,131 @@
+<!-- PROFILE PAGE -->
+<div th:fragment="profile-page">
+    <div id="profile-page" class="page" th:classappend="${activePage == 'profile'} ? 'active'">
+        <div class="page-header">
+            <h1><i class="fas fa-user-circle"></i> Hồ sơ cá nhân</h1>
+            <p>Vui lòng điền đầy đủ thông tin để hoàn tất đăng ký</p>
+        </div>
+
+        <form id="onboardingForm" class="onboarding-form">
+            <div class="card-section">
+                <h2 class="card-title">Vui lòng điền đầy đủ thông tin để hoàn tất đăng ký</h2>
+                <div id="status-message" class="status-message"></div>
+
+                <div class="form-group-header"><i class="fas fa-user"></i> Thông Tin Cá Nhân</div>
+                <div class="form-row">
+                    <div class="form-group half-width">
+                        <label for="fullName">Họ và Tên</label>
+                        <input type="text" id="fullName" placeholder="Nhập Họ và Tên" required>
+                    </div>
+
+                    <div class="form-group half-width">
+                        <label for="phoneNumber">Số Điện Thoại</label>
+                        <input type="tel" id="phoneNumber" placeholder="Nhập số điện thoại (10 số, bắt đầu bằng 0)"
+                               required
+                               pattern="[0][0-9]{9}"
+                               title="Vui lòng nhập 10 chữ số, bắt đầu bằng số 0."
+                               maxlength="10">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group half-width">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" placeholder="Nhập email" disabled th:value="${userEmail}">
+                    </div>
+                    <div class="form-group half-width">
+                        <label for="dateOfBirth">Ngày Sinh</label>
+                        <input type="date" id="dateOfBirth" placeholder="dd/mm/yyyy" required>
+                    </div>
+                </div>
+
+                <div class="form-group-header"><i class="fas fa-id-card"></i> Giấy Tờ Tùy Thân</div>
+                <div class="form-row">
+                    <div class="form-group half-width">
+                        <label for="idCardNumber">Số CMND/CCCD</label>
+                        <input type="text" id="idCardNumber" placeholder="Nhập số CMND/CCCD" required>
+                    </div>
+                    <div class="form-group half-width">
+                        <label for="idCardIssueDate">Ngày Cấp</label>
+                        <input type="date" id="idCardIssueDate" placeholder="dd/mm/yyyy" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="idCardIssuePlace">Nơi Cấp</label>
+                    <input type="text" id="idCardIssuePlace" placeholder="Nhập nơi cấp" required>
+                </div>
+
+                <div class="form-group-header"><i class="fas fa-car-side"></i> Giấy Phép Lái Xe</div>
+                <div class="form-row">
+                    <div class="form-group half-width">
+                        <label for="licenseNumber">Số Giấy Phép</label>
+                        <input type="text" id="licenseNumber" placeholder="Nhập số giấy phép lái xe" required>
+                    </div>
+                    <div class="form-group half-width">
+                        <label for="licenseClass">Hạng Giấy Phép</label>
+                        <select id="licenseClass" required>
+                            <option value="">Chọn hạng giấy phép</option>
+                            <option value="A1">A1</option>
+                            <option value="A2">A2</option>
+                            <option value="B1">B1</option>
+                            <option value="B2">B2</option>
+                            <option value="C">C</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group half-width">
+                        <label for="licenseIssueDate">Ngày Cấp</label>
+                        <input type="date" id="licenseIssueDate" placeholder="dd/mm/yyyy" required>
+                    </div>
+                    <div class="form-group half-width">
+                        <label for="licenseExpiryDate">Ngày Hết Hạn</label>
+                        <input type="date" id="licenseExpiryDate" placeholder="dd/mm/yyyy" required>
+                    </div>
+                </div>
+
+                <div class="form-group-header"><i class="fas fa-upload"></i> Tải Lên Giấy Tờ</div>
+                <div class="form-row upload-grid">
+                    <div class="upload-box">
+                        <label>Ảnh CMND/CCCD (Mặt trước)</label>
+                        <div class="drop-zone" onclick="document.getElementById('file-cmnd-front').click()">
+                            <input type="file" id="file-cmnd-front" accept="image/*" hidden required>
+                            <p>Kéo thả hoặc click để tải ảnh</p>
+                        </div>
+                    </div>
+                    <div class="upload-box">
+                        <label>Ảnh CMND/CCCD (Mặt sau)</label>
+                        <div class="drop-zone" onclick="document.getElementById('file-cmnd-back').click()">
+                            <input type="file" id="file-cmnd-back" accept="image/*" hidden required>
+                            <p>Kéo thả hoặc click để tải ảnh</p>
+                        </div>
+                    </div>
+                    <div class="upload-box">
+                        <label>Ảnh Giấy Phép Lái Xe</label>
+                        <div class="drop-zone" onclick="document.getElementById('file-license').click()">
+                            <input type="file" id="file-license" accept="image/*" hidden required>
+                            <p>Kéo thả hoặc click để tải ảnh</p>
+                        </div>
+                    </div>
+                    <div class="upload-box">
+                        <label>Ảnh Chân Dung</label>
+                        <div class="drop-zone" onclick="document.getElementById('file-portrait').click()">
+                            <input type="file" id="file-portrait" accept="image/*" hidden required>
+                            <p>Kéo thả hoặc click để tải ảnh</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="terms-box">
+                    <input type="checkbox" id="agreeTerms" required>
+                    <label for="agreeTerms">Tôi đồng ý với các điều khoản và điều kiện</label>
+                    <p class="terms-subtext">bằng cách đăng ký, bạn đồng ý với các điều khoản sử dụng và chính sách bảo mật của chúng tôi.</p>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="window.history.back()">Hủy</button>
+                    <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Đăng Ký</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

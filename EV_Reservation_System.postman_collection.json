@@ -1,0 +1,507 @@
+{
+	"info": {
+		"_postman_id": "ev-reservation-system-test",
+		"name": "EV Co-ownership Reservation System",
+		"description": "Test collection for Reservation Service (8086) & Reservation Admin Service (8087)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. ADMIN AUTH (Port 8087)",
+			"item": [
+				{
+					"name": "0.1 Admin Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8087/api/admin/auth/login",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8087",
+							"path": ["api", "admin", "auth", "login"]
+						},
+						"description": "Đăng nhập admin để lấy JWT token. Token sẽ được trả về trong response và có thể dùng cho các API khác."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "1. RESERVATION SERVICE (Port 8086)",
+			"item": [
+				{
+					"name": "1.1 Get All Reservations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8086/api/reservations",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8086",
+							"path": ["api", "reservations"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 Get Reservations By Vehicle ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8086/api/vehicles/1/reservations",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8086",
+							"path": ["api", "vehicles", "1", "reservations"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.3 Get User Vehicle Reservations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8086/api/users/1/vehicles/1/reservations",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8086",
+							"path": ["api", "users", "1", "vehicles", "1", "reservations"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.4 Get User Vehicles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8086/api/users/1/vehicles",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8086",
+							"path": ["api", "users", "1", "vehicles"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.5 Get Vehicle Group Info",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8086/api/vehicles/1/group",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8086",
+							"path": ["api", "vehicles", "1", "group"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.6 Check Availability",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8086/api/availability?vehicleId=1&start=2026-03-25T08:00:00&end=2026-03-25T10:00:00",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8086",
+							"path": ["api", "availability"],
+							"query": [
+								{
+									"key": "vehicleId",
+									"value": "1"
+								},
+								{
+									"key": "start",
+									"value": "2026-03-25T08:00:00"
+								},
+								{
+									"key": "end",
+									"value": "2026-03-25T10:00:00"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.7 Create Reservation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-User-Id",
+								"value": "1"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vehicleId\": 1,\n  \"userId\": 1,\n  \"startDatetime\": \"2026-03-25T08:00:00\",\n  \"endDatetime\": \"2026-03-25T10:00:00\",\n  \"purpose\": \"Di lam\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8086/api/reservations",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8086",
+							"path": ["api", "reservations"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.8 Update Reservation",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"startDatetime\": \"2026-03-25T09:00:00\",\n  \"endDatetime\": \"2026-03-25T11:00:00\",\n  \"purpose\": \"Di cong tac\",\n  \"status\": \"BOOKED\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8086/api/reservations/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8086",
+							"path": ["api", "reservations", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.9 Update Reservation Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8086/api/reservations/1/status?status=IN_USE",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8086",
+							"path": ["api", "reservations", "1", "status"],
+							"query": [
+								{
+									"key": "status",
+									"value": "IN_USE"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.10 Get Reservation By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8086/api/reservations/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8086",
+							"path": ["api", "reservations", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.11 Delete Reservation",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8086/api/reservations/6",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8086",
+							"path": ["api", "reservations", "6"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. RESERVATION ADMIN SERVICE (Port 8087)",
+			"item": [
+				{
+					"name": "2.1 Admin: Get All Reservations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8087/api/admin/reservations",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8087",
+							"path": ["api", "admin", "reservations"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 Admin: Get Reservation By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8087/api/admin/reservations/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8087",
+							"path": ["api", "admin", "reservations", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.3 Admin: Update Reservation",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Sync-Origin",
+								"value": "admin-panel"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"COMPLETED\",\n  \"startDatetime\": \"2026-03-25T08:00:00\",\n  \"endDatetime\": \"2026-03-25T10:00:00\",\n  \"vehicleId\": 1,\n  \"userId\": 1\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8087/api/admin/reservations/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8087",
+							"path": ["api", "admin", "reservations", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.4 Admin: Delete Reservation",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8087/api/admin/reservations/6",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8087",
+							"path": ["api", "admin", "reservations", "6"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.5 Admin: Sync Reservation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reservationId\": 1,\n  \"status\": \"BOOKED\",\n  \"startDatetime\": \"2026-03-25T08:00:00\",\n  \"endDatetime\": \"2026-03-25T10:00:00\",\n  \"vehicleId\": 1,\n  \"userId\": 1\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8087/api/admin/reservations/sync",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8087",
+							"path": ["api", "admin", "reservations", "sync"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. RESERVATION ADMIN MANAGE (Port 8087)",
+			"item": [
+				{
+					"name": "3.1 Manage: Get All Reservations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8087/api/admin/reservations/manage",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8087",
+							"path": ["api", "admin", "reservations", "manage"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3.2 Manage: Create Reservation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vehicleId\": 1,\n  \"userId\": 1,\n  \"startDatetime\": \"2026-03-26T08:00:00\",\n  \"endDatetime\": \"2026-03-26T12:00:00\",\n  \"status\": \"BOOKED\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8087/api/admin/reservations/manage",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8087",
+							"path": ["api", "admin", "reservations", "manage"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3.3 Manage: Update Reservation",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"startDatetime\": \"2026-03-26T09:00:00\",\n  \"endDatetime\": \"2026-03-26T13:00:00\",\n  \"status\": \"IN_USE\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8087/api/admin/reservations/manage/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8087",
+							"path": ["api", "admin", "reservations", "manage", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3.4 Manage: Delete Reservation",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8087/api/admin/reservations/manage/6",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8087",
+							"path": ["api", "admin", "reservations", "manage", "6"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

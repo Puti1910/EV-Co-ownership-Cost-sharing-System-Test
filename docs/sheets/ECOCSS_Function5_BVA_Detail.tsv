@@ -1,0 +1,182 @@
+TC_ID	BVA Test ID	Function	Service	Method	Path	Variable	Partition	Input Value	Expected Status	Expected Result	BVA Tag	Notes
+ECOCSS-F5-002	BVA-001-STD-01	getReservationById	ReservationService	GET	/api/reservations/{id}	id	Invalid (< min)	0	404 or 400	404 Not Found	BVA-STD	
+ECOCSS-F5-002	BVA-001-STD-02	getReservationById	ReservationService	GET	/api/reservations/{id}	id	Valid min	1	200	Valid object with id=1	BVA-STD	
+ECOCSS-F5-002	BVA-001-STD-03	getReservationById	ReservationService	GET	/api/reservations/{id}	id	Valid (min+1)	2	200	Valid object with id=2	BVA-STD	
+ECOCSS-F5-002	BVA-001-STD-04	getReservationById	ReservationService	GET	/api/reservations/{id}	id	Invalid (> max)	-1 or 999999	404	Not Found	BVA-STD	
+ECOCSS-F5-003	BVA-003-STD-01	createReservation	ReservationService	POST	/api/reservations	endDatetime	Invalid (end = start)	start=09:00 end=09:00	400 or 422	Validation error	BVA-STD	
+ECOCSS-F5-003	BVA-003-STD-02	createReservation	ReservationService	POST	/api/reservations	endDatetime	Invalid (end < start)	start=09:00 end=08:00	400 or 422	Validation error	BVA-STD	
+ECOCSS-F5-003	BVA-003-STD-03	createReservation	ReservationService	POST	/api/reservations	endDatetime	Valid min (end = start+1min)	start=09:00 end=09:01	201	BOOKED status	BVA-STD	
+ECOCSS-F5-003	BVA-003-STD-04	createReservation	ReservationService	POST	/api/reservations	vehicleId	Invalid (< min)	vehicleId=0	400 or 422	Validation error	BVA-STD	
+ECOCSS-F5-003	BVA-003-STD-05	createReservation	ReservationService	POST	/api/reservations	vehicleId	Valid min	vehicleId=1	201	Created	BVA-STD	
+ECOCSS-F5-003	BVA-003-STD-06	createReservation	ReservationService	POST	/api/reservations	userId	Invalid (< min)	userId=0	400 or 422	Validation error	BVA-STD	
+ECOCSS-F5-003	BVA-003-STD-07	createReservation	ReservationService	POST	/api/reservations	userId	Valid min	userId=1	201	Created	BVA-STD	
+ECOCSS-F5-003	BVA-003-ROB-01	createReservation	ReservationService	POST	/api/reservations	vehicleId	Invalid (< min)	vehicleId=-1	400 or 422	Validation error	BVA-ROB	
+ECOCSS-F5-003	BVA-003-ROB-02	createReservation	ReservationService	POST	/api/reservations	userId	Invalid (< min)	userId=-1	400 or 422	Validation error	BVA-ROB	
+ECOCSS-F5-003	BVA-003-ROB-03	createReservation	ReservationService	POST	/api/reservations	status	Invalid enum	status="INVALID"	400 or 422	Validation error	BVA-ROB	
+ECOCSS-F5-003	BVA-003-ROB-04	createReservation	ReservationService	POST	/api/reservations	startDatetime	Invalid format	"not-a-datetime"	400 or 422	Validation error	BVA-ROB	
+ECOCSS-F5-004	BVA-004-STD-01	updateReservation	ReservationService	PUT	/api/reservations/{id}	id	Invalid (< min)	id=0	404	Not Found	BVA-STD	
+ECOCSS-F5-004	BVA-004-STD-02	updateReservation	ReservationService	PUT	/api/reservations/{id}	id	Valid min	id=1	200	Updated	BVA-STD	
+ECOCSS-F5-004	BVA-004-STD-03	updateReservation	ReservationService	PUT	/api/reservations/{id}	endDatetime	Invalid (end = start)	start=09:00 end=09:00	400	Validation error	BVA-STD	
+ECOCSS-F5-004	BVA-004-STD-04	updateReservation	ReservationService	PUT	/api/reservations/{id}	endDatetime	Invalid (end < start)	start=17:00 end=09:00	400	Validation error	BVA-STD	
+ECOCSS-F5-004	BVA-004-STD-05	updateReservation	ReservationService	PUT	/api/reservations/{id}	endDatetime	Valid min	end = start+1min	200	Updated	BVA-STD	
+ECOCSS-F5-004	BVA-004-ROB-01	updateReservation	ReservationService	PUT	/api/reservations/{id}	status	Invalid enum	status="UNKNOWN"	400	Validation error	BVA-ROB	
+ECOCSS-F5-005	BVA-005-STD-01	updateReservationStatus	ReservationService	PUT	/api/reservations/{id}/status	id	Invalid	id=0	404	Not Found	BVA-STD	
+ECOCSS-F5-005	BVA-005-STD-02	updateReservationStatus	ReservationService	PUT	/api/reservations/{id}/status	id	Valid min	id=1	200	Status updated	BVA-STD	
+ECOCSS-F5-005	BVA-005-STD-03	updateReservationStatus	ReservationService	PUT	/api/reservations/{id}/status	status	Invalid enum	status=INVALID	400	Validation error	BVA-STD	
+ECOCSS-F5-005	BVA-005-STD-04	updateReservationStatus	ReservationService	PUT	/api/reservations/{id}/status	status	Valid (uppercase)	status=BOOKED	200	Updated	BVA-STD	
+ECOCSS-F5-005	BVA-005-STD-05	updateReservationStatus	ReservationService	PUT	/api/reservations/{id}/status	status	Valid	status=IN_USE	200	Updated	BVA-STD	
+ECOCSS-F5-005	BVA-005-STD-06	updateReservationStatus	ReservationService	PUT	/api/reservations/{id}/status	status	Valid	status=COMPLETED	200	Updated	BVA-STD	
+ECOCSS-F5-005	BVA-005-STD-07	updateReservationStatus	ReservationService	PUT	/api/reservations/{id}/status	status	Valid	status=CANCELLED	200	Updated	BVA-STD	
+ECOCSS-F5-005	BVA-005-ROB-01	updateReservationStatus	ReservationService	PUT	/api/reservations/{id}/status	status	Case-sensitive	status=booked (lowercase)	400	Validation error	BVA-ROB	
+ECOCSS-F5-005	BVA-005-ROB-02	updateReservationStatus	ReservationService	PUT	/api/reservations/{id}/status	status	Empty	status=""	400	Validation error	BVA-ROB	
+ECOCSS-F5-006	BVA-006-STD-01	deleteReservation	ReservationService	DELETE	/api/reservations/{id}	id	Invalid	id=0	404	Not Found	BVA-STD	
+ECOCSS-F5-006	BVA-006-STD-02	deleteReservation	ReservationService	DELETE	/api/reservations/{id}	id	Invalid	id=-1	404	Not Found	BVA-STD	
+ECOCSS-F5-006	BVA-006-STD-03	deleteReservation	ReservationService	DELETE	/api/reservations/{id}	id	Valid min	id=1	204	No Content	BVA-STD	
+ECOCSS-F5-006	BVA-006-STD-04	deleteReservation	ReservationService	DELETE	/api/reservations/{id}	id	Valid	id=2	204	No Content	BVA-STD	
+ECOCSS-F5-007	BVA-007-STD-01	getVehicleReservations	ReservationService	GET	/api/vehicles/{vehicleId}/reservations	vehicleId	Invalid	vehicleId=0	404	Not Found	BVA-STD	
+ECOCSS-F5-007	BVA-007-STD-02	getVehicleReservations	ReservationService	GET	/api/vehicles/{vehicleId}/reservations	vehicleId	Invalid	vehicleId=-1	404	Not Found	BVA-STD	
+ECOCSS-F5-007	BVA-007-STD-03	getVehicleReservations	ReservationService	GET	/api/vehicles/{vehicleId}/reservations	vehicleId	Valid min	vehicleId=1	200	Array response	BVA-STD	
+ECOCSS-F5-007	BVA-007-STD-04	getVehicleReservations	ReservationService	GET	/api/vehicles/{vehicleId}/reservations	vehicleId	Valid	vehicleId=2	200	Array response	BVA-STD	
+ECOCSS-F5-008	BVA-008-STD-01	getVehicleGroupInfo	ReservationService	GET	/api/vehicles/{vehicleId}/group	vehicleId	Invalid	vehicleId=0	404	Not Found	BVA-STD	
+ECOCSS-F5-008	BVA-008-STD-02	getVehicleGroupInfo	ReservationService	GET	/api/vehicles/{vehicleId}/group	vehicleId	Valid min	vehicleId=1	200	Object response	BVA-STD	
+ECOCSS-F5-008	BVA-008-STD-03	getVehicleGroupInfo	ReservationService	GET	/api/vehicles/{vehicleId}/group	vehicleId	Valid	vehicleId=999999	200 or 404	Depends on data	BVA-STD	
+ECOCSS-F5-009	BVA-009-STD-01	getUserVehicles	ReservationService	GET	/api/users/{userId}/vehicles	userId	Invalid	userId=0	404	Not Found	BVA-STD	
+ECOCSS-F5-009	BVA-009-STD-02	getUserVehicles	ReservationService	GET	/api/users/{userId}/vehicles	userId	Valid min	userId=1	200	Array response	BVA-STD	
+ECOCSS-F5-009	BVA-009-STD-03	getUserVehicles	ReservationService	GET	/api/users/{userId}/vehicles	userId	Invalid	userId=-1	404	Not Found	BVA-STD	
+ECOCSS-F5-010	BVA-010-STD-01	getUserVehicleReservations	ReservationService	GET	/api/users/{userId}/vehicles/{vehicleId}/reservations	userId	Invalid	userId=0	404	Not Found	BVA-STD	
+ECOCSS-F5-010	BVA-010-STD-02	getUserVehicleReservations	ReservationService	GET	/api/users/{userId}/vehicles/{vehicleId}/reservations	userId vehicleId	Valid min	userId=1 vehicleId=1	200	Array response	BVA-STD	
+ECOCSS-F5-010	BVA-010-STD-03	getUserVehicleReservations	ReservationService	GET	/api/users/{userId}/vehicles/{vehicleId}/reservations	userId vehicleId	Valid	userId=2 vehicleId=2	200	Array response	BVA-STD	
+ECOCSS-F5-010	BVA-010-STD-04	getUserVehicleReservations	ReservationService	GET	/api/users/{userId}/vehicles/{vehicleId}/reservations	vehicleId	Invalid	vehicleId=0	404	Not Found	BVA-STD	
+ECOCSS-F5-010	BVA-010-ROB-01	getUserVehicleReservations	ReservationService	GET	/api/users/{userId}/vehicles/{vehicleId}/reservations	userId	Invalid	userId=-1	404	Not Found	BVA-ROB	
+ECOCSS-F5-010	BVA-010-ROB-02	getUserVehicleReservations	ReservationService	GET	/api/users/{userId}/vehicles/{vehicleId}/reservations	vehicleId	Invalid	vehicleId=-1	404	Not Found	BVA-ROB	
+ECOCSS-F5-011	BVA-011-STD-01	checkAvailability	ReservationService	GET	/api/availability	vehicleId	Invalid (< min)	vehicleId=0	400	Validation error	BVA-STD	
+ECOCSS-F5-011	BVA-011-STD-02	checkAvailability	ReservationService	GET	/api/availability	vehicleId	Valid min	vehicleId=1	200	Boolean response	BVA-STD	
+ECOCSS-F5-011	BVA-011-STD-03	checkAvailability	ReservationService	GET	/api/availability	end	Invalid (end = start)	start=09:00 end=09:00	400	Validation error	BVA-STD	
+ECOCSS-F5-011	BVA-011-STD-04	checkAvailability	ReservationService	GET	/api/availability	end	Invalid (end < start)	start=09:00 end=08:00	400	Validation error	BVA-STD	
+ECOCSS-F5-011	BVA-011-STD-05	checkAvailability	ReservationService	GET	/api/availability	end	Valid min (end = start+1min)	end=start+1min	200	Boolean true/false	BVA-STD	
+ECOCSS-F5-011	BVA-011-STD-06	checkAvailability	ReservationService	GET	/api/availability	start	Invalid format	start="invalid"	400	Validation error	BVA-STD	
+ECOCSS-F5-011	BVA-011-STD-07	checkAvailability	ReservationService	GET	/api/availability	end	Invalid format	end="invalid"	400	Validation error	BVA-STD	
+ECOCSS-F5-011	BVA-011-ROB-01	checkAvailability	ReservationService	GET	/api/availability	vehicleId	Invalid (< min)	vehicleId=-1	400	Validation error	BVA-ROB	
+ECOCSS-F5-011	BVA-011-ROB-02	checkAvailability	ReservationService	GET	/api/availability	start	Invalid	start=null	400	Validation error	BVA-ROB	
+ECOCSS-F5-011	BVA-011-ROB-03	checkAvailability	ReservationService	GET	/api/availability	end	Invalid	end=null	400	Validation error	BVA-ROB	
+ECOCSS-F5-011	BVA-011-ROB-04	checkAvailability	ReservationService	GET	/api/availability	vehicleId	Invalid empty	vehicleId=""	400	Validation error	BVA-ROB	
+ECOCSS-F5-011	BVA-011-WC-01	checkAvailability	ReservationService	GET	/api/availability	all variables	Worst-Case min-1	vehicleId=0 end=start	400	Validation error	BVA-WC	
+ECOCSS-F5-011	BVA-011-WC-02	checkAvailability	ReservationService	GET	/api/availability	all variables	Worst-Case valid min	vehicleId=1 end=start+1min	200	Boolean true/false	BVA-WC	
+ECOCSS-F5-011	BVA-011-WC-03	checkAvailability	ReservationService	GET	/api/availability	vehicleId valid end invalid	Combinations	vehicleId=1 end=start	400	Validation error	BVA-WC	
+ECOCSS-F5-011	BVA-011-WC-04	checkAvailability	ReservationService	GET	/api/availability	vehicleId invalid end valid	Combinations	vehicleId=0 end=start+1min	400	Validation error	BVA-WC	
+ECOCSS-F5-012	BVA-012-STD-01	listReservationCheckpoints	ReservationService	GET	/api/reservations/{id}/checkpoints	reservationId	Invalid	reservationId=0	404	Not Found	BVA-STD	
+ECOCSS-F5-012	BVA-012-STD-02	listReservationCheckpoints	ReservationService	GET	/api/reservations/{id}/checkpoints	reservationId	Valid min	reservationId=1	200	Array response	BVA-STD	
+ECOCSS-F5-012	BVA-012-STD-03	listReservationCheckpoints	ReservationService	GET	/api/reservations/{id}/checkpoints	reservationId	Valid (not found)	reservationId=999999	404	Not Found	BVA-STD	
+ECOCSS-F5-013	BVA-013-STD-01	issueReservationCheckpoint	ReservationService	POST	/api/reservations/{id}/checkpoints	reservationId	Invalid	reservationId=0	404	Not Found	BVA-STD	
+ECOCSS-F5-013	BVA-013-STD-02	issueReservationCheckpoint	ReservationService	POST	/api/reservations/{id}/checkpoints	reservationId	Valid min	reservationId=1	201	Created	BVA-STD	
+ECOCSS-F5-013	BVA-013-STD-03	issueReservationCheckpoint	ReservationService	POST	/api/reservations/{id}/checkpoints	validMinutes	Invalid (< min)	validMinutes=0	400	Validation error	BVA-STD	
+ECOCSS-F5-013	BVA-013-STD-04	issueReservationCheckpoint	ReservationService	POST	/api/reservations/{id}/checkpoints	validMinutes	Valid min	validMinutes=1	201	Created	BVA-STD	
+ECOCSS-F5-013	BVA-013-STD-05	issueReservationCheckpoint	ReservationService	POST	/api/reservations/{id}/checkpoints	validMinutes	Valid max (24h)	validMinutes=1440	201	Created	BVA-STD	
+ECOCSS-F5-013	BVA-013-STD-06	issueReservationCheckpoint	ReservationService	POST	/api/reservations/{id}/checkpoints	validMinutes	Invalid (> max)	validMinutes=1441	400 or 201	Treatment depends on spec	BVA-STD	
+ECOCSS-F5-013	BVA-013-STD-07	issueReservationCheckpoint	ReservationService	POST	/api/reservations/{id}/checkpoints	type	Invalid enum	type="INVALID"	400	Validation error	BVA-STD	
+ECOCSS-F5-013	BVA-013-STD-08	issueReservationCheckpoint	ReservationService	POST	/api/reservations/{id}/checkpoints	type	Valid	type="PICKUP" or "DROPOFF"	201	Created	BVA-STD	
+ECOCSS-F5-013	BVA-013-ROB-01	issueReservationCheckpoint	ReservationService	POST	/api/reservations/{id}/checkpoints	validMinutes	Invalid (< 0)	validMinutes=-1	400	Validation error	BVA-ROB	
+ECOCSS-F5-013	BVA-013-ROB-02	issueReservationCheckpoint	ReservationService	POST	/api/reservations/{id}/checkpoints	issuedBy	Invalid empty	issuedBy=""	400	Validation error	BVA-ROB	
+ECOCSS-F5-014	BVA-014-STD-01	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	token	Invalid (empty)	""	400	Validation error	BVA-STD	
+ECOCSS-F5-014	BVA-014-STD-02	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	token	Valid	"valid-token-123"	200 or 201	Scanned successfully	BVA-STD	
+ECOCSS-F5-014	BVA-014-STD-03	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	latitude	Invalid (< min)	latitude=-91	400	Validation error	BVA-STD	
+ECOCSS-F5-014	BVA-014-STD-04	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	latitude	Valid min	latitude=-90	200 or 201	Valid GPS	BVA-STD	
+ECOCSS-F5-014	BVA-014-STD-05	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	latitude	Valid (min+1)	latitude=-89	200 or 201	Valid GPS	BVA-STD	
+ECOCSS-F5-014	BVA-014-STD-06	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	latitude	Valid (max-1)	latitude=89	200 or 201	Valid GPS	BVA-STD	
+ECOCSS-F5-014	BVA-014-STD-07	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	latitude	Valid max	latitude=90	200 or 201	Valid GPS	BVA-STD	
+ECOCSS-F5-014	BVA-014-STD-08	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	latitude	Invalid (> max)	latitude=91	400	Validation error	BVA-STD	
+ECOCSS-F5-014	BVA-014-STD-09	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	longitude	Invalid (< min)	longitude=-181	400	Validation error	BVA-STD	
+ECOCSS-F5-014	BVA-014-STD-10	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	longitude	Valid min	longitude=-180	200 or 201	Valid GPS	BVA-STD	
+ECOCSS-F5-014	BVA-014-STD-11	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	longitude	Valid max	longitude=180	200 or 201	Valid GPS	BVA-STD	
+ECOCSS-F5-014	BVA-014-STD-12	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	longitude	Invalid (> max)	longitude=181	400	Validation error	BVA-STD	
+ECOCSS-F5-014	BVA-014-STD-13	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	latitude	Valid mid	latitude=0	200 or 201	Valid GPS	BVA-STD	
+ECOCSS-F5-014	BVA-014-ROB-01	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	latitude	Invalid (< 0 boundary)	latitude=-90.0001	400	Validation error	BVA-ROB	
+ECOCSS-F5-014	BVA-014-ROB-02	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	latitude	Invalid (> 0 boundary)	latitude=90.0001	400	Validation error	BVA-ROB	
+ECOCSS-F5-014	BVA-014-ROB-03	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	longitude	Invalid (< 0 boundary)	longitude=-180.0001	400	Validation error	BVA-ROB	
+ECOCSS-F5-014	BVA-014-ROB-04	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	longitude	Invalid (> 0 boundary)	longitude=180.0001	400	Validation error	BVA-ROB	
+ECOCSS-F5-014	BVA-014-ROB-05	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	token	Invalid null	token=null	400	Validation error	BVA-ROB	
+ECOCSS-F5-014	BVA-014-ROB-06	scanCheckpoint	ReservationService	POST	/api/reservations/checkpoints/scan	latitude	Invalid type	latitude="abc"	400	Validation error	BVA-ROB	
+ECOCSS-F5-015	BVA-015-STD-01	signCheckpoint	ReservationService	POST	/api/reservations/checkpoints/{id}/sign	checkpointId	Invalid	checkpointId=0	404	Not Found	BVA-STD	
+ECOCSS-F5-015	BVA-015-STD-02	signCheckpoint	ReservationService	POST	/api/reservations/checkpoints/{id}/sign	checkpointId	Valid min	checkpointId=1	201	Created	BVA-STD	
+ECOCSS-F5-015	BVA-015-STD-03	signCheckpoint	ReservationService	POST	/api/reservations/checkpoints/{id}/sign	signerName	Invalid (empty)	signerName=""	400	Validation error	BVA-STD	
+ECOCSS-F5-015	BVA-015-STD-04	signCheckpoint	ReservationService	POST	/api/reservations/checkpoints/{id}/sign	signerName	Valid min	signerName="A"	201	Created	BVA-STD	
+ECOCSS-F5-015	BVA-015-STD-05	signCheckpoint	ReservationService	POST	/api/reservations/checkpoints/{id}/sign	signerIdNumber	Invalid (empty)	signerIdNumber=""	400	Validation error	BVA-STD	
+ECOCSS-F5-015	BVA-015-STD-06	signCheckpoint	ReservationService	POST	/api/reservations/checkpoints/{id}/sign	signerIdNumber	Valid (9 digits)	"123456789"	201	Created	BVA-STD	
+ECOCSS-F5-015	BVA-015-STD-07	signCheckpoint	ReservationService	POST	/api/reservations/checkpoints/{id}/sign	signerIdNumber	Valid (12 digits)	"001234567890"	201	Created	BVA-STD	
+ECOCSS-F5-015	BVA-015-STD-08	signCheckpoint	ReservationService	POST	/api/reservations/checkpoints/{id}/sign	signerIdNumber	Invalid (too short)	"12345" (<9)	400	Validation error	BVA-STD	
+ECOCSS-F5-015	BVA-015-STD-09	signCheckpoint	ReservationService	POST	/api/reservations/checkpoints/{id}/sign	signerIdNumber	Invalid (too long)	13+ chars	400	Validation error	BVA-STD	
+ECOCSS-F5-015	BVA-015-STD-10	signCheckpoint	ReservationService	POST	/api/reservations/checkpoints/{id}/sign	signatureData	Invalid (empty)	signatureData=""	400	Validation error	BVA-STD	
+ECOCSS-F5-015	BVA-015-STD-11	signCheckpoint	ReservationService	POST	/api/reservations/checkpoints/{id}/sign	signatureData	Valid	"base64-or-text"	201	Created	BVA-STD	
+ECOCSS-F5-015	BVA-015-ROB-01	signCheckpoint	ReservationService	POST	/api/reservations/checkpoints/{id}/sign	signerIdNumber	Invalid non-numeric	"ABCDEFGHI"	400	Validation error	BVA-ROB	
+ECOCSS-F5-015	BVA-015-ROB-02	signCheckpoint	ReservationService	POST	/api/reservations/checkpoints/{id}/sign	signerName	Invalid null	signerName=null	400	Validation error	BVA-ROB	
+ECOCSS-F5-016	BVA-016-STD-01	getFairnessSummary	ReservationService	GET	/api/fairness/vehicles/{vehicleId}	vehicleId	Invalid	vehicleId=0	404	Not Found	BVA-STD	
+ECOCSS-F5-016	BVA-016-STD-02	getFairnessSummary	ReservationService	GET	/api/fairness/vehicles/{vehicleId}	vehicleId	Valid min	vehicleId=1	200	Object response	BVA-STD	
+ECOCSS-F5-016	BVA-016-STD-03	getFairnessSummary	ReservationService	GET	/api/fairness/vehicles/{vehicleId}	rangeDays	Invalid (< min)	rangeDays=0	400	Validation error	BVA-STD	
+ECOCSS-F5-016	BVA-016-STD-04	getFairnessSummary	ReservationService	GET	/api/fairness/vehicles/{vehicleId}	rangeDays	Valid min	rangeDays=1	200	Object response	BVA-STD	
+ECOCSS-F5-016	BVA-016-STD-05	getFairnessSummary	ReservationService	GET	/api/fairness/vehicles/{vehicleId}	rangeDays	Valid	rangeDays=30	200	Object response	BVA-STD	
+ECOCSS-F5-016	BVA-016-STD-06	getFairnessSummary	ReservationService	GET	/api/fairness/vehicles/{vehicleId}	rangeDays	Valid max	rangeDays=365	200	Object response	BVA-STD	
+ECOCSS-F5-016	BVA-016-STD-07	getFairnessSummary	ReservationService	GET	/api/fairness/vehicles/{vehicleId}	rangeDays	Invalid (> max)	rangeDays=366	400	Validation error	BVA-STD	
+ECOCSS-F5-016	BVA-016-ROB-01	getFairnessSummary	ReservationService	GET	/api/fairness/vehicles/{vehicleId}	rangeDays	Invalid (< 0)	rangeDays=-1	400	Validation error	BVA-ROB	
+ECOCSS-F5-016	BVA-016-ROB-02	getFairnessSummary	ReservationService	GET	/api/fairness/vehicles/{vehicleId}	rangeDays	Invalid non-int	rangeDays="abc"	400	Validation error	BVA-ROB	
+ECOCSS-F5-017	BVA-017-STD-01	suggestFairnessSlot	ReservationService	POST	/api/fairness/vehicles/{vehicleId}/suggest	vehicleId	Invalid	vehicleId=0	404	Not Found	BVA-STD	
+ECOCSS-F5-017	BVA-017-STD-02	suggestFairnessSlot	ReservationService	POST	/api/fairness/vehicles/{vehicleId}/suggest	vehicleId	Valid min	vehicleId=1	201	Created	BVA-STD	
+ECOCSS-F5-017	BVA-017-STD-03	suggestFairnessSlot	ReservationService	POST	/api/fairness/vehicles/{vehicleId}/suggest	userId	Invalid	userId=0	400	Validation error	BVA-STD	
+ECOCSS-F5-017	BVA-017-STD-04	suggestFairnessSlot	ReservationService	POST	/api/fairness/vehicles/{vehicleId}/suggest	userId	Valid min	userId=1	201	Created	BVA-STD	
+ECOCSS-F5-017	BVA-017-STD-05	suggestFairnessSlot	ReservationService	POST	/api/fairness/vehicles/{vehicleId}/suggest	durationHours	Invalid (=0)	durationHours=0	400	Validation error	BVA-STD	
+ECOCSS-F5-017	BVA-017-STD-06	suggestFairnessSlot	ReservationService	POST	/api/fairness/vehicles/{vehicleId}/suggest	durationHours	Invalid (<0)	durationHours=-1	400	Validation error	BVA-STD	
+ECOCSS-F5-017	BVA-017-STD-07	suggestFairnessSlot	ReservationService	POST	/api/fairness/vehicles/{vehicleId}/suggest	durationHours	Valid min (0.5h)	durationHours=0.5	201	Created	BVA-STD	
+ECOCSS-F5-017	BVA-017-STD-08	suggestFairnessSlot	ReservationService	POST	/api/fairness/vehicles/{vehicleId}/suggest	durationHours	Valid (2h)	durationHours=2.0	201	Created	BVA-STD	
+ECOCSS-F5-017	BVA-017-STD-09	suggestFairnessSlot	ReservationService	POST	/api/fairness/vehicles/{vehicleId}/suggest	desiredStart	Invalid format	"not-datetime"	400	Validation error	BVA-STD	
+ECOCSS-F5-017	BVA-017-ROB-01	suggestFairnessSlot	ReservationService	POST	/api/fairness/vehicles/{vehicleId}/suggest	durationHours	Invalid decimal	min duration check	durationHours=0.1	400	Validation error (if min=1)	BVA-ROB	
+ECOCSS-F5-018	BVA-018-STD-01	adminLogin	ReservationAdminService	POST	/api/admin/auth/login	username	Invalid (empty)	""	400	Validation error	BVA-STD	
+ECOCSS-F5-018	BVA-018-STD-02	adminLogin	ReservationAdminService	POST	/api/admin/auth/login	username	Valid min	"a"	200 or 401	Login result	BVA-STD	
+ECOCSS-F5-018	BVA-018-STD-03	adminLogin	ReservationAdminService	POST	/api/admin/auth/login	username	Valid	"admin"	200 or 401	Login result	BVA-STD	
+ECOCSS-F5-018	BVA-018-STD-04	adminLogin	ReservationAdminService	POST	/api/admin/auth/login	password	Invalid (empty)	""	400	Validation error	BVA-STD	
+ECOCSS-F5-018	BVA-018-STD-05	adminLogin	ReservationAdminService	POST	/api/admin/auth/login	password	Valid	"password123"	200 or 401	Login result	BVA-STD	
+ECOCSS-F5-018	BVA-018-ROB-01	adminLogin	ReservationAdminService	POST	/api/admin/auth/login	username	Invalid null	username=null	400	Validation error	BVA-ROB	
+ECOCSS-F5-018	BVA-018-ROB-02	adminLogin	ReservationAdminService	POST	/api/admin/auth/login	password	Invalid null	password=null	400	Validation error	BVA-ROB	
+ECOCSS-F5-018	BVA-018-ROB-03	adminLogin	ReservationAdminService	POST	/api/admin/auth/login	body	Invalid empty	{}	400	Validation error	BVA-ROB	
+ECOCSS-F5-020	BVA-020-STD-01	getAdminReservationById	ReservationAdminService	GET	/api/admin/reservations/{id}	id	Invalid	id=0	404	Not Found	BVA-STD	
+ECOCSS-F5-020	BVA-020-STD-02	getAdminReservationById	ReservationAdminService	GET	/api/admin/reservations/{id}	id	Valid min	id=1	200	Object response	BVA-STD	
+ECOCSS-F5-020	BVA-020-STD-03	getAdminReservationById	ReservationAdminService	GET	/api/admin/reservations/{id}	id	Valid (not found)	id=999999	404	Not Found	BVA-STD	
+ECOCSS-F5-020	BVA-020-ROB-01	getAdminReservationById	ReservationAdminService	GET	/api/admin/reservations/{id}	id	Invalid	id=-1	404	Not Found	BVA-ROB	
+ECOCSS-F5-021	BVA-021-STD-01	updateAdminReservation	ReservationAdminService	PUT	/api/admin/reservations/{id}	id	Invalid	id=0	404	Not Found	BVA-STD	
+ECOCSS-F5-021	BVA-021-STD-02	updateAdminReservation	ReservationAdminService	PUT	/api/admin/reservations/{id}	id	Valid min	id=1	200	Updated	BVA-STD	
+ECOCSS-F5-021	BVA-021-STD-03	updateAdminReservation	ReservationAdminService	PUT	/api/admin/reservations/{id}	endDatetime	Invalid	end=start (same time)	400	Validation error	BVA-STD	
+ECOCSS-F5-021	BVA-021-STD-04	updateAdminReservation	ReservationAdminService	PUT	/api/admin/reservations/{id}	vehicleId	Invalid	vehicleId=0	400	Validation error	BVA-STD	
+ECOCSS-F5-021	BVA-021-STD-05	updateAdminReservation	ReservationAdminService	PUT	/api/admin/reservations/{id}	status	Invalid enum	status="INVALID"	400	Validation error	BVA-STD	
+ECOCSS-F5-022	BVA-022-STD-01	deleteAdminReservation	ReservationAdminService	DELETE	/api/admin/reservations/{id}	id	Invalid	id=0	404	Not Found	BVA-STD	
+ECOCSS-F5-022	BVA-022-STD-02	deleteAdminReservation	ReservationAdminService	DELETE	/api/admin/reservations/{id}	id	Valid min	id=1	204	No Content	BVA-STD	
+ECOCSS-F5-022	BVA-022-ROB-01	deleteAdminReservation	ReservationAdminService	DELETE	/api/admin/reservations/{id}	id	Invalid	id=-1	404	Not Found	BVA-ROB	
+ECOCSS-F5-023	BVA-023-STD-01	syncReservationFromBooking	ReservationAdminService	POST	/api/admin/reservations/sync	reservationId	Invalid	reservationId=0	400	Validation error	BVA-STD	
+ECOCSS-F5-023	BVA-023-STD-02	syncReservationFromBooking	ReservationAdminService	POST	/api/admin/reservations/sync	reservationId	Valid min	reservationId=1	201	Created	BVA-STD	
+ECOCSS-F5-023	BVA-023-STD-03	syncReservationFromBooking	ReservationAdminService	POST	/api/admin/reservations/sync	vehicleId	Invalid	vehicleId=0	400	Validation error	BVA-STD	
+ECOCSS-F5-023	BVA-023-STD-04	syncReservationFromBooking	ReservationAdminService	POST	/api/admin/reservations/sync	userId	Invalid	userId=0	400	Validation error	BVA-STD	
+ECOCSS-F5-023	BVA-023-STD-05	syncReservationFromBooking	ReservationAdminService	POST	/api/admin/reservations/sync	endDatetime	Invalid	end=start	400	Validation error	BVA-STD	
+ECOCSS-F5-023	BVA-023-STD-06	syncReservationFromBooking	ReservationAdminService	POST	/api/admin/reservations/sync	endDatetime	Invalid	end<start	400	Validation error	BVA-STD	
+ECOCSS-F5-023	BVA-023-STD-07	syncReservationFromBooking	ReservationAdminService	POST	/api/admin/reservations/sync	status	Invalid enum	status="INVALID"	400	Validation error	BVA-STD	
+ECOCSS-F5-025	BVA-025-STD-01	createManageReservation	ReservationAdminService	POST	/api/admin/reservations/manage	vehicleId	Invalid	vehicleId=0	400	Validation error	BVA-STD	
+ECOCSS-F5-025	BVA-025-STD-02	createManageReservation	ReservationAdminService	POST	/api/admin/reservations/manage	vehicleId	Valid min	vehicleId=1	201	Created with message+id	BVA-STD	
+ECOCSS-F5-025	BVA-025-STD-03	createManageReservation	ReservationAdminService	POST	/api/admin/reservations/manage	userId	Invalid	userId=0	400	Validation error	BVA-STD	
+ECOCSS-F5-025	BVA-025-STD-04	createManageReservation	ReservationAdminService	POST	/api/admin/reservations/manage	endDatetime	Invalid	end=start	400	Validation error	BVA-STD	
+ECOCSS-F5-025	BVA-025-STD-05	createManageReservation	ReservationAdminService	POST	/api/admin/reservations/manage	endDatetime	Invalid	end<start	400	Validation error	BVA-STD	
+ECOCSS-F5-025	BVA-025-STD-06	createManageReservation	ReservationAdminService	POST	/api/admin/reservations/manage	status	Valid	status=BOOKED	201	message+id	BVA-STD	
+ECOCSS-F5-026	BVA-026-STD-01	updateManageReservation	ReservationAdminService	PUT	/api/admin/reservations/manage/{id}	id	Invalid	id=0	404	Not Found	BVA-STD	
+ECOCSS-F5-026	BVA-026-STD-02	updateManageReservation	ReservationAdminService	PUT	/api/admin/reservations/manage/{id}	id	Valid min	id=1	200	message	BVA-STD	
+ECOCSS-F5-026	BVA-026-STD-03	updateManageReservation	ReservationAdminService	PUT	/api/admin/reservations/manage/{id}	start/end	Invalid	end=start	400	Validation error	BVA-STD	
+ECOCSS-F5-027	BVA-027-STD-01	deleteManageReservation	ReservationAdminService	DELETE	/api/admin/reservations/manage/{id}	id	Invalid	id=0	404	Not Found	BVA-STD	
+ECOCSS-F5-027	BVA-027-STD-02	deleteManageReservation	ReservationAdminService	DELETE	/api/admin/reservations/manage/{id}	id	Valid min	id=1	204	No Content	BVA-STD	
+ECOCSS-F5-027	BVA-027-ROB-01	deleteManageReservation	ReservationAdminService	DELETE	/api/admin/reservations/manage/{id}	id	Invalid	id=-1	404	Not Found	BVA-ROB	
+ECOCSS-F5-030	BVA-030-STD-01	proxyGetReservationById	ReservationAdminService	GET	/api/reservations/{id}	id	Invalid	id=0	404	Not Found	BVA-STD	= TC-002
+ECOCSS-F5-030	BVA-030-STD-02	proxyGetReservationById	ReservationAdminService	GET	/api/reservations/{id}	id	Valid min	id=1	200	Object response	BVA-STD	= TC-002
+ECOCSS-F5-030	BVA-030-STD-03	proxyGetReservationById	ReservationAdminService	GET	/api/reservations/{id}	id	Valid (not found)	id=999999	404	Not Found	BVA-STD	= TC-002
+ECOCSS-F5-030	BVA-030-STD-04	proxyGetReservationById	ReservationAdminService	GET	/api/reservations/{id}	id	Invalid	id=-1	404	Not Found	BVA-STD	= TC-002
+ECOCSS-F5-035	BVA-035-STD-01	getTestUserById	ReservationAdminService	GET	/api/test/user/{userId}	userId	Invalid	userId=0	404	Not Found	BVA-STD	
+ECOCSS-F5-035	BVA-035-STD-02	getTestUserById	ReservationAdminService	GET	/api/test/user/{userId}	userId	Valid min	userId=1	200	Object response	BVA-STD	
+ECOCSS-F5-035	BVA-035-STD-03	getTestUserById	ReservationAdminService	GET	/api/test/user/{userId}	userId	Valid (not found)	userId=999999	200 or 404	Depends on data	BVA-STD	
+ECOCSS-F5-035	BVA-035-ROB-01	getTestUserById	ReservationAdminService	GET	/api/test/user/{userId}	userId	Invalid	userId=-1	404	Not Found	BVA-ROB	
+ECOCSS-F5-001	N/A	getAllReservations	ReservationService	GET	/api/reservations	N/A	N/A – No input parameters	N/A	200	JSON array; no BVA applicable	N/A	GET không có path/query/body param → không xác định được boundary
+ECOCSS-F5-019	N/A	getAllAdminReservations	ReservationAdminService	GET	/api/admin/reservations	N/A	N/A – No input parameters	N/A	200	JSON array DTO; no BVA applicable	N/A	GET không có path/query/body param → không xác định được boundary
+ECOCSS-F5-024	N/A	getManageReservations	ReservationAdminService	GET	/api/admin/reservations/manage	N/A	N/A – No input parameters	N/A	200	JSON array manage view; no BVA applicable	N/A	GET không có path/query/body param → không xác định được boundary
+ECOCSS-F5-028	N/A	getAdminVehicles	ReservationAdminService	GET	/api/admin/vehicles	N/A	N/A – No input parameters	N/A	200	JSON array; no BVA applicable	N/A	GET không có path/query/body param → không xác định được boundary
+ECOCSS-F5-029	N/A	proxyGetAllReservations	ReservationAdminService	GET	/api/reservations (proxy 8087)	N/A	N/A – No input parameters	N/A	200	JSON array; no BVA applicable	N/A	GET proxy không có input → không xác định được boundary

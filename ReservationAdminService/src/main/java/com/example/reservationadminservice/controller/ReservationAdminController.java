@@ -65,7 +65,7 @@ public class ReservationAdminController {
     // 📍 2️⃣ Tạo mới một lịch đặt xe
     // =====================================================
     @PostMapping
-    public Map<String, Object> createReservation(@RequestBody ReservationAdmin r) {
+    public Map<String, Object> createReservation(@jakarta.validation.Valid @RequestBody ReservationAdmin r) {
         ReservationAdmin saved = reservationRepo.save(r);
         return Map.of("message", "Tạo lịch thành công", "id", saved.getId());
     }

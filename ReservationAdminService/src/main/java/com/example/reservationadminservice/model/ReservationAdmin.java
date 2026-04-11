@@ -26,7 +26,8 @@ public class ReservationAdmin {
     @Column(name = "end_datetime", nullable = false)
     private java.time.LocalDateTime endDatetime;
 
-    @Column(name = "purpose")
+    @jakarta.validation.constraints.Size(max = 255, message = "Mục đích sử dụng không được quá 255 ký tự")
+    @Column(name = "purpose", length = 255)
     private String purpose;
 
     @Column(name = "status", nullable = false)

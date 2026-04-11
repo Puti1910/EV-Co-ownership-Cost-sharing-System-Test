@@ -121,7 +121,7 @@ public class BookingService {
         r.setUserId(userId);
         r.setStartDatetime(start);
         r.setEndDatetime(end);
-        r.setPurpose(purpose);
+        r.setPurpose(purpose != null ? purpose.trim() : null);
         r.setStatus(Reservation.Status.BOOKED);
         
         System.out.println("💾 Saving reservation: vehicleId=" + vehicleId + ", userId=" + userId + 

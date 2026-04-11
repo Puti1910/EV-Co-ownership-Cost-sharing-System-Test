@@ -26,6 +26,7 @@ public class Reservation {
     @Column(name = "end_datetime")
     private LocalDateTime endDatetime;
     
+    @Column(name = "purpose", length = 255)
     private String purpose;
 
     @Enumerated(EnumType.STRING)

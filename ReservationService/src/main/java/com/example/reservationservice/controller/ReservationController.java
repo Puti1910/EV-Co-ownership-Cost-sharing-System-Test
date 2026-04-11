@@ -7,12 +7,16 @@ import com.example.reservationservice.service.BookingService;
 import com.example.reservationservice.service.GroupManagementApiService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.slf4j.Logger;
@@ -212,7 +216,7 @@ public class ReservationController {
 
     @PostMapping("/reservations")
     public ResponseEntity<?> create(
-            @RequestBody(required = false) ReservationRequest request,
+            @Valid @RequestBody ReservationRequest request,
             @RequestHeader(value = "X-User-Id", required = false) String headerUserId,
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestParam(value = "userId", required = false) String paramUserId) {
@@ -280,22 +284,75 @@ public class ReservationController {
                 ));
             }
             
-            logger.info("Creating reservation: vehicleId={}, userId={}, start={}, end={}", 
+            logger.info("Creating reservation: vehicleId={}, userId={}, start={}, end={}",
                 vehicleId, userId, request.getStartDatetime(), request.getEndDatetime());
-            
-            // Lấy token từ Authorization header
-            String token = authHeader != null ? authHeader : null;
-            
+
+            // ── Validate purpose length (RS_BVA_31) ─────────────────────────
+            if (request.getPurpose() != null && request.getPurpose().length() > 255) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Validation failed",
+                    "message", "purpose must not exceed 255 characters"
+                ));
+            }
+
+            // ── Validate status enum (RS_BVA_33, RS_BVA_34) ─────────────────
+            String statusVal = request.getStatus();
+            if (statusVal != null && !statusVal.isEmpty()) {
+                java.util.Set<String> validStatuses = java.util.Set.of("BOOKED", "IN_USE", "COMPLETED", "CANCELLED");
+                if (!validStatuses.contains(statusVal)) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Validation failed",
+                        "message", "status must be one of: BOOKED, IN_USE, COMPLETED, CANCELLED"
+                    ));
+                }
+            }
+
+
+            // ── Validate datetime ────────────────────────────────────────────
+            LocalDateTime start = request.getStartDatetime();
+            LocalDateTime end   = request.getEndDatetime();
+
+            if (start == null || end == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Validation failed",
+                    "message", "startDatetime và endDatetime là bắt buộc"
+                ));
+            }
+            // Giới hạn năm tối đa = 2050 (RS_BVA_19)
+            if (start.getYear() > 2050 || end.getYear() > 2050) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Validation failed",
+                    "message", "startDatetime và endDatetime không được vượt quá năm 2050"
+                ));
+            }
+            // end phải sau start (RS_BVA_20, RS_BVA_21)
+            if (!end.isAfter(start)) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Validation failed",
+                    "message", "endDatetime phải sau startDatetime"
+                ));
+            }
+            // ─────────────────────────────────────────────────────────────────
+
+            String token = authHeader;
+
             Reservation reservation = bookingService.create(
                     vehicleId,
                     userId,
-                request.getStartDatetime(),
-                request.getEndDatetime(),
-                request.getPurpose(),
-                token
-        );
+                    start,
+                    end,
+                    request.getPurpose(),
+                    token
+            );
             
-            return ResponseEntity.ok(reservation);
+            return ResponseEntity.status(HttpStatus.CREATED).body(reservation);
+        } catch (IllegalArgumentException e) {
+            // Lỗi nghiệp vụ từ service (vehicle không tồn tại, vehicleId quá lớn, v.v.) → 400
+            logger.warn("Bad request creating reservation: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Bad request",
+                "message", e.getMessage()
+            ));
         } catch (IllegalStateException e) {
             // Lỗi overlap
             String errorMsg = e.getMessage();
@@ -546,5 +603,16 @@ public class ReservationController {
         } catch (NumberFormatException ex) {
             return null;
         }
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationErrors(MethodArgumentNotValidException e) {
+        String msg = e.getBindingResult().getFieldErrors().stream()
+                .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                .collect(java.util.stream.Collectors.joining(", "));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "error", "Validation failed",
+                "message", msg
+        ));
     }
 }

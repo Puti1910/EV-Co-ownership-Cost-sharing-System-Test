@@ -39,7 +39,7 @@ public class ReservationProxyController {
     }
     
     @PostMapping
-    public ResponseEntity<ReservationDTO> createReservation(@RequestBody ReservationDTO dto) {
+    public ResponseEntity<ReservationDTO> createReservation(@jakarta.validation.Valid @RequestBody ReservationDTO dto) {
         try {
             ReservationDTO created = service.createReservation(dto);
             return ResponseEntity.ok(created);

@@ -1,6 +1,8 @@
 package com.example.groupmanagement.controller;
 
+import com.example.groupmanagement.dto.CreateGroupRequestDto;
 import com.example.groupmanagement.dto.GroupResponseDto;
+import jakarta.validation.Valid;
 import com.example.groupmanagement.entity.ContractSignature;
 import com.example.groupmanagement.entity.Group;
 import com.example.groupmanagement.entity.GroupContract;
@@ -118,76 +120,31 @@ public class GroupManagementController {
         return group.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<?> createGroup(@RequestBody Map<String, Object> requestData) {
+@PostMapping
+    public ResponseEntity<?> createGroup(@Valid @RequestBody CreateGroupRequestDto requestDto) {
         try {
-            logger.info("🔵 [CREATE GROUP] Received request: {}", requestData);
+            logger.info("🔵 [CREATE GROUP] Received request: {}", requestDto);
             
-            // Extract Group data from request
+            // Extract Group data from request DTO
             Group group = new Group();
-            if (requestData.containsKey("groupName")) {
-                group.setGroupName((String) requestData.get("groupName"));
-            } else {
-                logger.error("❌ [CREATE GROUP] groupName is required but not provided");
-                return ResponseEntity.badRequest().body(Map.of("error", "groupName is required"));
-            }
+            group.setGroupName(requestDto.getGroupName());
             
             // Admin ID is now optional, if not provided, it will be null
-            if (requestData.containsKey("adminId")) {
-                Object adminIdObj = requestData.get("adminId");
-                if (adminIdObj != null) {
-                    if (adminIdObj instanceof Number) {
-                        group.setAdminId(((Number) adminIdObj).intValue());
-                    } else if (adminIdObj instanceof String && !((String) adminIdObj).isEmpty()) {
-                        try {
-                            group.setAdminId(Integer.parseInt((String) adminIdObj));
-                        } catch (NumberFormatException e) {
-                            logger.warn("Invalid adminId format: {}", adminIdObj);
-                            group.setAdminId(null); // Set to null if invalid format
-                        }
-                    }
-                } else {
-                    group.setAdminId(null);
-                }
-            } else {
-                group.setAdminId(null); // Default to null if not present
-            }
+            group.setAdminId(requestDto.getAdminId());
             
-            logger.info("🔵 [CREATE GROUP] Group data prepared: groupName={}, adminId={}", group.getGroupName(), group.getAdminId());
+            group.setVehicleId(requestDto.getVehicleId());
             
-            if (requestData.containsKey("vehicleId")) {
-                Object vehicleIdObj = requestData.get("vehicleId");
-                if (vehicleIdObj != null) {
-                    Integer vehicleIdInt = null;
-                    if (vehicleIdObj instanceof Number) {
-                        vehicleIdInt = ((Number) vehicleIdObj).intValue();
-                    } else if (vehicleIdObj instanceof String) {
-                        try {
-                            vehicleIdInt = Integer.parseInt((String) vehicleIdObj);
-                        } catch (NumberFormatException e) {
-                            logger.warn("Invalid vehicleId format: {}", vehicleIdObj);
-                            vehicleIdInt = null;
-                        }
-                    }
-                    group.setVehicleId(vehicleIdInt);
-                }
-            }
-            if (requestData.containsKey("status")) {
-                String statusStr = (String) requestData.get("status");
-                group.setStatus("Active".equalsIgnoreCase(statusStr) ? Group.GroupStatus.Active : Group.GroupStatus.Inactive);
+            if (requestDto.getStatus() != null) {
+                group.setStatus("Active".equalsIgnoreCase(requestDto.getStatus()) ? Group.GroupStatus.Active : Group.GroupStatus.Inactive);
             } else {
-                // Default to Active if status is not provided
                 group.setStatus(Group.GroupStatus.Active);
             }
             
-            // Extract ownershipPercent for admin (optional)
-            Double adminOwnershipPercent = null;
-            if (requestData.containsKey("ownershipPercent")) {
-                Object ownershipObj = requestData.get("ownershipPercent");
-                if (ownershipObj != null) {
-                    adminOwnershipPercent = ((Number) ownershipObj).doubleValue();
-                }
-            }
+            Double adminOwnershipPercent = requestDto.getOwnershipPercent();
+            
+            logger.info("🔵 [CREATE GROUP] Group data prepared: groupName={}, adminId={}", group.getGroupName(), group.getAdminId());
+            
+
 
             if (group.getAdminId() != null) {
                 String validationError = validateOwnershipPercent(adminOwnershipPercent);

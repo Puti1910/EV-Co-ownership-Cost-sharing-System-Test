@@ -48,7 +48,15 @@ public class ReservationCheckpointService {
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found"));
 
         String typeValue = request.getType() != null ? request.getType() : "CHECK_IN";
-        CheckpointType type = CheckpointType.valueOf(typeValue.toUpperCase());
+        if (typeValue.isBlank()) {
+            throw new IllegalArgumentException("type không được để trống. Giá trị hợp lệ: CHECK_IN, CHECK_OUT");
+        }
+        CheckpointType type;
+        try {
+            type = CheckpointType.valueOf(typeValue);  // Strict: không auto-uppercase → check_in sẽ bị reject
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("type không hợp lệ: '" + typeValue + "'. Giá trị hợp lệ: CHECK_IN, CHECK_OUT");
+        }
 
         if (type == CheckpointType.CHECK_IN && !isWithinReservationWindow(reservation)) {
             System.out.println("⚠️ Check-in requested ngoài khoảng thời gian đặt. Vẫn cho phép phát QR cho mục đích thử nghiệm.");

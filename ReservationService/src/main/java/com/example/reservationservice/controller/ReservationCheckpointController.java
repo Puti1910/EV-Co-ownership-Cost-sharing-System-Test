@@ -5,6 +5,7 @@ import com.example.reservationservice.dto.CheckpointIssueRequest;
 import com.example.reservationservice.dto.CheckpointScanRequest;
 import com.example.reservationservice.dto.CheckpointSignRequest;
 import com.example.reservationservice.service.ReservationCheckpointService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class ReservationCheckpointController {
 
     @PostMapping("/{reservationId}/checkpoints")
     public CheckpointDTO issue(@PathVariable Long reservationId,
-                               @RequestBody CheckpointIssueRequest request) {
+                               @Valid @RequestBody CheckpointIssueRequest request) {
         return checkpointService.issueCheckpoint(reservationId, request);
     }
 

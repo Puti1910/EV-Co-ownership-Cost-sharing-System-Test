@@ -90,10 +90,12 @@ public class ReservationAdminController {
     // 📍 4️⃣ Xóa lịch đặt xe
     // =====================================================
     @DeleteMapping("/{id}")
-    public Map<String, Object> deleteReservation(@PathVariable Long id) {
-        if (!reservationRepo.existsById(id))
-            return Map.of("error", "Không tìm thấy lịch cần xóa");
+    public org.springframework.http.ResponseEntity<Map<String, Object>> deleteReservation(@PathVariable Long id) {
+        if (!reservationRepo.existsById(id)) {
+            return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "Không tìm thấy lịch cần xóa"));
+        }
         reservationRepo.deleteById(id);
-        return Map.of("message", "Đã xóa lịch có ID " + id);
+        return org.springframework.http.ResponseEntity.ok(Map.of("message", "Đã xóa lịch có ID " + id));
     }
 }

@@ -534,18 +534,32 @@ public class ReservationController {
      * Xóa reservation
      */
     @DeleteMapping("/reservations/{id}")
-    public void deleteReservation(@PathVariable Long id) {
-        Reservation reservation = reservationRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
-        
-        reservationRepo.delete(reservation);
-        
-        // Xóa từ admin database
+    public ResponseEntity<?> deleteReservation(@PathVariable Long id) {
         try {
-            String url = adminServiceUrl + "/api/admin/reservations/" + id;
-            restTemplate.exchange(url, HttpMethod.DELETE, null, Void.class);
+            Reservation reservation = reservationRepo.findById(id).orElse(null);
+            if (reservation == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                        "error", "Not Found",
+                        "message", "Reservation not found: " + id
+                ));
+            }
+            
+            reservationRepo.delete(reservation);
+            
+            // Xóa từ admin database
+            try {
+                String url = adminServiceUrl + "/api/admin/reservations/" + id;
+                restTemplate.exchange(url, HttpMethod.DELETE, null, Void.class);
+            } catch (Exception e) {
+                System.err.println("⚠️ Không thể xóa từ admin: " + e.getMessage());
+            }
+
+            return ResponseEntity.ok().body(Map.of("message", "Deleted reservation successfully"));
         } catch (Exception e) {
-            System.err.println("⚠️ Không thể xóa từ admin: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error", "Internal Server Error",
+                    "message", e.getMessage()
+            ));
         }
     }
     

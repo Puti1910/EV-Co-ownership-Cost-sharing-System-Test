@@ -20,6 +20,8 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class PaymentController {
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PaymentController.class);
+
     @Autowired
     private PaymentServiceImpl paymentService;
 
@@ -41,7 +43,7 @@ public class PaymentController {
     public ResponseEntity<Payment> getPaymentById(@PathVariable Integer id) {
         Optional<Payment> payment = paymentService.getPaymentById(id);
         return payment.map(ResponseEntity::ok)
-                     .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -80,6 +82,17 @@ public class PaymentController {
      */
     @GetMapping("/cost/{costId}")
     public ResponseEntity<List<Payment>> getPaymentsByCostId(@PathVariable Integer costId) {
+        logger.info("=== getPaymentsByCostId() called with costId: {} ===", costId);
+        // BVA Validation: costId (min = 1, max = 1000000)
+        if (costId == null || costId <= 0) {
+            logger.warn("Invalid costId: {}. Must be a positive integer.", costId);
+            return ResponseEntity.badRequest().build(); // 400
+        }
+        if (costId > 1000000) {
+            logger.warn("Invalid costId: {}. Exceeds maximum limit.", costId);
+            return ResponseEntity.notFound().build(); // 404
+        }
+        
         List<Payment> payments = paymentService.getPaymentsByCostId(costId);
         return ResponseEntity.ok(payments);
     }
@@ -108,15 +121,15 @@ public class PaymentController {
     public ResponseEntity<Payment> updatePaymentStatus(
             @PathVariable Integer id,
             @RequestBody Map<String, String> request) {
-        
+
         String status = request.get("status");
         if (status == null || status.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
-        
+
         Optional<Payment> updatedPayment = paymentService.updatePaymentStatus(id, status);
         return updatedPayment.map(ResponseEntity::ok)
-                            .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -127,28 +140,25 @@ public class PaymentController {
     public ResponseEntity<Map<String, Object>> processPayment(@PathVariable Integer id) {
         try {
             Optional<Payment> paymentOpt = paymentService.updatePaymentStatus(id, "PAID");
-            
+
             if (paymentOpt.isPresent()) {
                 Payment payment = paymentOpt.get();
                 return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "Thanh toán thành công",
-                    "payment", payment,
-                    "transactionCode", payment.getTransactionCode()
-                ));
+                        "success", true,
+                        "message", "Thanh toán thành công",
+                        "payment", payment,
+                        "transactionCode", payment.getTransactionCode()));
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                    "success", false,
-                    "message", "Không tìm thấy thanh toán"
-                ));
+                        "success", false,
+                        "message", "Không tìm thấy thanh toán"));
             }
         } catch (Exception e) {
             System.err.println("Error processing payment: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "success", false,
-                "message", "Lỗi khi xử lý thanh toán: " + e.getMessage()
-            ));
+                    "success", false,
+                    "message", "Lỗi khi xử lý thanh toán: " + e.getMessage()));
         }
     }
 
@@ -164,20 +174,19 @@ public class PaymentController {
         try {
             // Get payment
             Optional<Payment> paymentOpt = paymentService.getPaymentById(id);
-            
+
             if (!paymentOpt.isPresent()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                    "success", false,
-                    "message", "Không tìm thấy thanh toán"
-                ));
+                        "success", false,
+                        "message", "Không tìm thấy thanh toán"));
             }
-            
+
             Payment payment = paymentOpt.get();
-            
+
             // Update payment information
             String method = (String) request.get("method");
             String transactionCode = (String) request.get("transactionCode");
-            
+
             if (method != null) {
                 try {
                     payment.setMethod(Payment.Method.valueOf(method));
@@ -186,32 +195,30 @@ public class PaymentController {
                     System.out.println("Invalid payment method: " + method);
                 }
             }
-            
+
             if (transactionCode != null) {
                 payment.setTransactionCode(transactionCode);
             }
-            
+
             // Mark as PAID
             payment.setStatus(PaymentStatus.PAID);
             payment.setPaymentDate(java.time.LocalDateTime.now());
-            
+
             // Save payment
             Payment updatedPayment = paymentService.createPayment(payment);
-            
+
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Xác nhận thanh toán thành công",
-                "payment", updatedPayment,
-                "transactionCode", updatedPayment.getTransactionCode()
-            ));
-            
+                    "success", true,
+                    "message", "Xác nhận thanh toán thành công",
+                    "payment", updatedPayment,
+                    "transactionCode", updatedPayment.getTransactionCode()));
+
         } catch (Exception e) {
             System.err.println("Error confirming payment: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "success", false,
-                "message", "Lỗi khi xác nhận thanh toán: " + e.getMessage()
-            ));
+                    "success", false,
+                    "message", "Lỗi khi xác nhận thanh toán: " + e.getMessage()));
         }
     }
 
@@ -227,38 +234,36 @@ public class PaymentController {
             @RequestParam(required = false) String endDate,
             @RequestParam(required = false) String search) {
         try {
-            List<Map<String, Object>> payments = paymentService.getPaymentsWithFilters(status, startDate, endDate, search);
-            
+            List<Map<String, Object>> payments = paymentService.getPaymentsWithFilters(status, startDate, endDate,
+                    search);
+
             // Calculate statistics
             java.math.BigDecimal totalAmount = payments.stream()
-                .map(p -> new java.math.BigDecimal(p.get("amount").toString()))
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
-            
+                    .map(p -> new java.math.BigDecimal(p.get("amount").toString()))
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
             long paidCount = payments.stream()
-                .filter(p -> "PAID".equals(p.get("status")))
-                .count();
-            
+                    .filter(p -> "PAID".equals(p.get("status")))
+                    .count();
+
             long pendingCount = payments.stream()
-                .filter(p -> "PENDING".equals(p.get("status")))
-                .count();
-            
+                    .filter(p -> "PENDING".equals(p.get("status")))
+                    .count();
+
             return ResponseEntity.ok(Map.of(
-                "payments", payments,
-                "statistics", Map.of(
-                    "total", payments.size(),
-                    "totalAmount", totalAmount,
-                    "paidCount", paidCount,
-                    "pendingCount", pendingCount
-                )
-            ));
+                    "payments", payments,
+                    "statistics", Map.of(
+                            "total", payments.size(),
+                            "totalAmount", totalAmount,
+                            "paidCount", paidCount,
+                            "pendingCount", pendingCount)));
         } catch (Exception e) {
             System.err.println("Error fetching payments for tracking: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "payments", List.of(),
-                "statistics", Map.of("total", 0, "totalAmount", 0.0, "paidCount", 0, "pendingCount", 0),
-                "error", e.getMessage()
-            ));
+                    "payments", List.of(),
+                    "statistics", Map.of("total", 0, "totalAmount", 0.0, "paidCount", 0, "pendingCount", 0),
+                    "error", e.getMessage()));
         }
     }
 
@@ -268,22 +273,31 @@ public class PaymentController {
      */
     @GetMapping("/{id}/details")
     public ResponseEntity<Map<String, Object>> getPaymentDetails(@PathVariable Integer id) {
+        logger.info("=== getPaymentDetails() called with id: {} ===", id);
+        // BVA Validation: id (min = 1, max = 1000000)
+        if (id == null || id <= 0) {
+            logger.warn("Invalid id: {}. Must be a positive integer.", id);
+            return ResponseEntity.badRequest().body(Map.<String, Object>of("error", "Invalid id"));
+        }
+        if (id > 1000000) {
+            logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.<String, Object>of("error", "Id exceeds limits"));
+        }
+        
         try {
             Map<String, Object> details = paymentService.getPaymentDetails(id);
-            
+
             if (details != null) {
                 return ResponseEntity.ok(details);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                    "error", "Không tìm thấy thanh toán"
-                ));
+                        "error", "Không tìm thấy thanh toán"));
             }
         } catch (Exception e) {
             System.err.println("Error fetching payment details: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "error", "Lỗi khi lấy chi tiết thanh toán: " + e.getMessage()
-            ));
+                    "error", "Lỗi khi lấy chi tiết thanh toán: " + e.getMessage()));
         }
     }
 
@@ -295,41 +309,49 @@ public class PaymentController {
     public ResponseEntity<Map<String, Object>> adminConfirmPayment(
             @PathVariable Integer id,
             @RequestBody(required = false) Map<String, String> request) {
+        logger.info("=== adminConfirmPayment() called with id: {} ===", id);
+        // BVA Validation: id (min = 1, max = 1000000)
+        if (id == null || id <= 0) {
+            logger.warn("Invalid id: {}. Must be a positive integer.", id);
+            return ResponseEntity.badRequest().body(Map.<String, Object>of("success", false, "message", "Invalid id"));
+        }
+        if (id > 1000000) {
+            logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.<String, Object>of("success", false, "message", "Id exceeds limits"));
+        }
+        
         try {
             Optional<Payment> paymentOpt = paymentService.getPaymentById(id);
-            
+
             if (!paymentOpt.isPresent()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                    "success", false,
-                    "message", "Không tìm thấy thanh toán"
-                ));
+                        "success", false,
+                        "message", "Không tìm thấy thanh toán"));
             }
-            
+
             Payment payment = paymentOpt.get();
-            
+
             // Add note if provided
             String note = request != null ? request.get("note") : null;
-            
+
             // Mark as PAID
             payment.setStatus(PaymentStatus.PAID);
             payment.setPaymentDate(java.time.LocalDateTime.now());
-            
+
             // Save payment
             Payment updatedPayment = paymentService.createPayment(payment);
-            
+
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Đã xác nhận thanh toán thành công",
-                "payment", updatedPayment
-            ));
-            
+                    "success", true,
+                    "message", "Đã xác nhận thanh toán thành công",
+                    "payment", updatedPayment));
+
         } catch (Exception e) {
             System.err.println("Error in admin confirm payment: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "success", false,
-                "message", "Lỗi khi xác nhận thanh toán: " + e.getMessage()
-            ));
+                    "success", false,
+                    "message", "Lỗi khi xác nhận thanh toán: " + e.getMessage()));
         }
     }
 
@@ -339,33 +361,41 @@ public class PaymentController {
      */
     @PostMapping("/{id}/remind")
     public ResponseEntity<Map<String, Object>> sendPaymentReminder(@PathVariable Integer id) {
+        logger.info("=== sendPaymentReminder() called with id: {} ===", id);
+        // BVA Validation: id (min = 1, max = 1000000)
+        if (id == null || id <= 0) {
+            logger.warn("Invalid id: {}. Must be a positive integer.", id);
+            return ResponseEntity.badRequest().body(Map.<String, Object>of("success", false, "message", "Invalid id"));
+        }
+        if (id > 1000000) {
+            logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.<String, Object>of("success", false, "message", "Id exceeds limits"));
+        }
+        
         try {
             Optional<Payment> paymentOpt = paymentService.getPaymentById(id);
-            
+
             if (!paymentOpt.isPresent()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                    "success", false,
-                    "message", "Không tìm thấy thanh toán"
-                ));
+                        "success", false,
+                        "message", "Không tìm thấy thanh toán"));
             }
-            
+
             Payment payment = paymentOpt.get();
-            
+
             // TODO: Implement actual notification/email sending
             // For now, just return success
-            
+
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Đã gửi nhắc nhở thanh toán tới user ID: " + payment.getUserId()
-            ));
-            
+                    "success", true,
+                    "message", "Đã gửi nhắc nhở thanh toán tới user ID: " + payment.getUserId()));
+
         } catch (Exception e) {
             System.err.println("Error sending reminder: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "success", false,
-                "message", "Lỗi khi gửi nhắc nhở: " + e.getMessage()
-            ));
+                    "success", false,
+                    "message", "Lỗi khi gửi nhắc nhở: " + e.getMessage()));
         }
     }
 
@@ -377,28 +407,39 @@ public class PaymentController {
     public ResponseEntity<?> updatePayment(
             @PathVariable Integer id,
             @RequestBody Map<String, Object> paymentDataMap) {
+        logger.info("=== updatePayment() called with id: {} ===", id);
+        // BVA Validation: id (min = 1, max = 1000000)
+        if (id == null || id <= 0) {
+            logger.warn("Invalid id: {}. Must be a positive integer.", id);
+            return ResponseEntity.badRequest().body(Map.<String, Object>of("error", "Invalid id"));
+        }
+        if (id > 1000000) {
+            logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.<String, Object>of("error", "Id exceeds limits"));
+        }
+        
         try {
             // Convert Map to Payment object with proper enum handling
             Payment paymentData = new Payment();
-            
+
             if (paymentDataMap.containsKey("userId")) {
                 paymentData.setUserId(((Number) paymentDataMap.get("userId")).intValue());
             }
-            
+
             if (paymentDataMap.containsKey("costId")) {
                 Object costIdObj = paymentDataMap.get("costId");
                 if (costIdObj != null) {
                     paymentData.setCostId(((Number) costIdObj).intValue());
                 }
             }
-            
+
             if (paymentDataMap.containsKey("amount")) {
                 Object amountObj = paymentDataMap.get("amount");
                 if (amountObj != null) {
                     paymentData.setAmount(new java.math.BigDecimal(amountObj.toString()));
                 }
             }
-            
+
             // Handle payment method with mapping
             if (paymentDataMap.containsKey("method")) {
                 String methodStr = (String) paymentDataMap.get("method");
@@ -406,9 +447,9 @@ public class PaymentController {
                     try {
                         // Map common variations to correct enum values
                         String normalizedMethod = methodStr.toUpperCase()
-                            .replace("_", "")
-                            .replace("-", "");
-                        
+                                .replace("_", "")
+                                .replace("-", "");
+
                         // Handle specific mappings for common variations
                         if (normalizedMethod.equals("BANKTRANSFER") || normalizedMethod.equals("BANKING")) {
                             paymentData.setMethod(Payment.Method.BANKING);
@@ -426,18 +467,18 @@ public class PaymentController {
                     }
                 }
             }
-            
+
             if (paymentDataMap.containsKey("transactionCode")) {
                 paymentData.setTransactionCode((String) paymentDataMap.get("transactionCode"));
             }
-            
+
             if (paymentDataMap.containsKey("status")) {
                 String statusStr = (String) paymentDataMap.get("status");
                 if (statusStr != null && !statusStr.isEmpty()) {
                     paymentData.setStatus(parsePaymentStatus(statusStr));
                 }
             }
-            
+
             if (paymentDataMap.containsKey("paymentDate")) {
                 String dateStr = (String) paymentDataMap.get("paymentDate");
                 if (dateStr != null && !dateStr.isEmpty()) {
@@ -454,20 +495,20 @@ public class PaymentController {
                     }
                 }
             }
-            
+
             Optional<Payment> updatedPayment = paymentService.updatePayment(id, paymentData);
-            
+
             if (updatedPayment.isPresent()) {
                 return ResponseEntity.ok(updatedPayment.get());
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Không tìm thấy thanh toán với ID: " + id);
+                        .body("Không tìm thấy thanh toán với ID: " + id);
             }
         } catch (Exception e) {
             System.err.println("Error updating payment: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Lỗi khi cập nhật thanh toán: " + e.getMessage());
+                    .body("Lỗi khi cập nhật thanh toán: " + e.getMessage());
         }
     }
 
@@ -477,27 +518,37 @@ public class PaymentController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePayment(@PathVariable Integer id) {
+        logger.info("=== deletePayment() called with id: {} ===", id);
+        // BVA Validation: id (min = 1, max = 1000000)
+        if (id == null || id <= 0) {
+            logger.warn("Invalid id: {}. Must be a positive integer.", id);
+            return ResponseEntity.badRequest().body(Map.<String, Object>of("error", "Invalid id"));
+        }
+        if (id > 1000000) {
+            logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.<String, Object>of("error", "Id exceeds limits"));
+        }
+        
         try {
             boolean deleted = paymentService.deletePayment(id);
-            
+
             if (deleted) {
                 return ResponseEntity.ok()
-                    .body(Map.of(
-                        "success", true,
-                        "message", "Xóa thanh toán thành công"
-                    ));
+                        .body(Map.of(
+                                "success", true,
+                                "message", "Xóa thanh toán thành công"));
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Không tìm thấy thanh toán với ID: " + id);
+                        .body("Không tìm thấy thanh toán với ID: " + id);
             }
         } catch (Exception e) {
             System.err.println("Error deleting payment: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Lỗi khi xóa thanh toán: " + e.getMessage());
+                    .body("Lỗi khi xóa thanh toán: " + e.getMessage());
         }
     }
-    
+
     /**
      * Parse payment status string to enum safely
      */
@@ -505,10 +556,10 @@ public class PaymentController {
         if (statusStr == null || statusStr.isEmpty()) {
             return PaymentStatus.PENDING;
         }
-        
+
         // Normalize: trim whitespace and convert to uppercase
         String normalized = statusStr.trim().toUpperCase();
-        
+
         // Map to enum values (database ENUM: 'PENDING','PAID','OVERDUE','CANCELLED')
         switch (normalized) {
             case "PENDING":
@@ -526,10 +577,10 @@ public class PaymentController {
                 try {
                     return PaymentStatus.valueOf(normalized);
                 } catch (IllegalArgumentException e) {
-                    System.err.println("Warning: Invalid payment status value: '" + statusStr + "'. Using PENDING as default.");
+                    System.err.println(
+                            "Warning: Invalid payment status value: '" + statusStr + "'. Using PENDING as default.");
                     return PaymentStatus.PENDING; // Default fallback
                 }
         }
     }
 }
-

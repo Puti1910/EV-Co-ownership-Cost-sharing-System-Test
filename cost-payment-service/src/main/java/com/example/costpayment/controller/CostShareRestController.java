@@ -52,6 +52,11 @@ public class CostShareRestController {
      */
     @GetMapping("/user/{userId}/pending")
     public ResponseEntity<List<CostShareDto>> getPendingCostSharesByUserId(@PathVariable Integer userId) {
+        // BVA Validation: userId phải là số nguyên dương
+        if (userId == null || userId <= 0) {
+            logger.warn("Invalid userId: {}. Must be a positive integer.", userId);
+            return ResponseEntity.badRequest().build();
+        }
         try {
             logger.info("Fetching pending cost shares for userId: {}", userId);
             
@@ -96,6 +101,12 @@ public class CostShareRestController {
     public ResponseEntity<Map<String, Object>> confirmPayment(
             @PathVariable Integer shareId,
             @RequestBody Map<String, Object> paymentInfo) {
+        // BVA Validation: shareId phải là số nguyên dương
+        if (shareId == null || shareId <= 0) {
+            logger.warn("Invalid shareId: {}. Must be a positive integer.", shareId);
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "shareId không hợp lệ. Phải là số nguyên dương (>= 1)."));
+        }
         try {
             logger.info("Processing payment confirmation for shareId: {}", shareId);
             logger.info("Payment info: {}", paymentInfo);
@@ -147,6 +158,11 @@ public class CostShareRestController {
      */
     @GetMapping("/user/{userId}/history")
     public ResponseEntity<List<CostShareDto>> getPaymentHistoryByUserId(@PathVariable Integer userId) {
+        // BVA Validation: userId phải là số nguyên dương
+        if (userId == null || userId <= 0) {
+            logger.warn("Invalid userId: {}. Must be a positive integer.", userId);
+            return ResponseEntity.badRequest().build();
+        }
         try {
             logger.info("Fetching payment history for userId: {}", userId);
             

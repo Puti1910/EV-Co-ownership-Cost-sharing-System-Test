@@ -9,19 +9,22 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.util.Objects;
 
-@Getter
-@Setter
-@NoArgsConstructor
 @Embeddable
 public class VehicleserviceId implements Serializable {
+    public Long getServiceId() { return serviceId; }
+    public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
+    public Long getVehicleId() { return vehicleId; }
+    public void setVehicleId(Long vehicleId) { this.vehicleId = vehicleId; }
 
-    @Column(name = "service_id", length = 20, nullable = false)
-    private String serviceId;
+    public VehicleserviceId() {}
 
-    @Column(name = "vehicle_id", length = 20, nullable = false)
-    private String vehicleId;
+    @Column(name = "service_id", nullable = false)
+    private Long serviceId;
 
-    public VehicleserviceId(String serviceId, String vehicleId) {
+    @Column(name = "vehicle_id", nullable = false)
+    private Long vehicleId;
+
+    public VehicleserviceId(Long serviceId, Long vehicleId) {
         this.serviceId = serviceId;
         this.vehicleId = vehicleId;
     }

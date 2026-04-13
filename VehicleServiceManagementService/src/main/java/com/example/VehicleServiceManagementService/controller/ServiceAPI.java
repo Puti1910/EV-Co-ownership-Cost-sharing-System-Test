@@ -5,6 +5,7 @@ import com.example.VehicleServiceManagementService.service.ServiceService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -72,7 +73,7 @@ public class ServiceAPI {
      * @return ResponseEntity với ServiceType hoặc thông báo lỗi
      */
     @GetMapping("/{serviceId}")
-    public ResponseEntity<?> getServiceById(@PathVariable String serviceId) {
+    public ResponseEntity<?> getServiceById(@PathVariable @Min(1) Long serviceId) {
         try {
             ServiceType service = serviceService.getServiceById(serviceId);
             if (service != null) {
@@ -105,9 +106,8 @@ public class ServiceAPI {
                         .body(createErrorResponse("Tên dịch vụ không được để trống"));
             }
 
-            // Nếu serviceId không được cung cấp, sẽ tự động generate
             // Nếu có serviceId, kiểm tra đã tồn tại chưa
-            if (service.getServiceId() != null && !service.getServiceId().trim().isEmpty()) {
+            if (service.getServiceId() != null) {
                 if (serviceService.existsById(service.getServiceId())) {
                     return ResponseEntity.status(HttpStatus.CONFLICT)
                             .body(createErrorResponse("Service ID '" + service.getServiceId() + "' đã tồn tại"));
@@ -140,7 +140,7 @@ public class ServiceAPI {
      * @return ResponseEntity với ServiceType đã được cập nhật hoặc thông báo lỗi
      */
     @PutMapping("/{serviceId}")
-    public ResponseEntity<?> updateService(@PathVariable String serviceId, @Valid @RequestBody ServiceType service, BindingResult bindingResult) {
+    public ResponseEntity<?> updateService(@PathVariable Long serviceId, @Valid @RequestBody ServiceType service, BindingResult bindingResult) {
         try {
             // Validation
             if (bindingResult.hasErrors()) {
@@ -174,7 +174,7 @@ public class ServiceAPI {
      * @return ResponseEntity với thông báo kết quả
      */
     @DeleteMapping("/{serviceId}")
-    public ResponseEntity<?> deleteService(@PathVariable String serviceId) {
+    public ResponseEntity<?> deleteService(@PathVariable Long serviceId) {
         try {
             boolean deleted = serviceService.deleteService(serviceId);
             if (deleted) {
@@ -204,7 +204,7 @@ public class ServiceAPI {
      * @return ResponseEntity với kết quả kiểm tra
      */
     @GetMapping("/{serviceId}/exists")
-    public ResponseEntity<?> checkServiceExists(@PathVariable String serviceId) {
+    public ResponseEntity<?> checkServiceExists(@PathVariable @Min(1) Long serviceId) {
         try {
             boolean exists = serviceService.existsById(serviceId);
             Map<String, Object> response = new HashMap<>();
@@ -238,8 +238,16 @@ public class ServiceAPI {
      * @param serviceType Loại dịch vụ
      * @return ResponseEntity với danh sách dịch vụ
      */
-    @GetMapping("/type/{serviceType}")
-    public ResponseEntity<?> getServicesByType(@PathVariable String serviceType) {
+    @GetMapping({"/type/{serviceType}", "/type", "/type/"})
+    public ResponseEntity<?> getServicesByType(@PathVariable(required = false) String serviceType) {
+        if (serviceType == null || serviceType.trim().isEmpty() || serviceType.equals(":serviceType")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(createErrorResponse("serviceType không được để trống"));
+        }
+        if (serviceType.length() >= 50) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(createErrorResponse("serviceType không được quá 50 ký tự"));
+        }
         try {
             List<ServiceType> services = serviceService.getServicesByType(serviceType);
             return ResponseEntity.ok(services);
@@ -275,9 +283,9 @@ public class ServiceAPI {
     public ResponseEntity<?> getNextServiceId(
             @RequestParam(required = false, defaultValue = "SRV") @Size(min = 2, max = 5) String prefix) {
         try {
-            String nextId = serviceService.generateNextServiceId();
             Map<String, Object> response = new HashMap<>();
-            response.put("nextServiceId", nextId);
+            response.put("message", "Service ID is now automatically generated (Auto-Increment)");
+            response.put("prefix_ignored", prefix);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

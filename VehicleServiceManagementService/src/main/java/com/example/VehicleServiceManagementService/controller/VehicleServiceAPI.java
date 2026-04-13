@@ -1,5 +1,7 @@
 package com.example.VehicleServiceManagementService.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.VehicleServiceManagementService.dto.MaintenanceBookingRequest;
 import com.example.VehicleServiceManagementService.model.ServiceType;
 import com.example.VehicleServiceManagementService.model.Vehicle;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*")
 @Validated
 public class VehicleServiceAPI {
+    private static final Logger log = LoggerFactory.getLogger(VehicleServiceAPI.class);
 
     @Autowired
     private VehicleServiceRepository vehicleServiceRepository;
@@ -89,8 +92,8 @@ public class VehicleServiceAPI {
      */
     @GetMapping("/service/{serviceId}/vehicle/{vehicleId}")
     public ResponseEntity<?> getVehicleServiceByServiceAndVehicle(
-            @PathVariable String serviceId,
-            @PathVariable String vehicleId) {
+            @PathVariable @Min(1) Long serviceId,
+            @PathVariable @Min(1) Long vehicleId) {
         try {
             Optional<Vehicleservice> serviceOpt = vehicleServiceRepository.findByIdServiceIdAndIdVehicleId(serviceId, vehicleId);
             if (serviceOpt.isPresent()) {
@@ -109,9 +112,15 @@ public class VehicleServiceAPI {
      * Lấy danh sách dịch vụ của một xe
      */
     @GetMapping("/vehicle/{vehicleId}")
-    public ResponseEntity<List<Map<String, Object>>> getVehicleServicesByVehicleId(@PathVariable String vehicleId) {
+    public ResponseEntity<List<Map<String, Object>>> getVehicleServicesByVehicleId(@PathVariable @Min(1) Long vehicleId) {
         try {
             System.out.println("🔵 [GET] /api/vehicleservices/vehicle/" + vehicleId);
+            
+            // Kiểm tra tồn tại của vehicle
+            if (!vehicleServiceService.existsVehicleById(vehicleId)) {
+                 System.err.println("❌ Không tìm thấy xe với ID: " + vehicleId);
+                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ArrayList<>());
+            }
             
             List<Map<String, Object>> result = vehicleServiceRepository.findByVehicle_VehicleId(vehicleId).stream()
                     .map(this::convertToMap)
@@ -139,16 +148,16 @@ public class VehicleServiceAPI {
         
         try {
             // Validation
-            String serviceId = (String) requestData.get("serviceId");
-            if (serviceId == null || serviceId.trim().isEmpty()) {
+            Long serviceId = toLong(requestData.get("serviceId"));
+            if (serviceId == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("serviceId là bắt buộc");
+                        .body("serviceId là bắt buộc và phải là số");
             }
 
-            String vehicleId = (String) requestData.get("vehicleId");
-            if (vehicleId == null || vehicleId.trim().isEmpty()) {
+            Long vehicleId = toLong(requestData.get("vehicleId"));
+            if (vehicleId == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("vehicleId là bắt buộc");
+                        .body("vehicleId là bắt buộc và phải là số");
             }
 
             // Validate và lấy service, vehicle
@@ -185,8 +194,8 @@ public class VehicleServiceAPI {
             String serviceDescription = (String) requestData.get("serviceDescription");
             String status = (String) requestData.get("status");
             
-            Integer groupRefId = toInteger(requestData.getOrDefault("groupRefId", requestData.get("groupId")));
-            Integer requestedByUserId = toInteger(requestData.getOrDefault("requestedByUserId", requestData.get("userId")));
+            Long groupRefId = toLong(requestData.getOrDefault("groupRefId", requestData.get("groupId")));
+            Long requestedByUserId = toLong(requestData.getOrDefault("requestedByUserId", requestData.get("userId")));
             String requestedByName = toStringValue(requestData.getOrDefault("requestedByUserName", requestData.get("requestedByName")));
             LocalDateTime preferredStart = parseDateTime(requestData.get("preferredStartDatetime"));
             LocalDateTime preferredEnd = parseDateTime(requestData.get("preferredEndDatetime"));
@@ -241,17 +250,30 @@ public class VehicleServiceAPI {
      * Danh sách nhóm/xe người dùng có thể đặt bảo dưỡng
      */
     @GetMapping("/maintenance/options")
-    public ResponseEntity<?> getMaintenanceOptions(@RequestParam Integer userId) {
+    public ResponseEntity<?> getMaintenanceOptions(@RequestParam @Min(1) Long userId) {
+        if (userId == null || userId < 1) {
+             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                    "success", false,
+                    "message", "userId không hợp lệ"
+            ));
+        }
         try {
             List<Map<String, Object>> options = maintenanceBookingService.getUserMaintenanceOptions(userId);
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "options", options
             ));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
                     "success", false,
                     "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            log.error("Lỗi khi lấy danh sách tùy chọn bảo dưỡng cho user {}", userId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "Đã xảy ra lỗi hệ thống khi kết nối với dịch vụ quản lý nhóm",
+                    "error", e.getMessage()
             ));
         }
     }
@@ -296,8 +318,8 @@ public class VehicleServiceAPI {
      */
     @PutMapping("/service/{serviceId}/vehicle/{vehicleId}")
     public ResponseEntity<?> updateVehicleService(
-            @PathVariable String serviceId,
-            @PathVariable String vehicleId,
+            @PathVariable @Min(1) Long serviceId,
+            @PathVariable @Min(1) Long vehicleId,
             @RequestBody Map<String, Object> requestData) {
         try {
             Optional<Vehicleservice> serviceOpt = vehicleServiceRepository.findByIdServiceIdAndIdVehicleId(serviceId, vehicleId);
@@ -333,7 +355,7 @@ public class VehicleServiceAPI {
                 }
                 
                 // Đồng bộ trạng thái vehicle sau khi cập nhật status của vehicleservice
-                String vehicleIdFromEntity = service.getVehicleId();
+                Long vehicleIdFromEntity = service.getVehicleId();
                 if (vehicleIdFromEntity != null && (oldStatus == null || !oldStatus.equalsIgnoreCase(newStatus))) {
                     try {
                         System.out.println("🔄 [UPDATE STATUS] Đồng bộ vehicle status sau khi cập nhật vehicleservice status");
@@ -370,8 +392,8 @@ public class VehicleServiceAPI {
      */
     @DeleteMapping("/service/{serviceId}/vehicle/{vehicleId}")
     public ResponseEntity<?> deleteVehicleServiceByServiceAndVehicle(
-            @PathVariable String serviceId,
-            @PathVariable String vehicleId) {
+            @PathVariable @Min(1) Long serviceId,
+            @PathVariable @Min(1) Long vehicleId) {
         try {
             long count = vehicleServiceRepository.countByIdServiceIdAndIdVehicleId(serviceId, vehicleId);
             if (count > 0) {
@@ -412,7 +434,7 @@ public class VehicleServiceAPI {
          * @return Response với kết quả đồng bộ
          */
         @PostMapping("/sync-vehicle-status/{vehicleId}")
-        public ResponseEntity<?> syncVehicleStatus(@PathVariable String vehicleId) {
+        public ResponseEntity<?> syncVehicleStatus(@PathVariable Long vehicleId) {
             try {
                 System.out.println("🔄 [API] Đồng bộ trạng thái vehicle: " + vehicleId);
                 vehicleServiceService.syncVehicleStatus(vehicleId);
@@ -491,6 +513,22 @@ public class VehicleServiceAPI {
             
             return map;
         }
+
+    private Long toLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        if (value instanceof String str && !str.isBlank()) {
+            try {
+                return Long.parseLong(str.trim());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return null;
+    }
 
     private Integer toInteger(Object value) {
         if (value == null) {

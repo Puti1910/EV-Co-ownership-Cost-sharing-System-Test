@@ -12,7 +12,8 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -20,8 +21,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@Slf4j
 public class VehicleServiceService {
+    private static final Logger log = LoggerFactory.getLogger(VehicleServiceService.class);
 
     @Autowired
     private VehicleServiceRepository vehicleServiceRepository;
@@ -45,8 +46,8 @@ public class VehicleServiceService {
         log.info("🔒 [SAVE] Bắt đầu save Vehicleservice vào database trong transaction...");
         
         try {
-            String serviceId = vehicleService.getServiceId();
-            String vehicleId = vehicleService.getVehicleId();
+            Long serviceId = vehicleService.getServiceId();
+            Long vehicleId = vehicleService.getVehicleId();
             
             log.info("🔒 [SAVE] Saving entity - serviceId: {}, vehicleId: {}", serviceId, vehicleId);
             
@@ -162,7 +163,7 @@ public class VehicleServiceService {
     /**
      * Kiểm tra service và vehicle tồn tại
      */
-    public ServiceType validateAndGetService(String serviceId) {
+    public ServiceType validateAndGetService(Long serviceId) {
         Optional<ServiceType> serviceOpt = serviceRepository.findById(serviceId);
         if (serviceOpt.isEmpty()) {
             throw new IllegalArgumentException("Không tìm thấy dịch vụ với ID: " + serviceId);
@@ -173,12 +174,22 @@ public class VehicleServiceService {
     /**
      * Kiểm tra vehicle tồn tại
      */
-    public Vehicle validateAndGetVehicle(String vehicleId) {
+    public Vehicle validateAndGetVehicle(Long vehicleId) {
         Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
         if (vehicleOpt.isEmpty()) {
             throw new IllegalArgumentException("Không tìm thấy xe với ID: " + vehicleId);
         }
         return vehicleOpt.get();
+    }
+
+    /**
+     * Kiểm tra xe có tồn tại không
+     */
+    public boolean existsVehicleById(Long vehicleId) {
+        if (vehicleId == null || vehicleId <= 0) {
+            return false;
+        }
+        return vehicleRepository.existsById(vehicleId);
     }
 
     /**
@@ -189,8 +200,8 @@ public class VehicleServiceService {
             Vehicle vehicle,
             String serviceDescription,
             String status,
-            Integer groupRefId,
-            Integer requestedByUserId,
+            Long groupRefId,
+            Long requestedByUserId,
             String requestedByName,
             LocalDateTime preferredStart,
             LocalDateTime preferredEnd) {
@@ -239,7 +250,7 @@ public class VehicleServiceService {
      * 5. ready (sẵn sàng) - mặc định
      */
     @Transactional
-    public void syncVehicleStatus(String vehicleId) {
+    public void syncVehicleStatus(Long vehicleId) {
         try {
             System.out.println("🔄 [SYNC VEHICLE STATUS] Bắt đầu đồng bộ trạng thái cho vehicle: " + vehicleId);
             

@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -26,12 +28,11 @@ import com.example.VehicleServiceManagementService.model.Vehicleservice;
 import com.example.VehicleServiceManagementService.repository.ServiceRepository;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class MaintenanceBookingService {
+
+    private static final Logger log = LoggerFactory.getLogger(MaintenanceBookingService.class);
 
     private final GroupManagementClient groupClient;
     private final VehicleServiceService vehicleServiceService;
@@ -40,10 +41,25 @@ public class MaintenanceBookingService {
     private final ServiceService serviceService;
     private final com.example.VehicleServiceManagementService.repository.VehicleServiceRepository vehicleServiceRepository;
 
+    public MaintenanceBookingService(
+            GroupManagementClient groupClient,
+            VehicleServiceService vehicleServiceService,
+            ServiceRepository serviceRepository,
+            VehicleDataSyncService vehicleDataSyncService,
+            ServiceService serviceService,
+            com.example.VehicleServiceManagementService.repository.VehicleServiceRepository vehicleServiceRepository) {
+        this.groupClient = groupClient;
+        this.vehicleServiceService = vehicleServiceService;
+        this.serviceRepository = serviceRepository;
+        this.vehicleDataSyncService = vehicleDataSyncService;
+        this.serviceService = serviceService;
+        this.vehicleServiceRepository = vehicleServiceRepository;
+    }
+
     /**
      * Get list of groups/vehicles a user can book maintenance for.
      */
-    public List<Map<String, Object>> getUserMaintenanceOptions(Integer userId) {
+    public List<Map<String, Object>> getUserMaintenanceOptions(Long userId) {
         List<Map<String, Object>> options = groupClient.getMaintenanceOptions(userId);
         if (options.isEmpty()) {
             log.warn("Không lấy được maintenance-options qua endpoint mới, fallback sang danh sách nhóm cơ bản");
@@ -55,13 +71,13 @@ public class MaintenanceBookingService {
         List<Map<String, Object>> results = new ArrayList<>();
         for (Map<String, Object> option : options) {
             Map<String, Object> view = new HashMap<>();
-            Integer groupId = toInteger(option.get("groupId"));
+            Long groupId = toLong(option.get("groupId"));
             view.put("groupId", groupId);
             view.put("groupName", option.getOrDefault("groupName", "Group #" + groupId));
             view.put("role", option.getOrDefault("memberRole", option.get("role")));
             Object vehicleIdObj = option.get("vehicleId");
             if (vehicleIdObj != null) {
-                String vehicleId = String.valueOf(vehicleIdObj);
+                Long vehicleId = toLong(vehicleIdObj);
                 view.put("vehicleId", vehicleId);
                 Object label = option.get("vehicleLabel");
                 if (label != null) {
@@ -95,7 +111,7 @@ public class MaintenanceBookingService {
             groupClient.getMembership(request.getGroupId(), request.getUserId())
                     .orElseThrow(() -> new IllegalArgumentException("Người dùng không thuộc nhóm này"));
 
-            String resolvedVehicleId = resolveVehicleId(request, groupPayload);
+            Long resolvedVehicleId = resolveVehicleId(request, groupPayload);
             log.info("📝 [BOOKING] Vehicle ID đã được resolve: {}", resolvedVehicleId);
             
             Vehiclegroup groupEntity = vehicleDataSyncService.ensureGroupSynced(request.getGroupId(), groupPayload);
@@ -179,14 +195,15 @@ public class MaintenanceBookingService {
 
     private ServiceType resolveServiceType(MaintenanceBookingRequest request) {
         // Ưu tiên tìm theo serviceId
-        if (request.getServiceId() != null && !request.getServiceId().isBlank()) {
+        if (request.getServiceId() != null) {
+            Long serviceId = request.getServiceId();
             // Tìm lại một lần nữa để tránh race condition
-            Optional<ServiceType> serviceOpt = serviceRepository.findById(request.getServiceId());
+            Optional<ServiceType> serviceOpt = serviceRepository.findById(serviceId);
             if (serviceOpt.isPresent()) {
                 return serviceOpt.get();
             }
             // Nếu không tìm thấy theo ID, tự động tạo mới
-            return createServiceIfNotExists(request.getServiceId(), request.getServiceName());
+            return createServiceIfNotExists(serviceId, request.getServiceName());
         }
         
         // Tìm theo serviceName
@@ -216,7 +233,7 @@ public class MaintenanceBookingService {
      * Sử dụng REQUIRES_NEW để tạo transaction mới, độc lập với transaction chính
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, noRollbackFor = DataIntegrityViolationException.class)
-    private ServiceType createServiceIfNotExists(String serviceId, String serviceName) {
+    private ServiceType createServiceIfNotExists(Long serviceId, String serviceName) {
         // Kiểm tra lại một lần nữa (double-check locking pattern)
         Optional<ServiceType> existingOpt = serviceRepository.findById(serviceId);
         if (existingOpt.isPresent()) {
@@ -285,16 +302,16 @@ public class MaintenanceBookingService {
         if (request.getGroupId() == null) {
             throw new IllegalArgumentException("groupId là bắt buộc");
         }
-        if (request.getVehicleId() == null || request.getVehicleId().isBlank()) {
+        if (request.getVehicleId() == null) {
             throw new IllegalArgumentException("vehicleId là bắt buộc");
         }
     }
 
-    private String resolveVehicleId(MaintenanceBookingRequest request, Map<String, Object> groupPayload) {
+    private Long resolveVehicleId(MaintenanceBookingRequest request, Map<String, Object> groupPayload) {
         Object groupVehicleId = groupPayload.get("vehicleId");
-        String targetVehicleId = request.getVehicleId();
+        Long targetVehicleId = request.getVehicleId();
         if (groupVehicleId != null) {
-            String normalized = String.valueOf(groupVehicleId);
+            Long normalized = toLong(groupVehicleId);
             if (!Objects.equals(normalized, targetVehicleId)) {
                 log.warn("VehicleId {} từ yêu cầu khác với vehicleId {} trong nhóm, sẽ ưu tiên group", targetVehicleId, normalized);
             }
@@ -315,6 +332,20 @@ public class MaintenanceBookingService {
             return LocalDateTime.parse(value);
         } catch (Exception ex) {
             throw new IllegalArgumentException("Không thể parse thời gian: " + value);
+        }
+    }
+
+    private Long toLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        try {
+            return Long.parseLong(value.toString());
+        } catch (NumberFormatException ex) {
+            return null;
         }
     }
 

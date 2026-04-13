@@ -10,8 +10,6 @@ import lombok.Setter;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "vehicleservice", schema = "vehicle_management", 
        indexes = {
@@ -60,10 +58,10 @@ public class Vehicleservice {
     private Instant completionDate;
 
     @Column(name = "group_ref_id")
-    private Integer groupRefId;
+    private Long groupRefId;
 
     @Column(name = "requested_by_user_id")
-    private Integer requestedByUserId;
+    private Long requestedByUserId;
 
     @Column(name = "requested_by_user_name", length = 150)
     private String requestedByUserName;
@@ -74,30 +72,73 @@ public class Vehicleservice {
     @Column(name = "preferred_end_datetime")
     private LocalDateTime preferredEndDatetime;
 
+    // Manual Getters/Setters for all fields (Robustness against Lombok failure)
+    public VehicleserviceId getId() { return id; }
+    public void setId(VehicleserviceId id) { this.id = id; }
+
+    public ServiceType getService() { return service; }
+    public void setService(ServiceType service) { this.service = service; }
+
+    public Vehicle getVehicle() { return vehicle; }
+    public void setVehicle(Vehicle vehicle) { this.vehicle = vehicle; }
+
+    public String getServiceName() { return serviceName; }
+    public void setServiceName(String serviceName) { this.serviceName = serviceName; }
+
+    public String getServiceDescription() { return serviceDescription; }
+    public void setServiceDescription(String serviceDescription) { this.serviceDescription = serviceDescription; }
+
+    public String getServiceType() { return serviceType; }
+    public void setServiceType(String serviceType) { this.serviceType = serviceType; }
+
+    public Instant getRequestDate() { return requestDate; }
+    public void setRequestDate(Instant requestDate) { this.requestDate = requestDate; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public Instant getCompletionDate() { return completionDate; }
+    public void setCompletionDate(Instant completionDate) { this.completionDate = completionDate; }
+
+    public Long getGroupRefId() { return groupRefId; }
+    public void setGroupRefId(Long groupRefId) { this.groupRefId = groupRefId; }
+
+    public Long getRequestedByUserId() { return requestedByUserId; }
+    public void setRequestedByUserId(Long requestedByUserId) { this.requestedByUserId = requestedByUserId; }
+
+    public String getRequestedByUserName() { return requestedByUserName; }
+    public void setRequestedByUserName(String requestedByUserName) { this.requestedByUserName = requestedByUserName; }
+
+    public LocalDateTime getPreferredStartDatetime() { return preferredStartDatetime; }
+    public void setPreferredStartDatetime(LocalDateTime preferredStartDatetime) { this.preferredStartDatetime = preferredStartDatetime; }
+
+    public LocalDateTime getPreferredEndDatetime() { return preferredEndDatetime; }
+    public void setPreferredEndDatetime(LocalDateTime preferredEndDatetime) { this.preferredEndDatetime = preferredEndDatetime; }
+
     
     // Helper methods để dễ dàng truy cập serviceId và vehicleId
-    public String getServiceId() {
+    public Long getServiceId() {
         if (id != null && id.getServiceId() != null) {
             return id.getServiceId();
         }
         return service != null ? service.getServiceId() : null;
     }
 
-    public void setServiceId(String serviceId) {
+    public void setServiceId(Long serviceId) {
         if (id == null) {
             id = new VehicleserviceId();
         }
         id.setServiceId(serviceId);
     }
     
-    public String getVehicleId() {
+    public Long getVehicleId() {
         if (id != null && id.getVehicleId() != null) {
             return id.getVehicleId();
         }
         return vehicle != null ? vehicle.getVehicleId() : null;
     }
 
-    public void setVehicleId(String vehicleId) {
+    public void setVehicleId(Long vehicleId) {
         if (id == null) {
             id = new VehicleserviceId();
         }

@@ -68,7 +68,7 @@ public class VehicleAPI {
      * @return ResponseEntity với Vehicle hoặc thông báo lỗi
      */
     @GetMapping("/{vehicleId}")
-    public ResponseEntity<?> getVehicleById(@PathVariable String vehicleId) {
+    public ResponseEntity<?> getVehicleById(@PathVariable @Min(1) Long vehicleId) {
         try {
             Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
             if (vehicleOpt.isEmpty()) {
@@ -92,7 +92,11 @@ public class VehicleAPI {
     @Transactional
     public ResponseEntity<?> addVehicles(@RequestBody Map<String, Object> requestData) {
         try {
-            String groupId = (String) requestData.get("groupId");
+            Object groupIdObj = requestData.get("groupId");
+            Long groupId = null;
+            if (groupIdObj != null) {
+                groupId = Long.valueOf(groupIdObj.toString());
+            }
             
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> vehiclesData = (List<Map<String, Object>>) requestData.get("vehicles");
@@ -105,7 +109,7 @@ public class VehicleAPI {
             Vehiclegroup group = null;
             
             // Nếu có groupId, kiểm tra và lấy nhóm xe
-            if (groupId != null && !groupId.isEmpty()) {
+            if (groupId != null) {
                 Optional<Vehiclegroup> groupOpt = vehicleGroupRepository.findById(groupId);
                 if (groupOpt.isEmpty()) {
                     return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -133,24 +137,15 @@ public class VehicleAPI {
                 Vehicle vehicle = new Vehicle();
                 
                 // Kiểm tra và set vehicleId
-                String vehicleId = null;
-                if (vehicleData.containsKey("vehicleId")) {
-                    vehicleId = (String) vehicleData.get("vehicleId");
-                    if (vehicleId != null && !vehicleId.trim().isEmpty()) {
-                        vehicleId = vehicleId.trim();
-                        // Kiểm tra trùng mã xe
-                        if (vehicleRepository.existsById(vehicleId)) {
-                            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                    .body("Mã xe \"" + vehicleId + "\" đã tồn tại trong hệ thống. Vui lòng nhập mã xe khác.");
-                        }
-                        vehicle.setVehicleId(vehicleId);
-                    } else {
+                Object vehicleIdObj = vehicleData.get("vehicleId");
+                if (vehicleIdObj != null) {
+                    Long vehicleId = Long.valueOf(vehicleIdObj.toString());
+                    // Kiểm tra trùng mã xe
+                    if (vehicleRepository.existsById(vehicleId)) {
                         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body("Mã xe là bắt buộc và không được để trống.");
+                                .body("Mã xe \"" + vehicleId + "\" đã tồn tại trong hệ thống. Vui lòng nhập mã xe khác.");
                     }
-                } else {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("Mã xe là bắt buộc.");
+                    vehicle.setVehicleId(vehicleId);
                 }
                 
                 if (vehicleData.containsKey("type")) {
@@ -226,7 +221,7 @@ public class VehicleAPI {
      */
     @PutMapping("/{vehicleId}")
     @Transactional
-    public ResponseEntity<?> updateVehicle(@PathVariable String vehicleId, @RequestBody Map<String, Object> vehicleData) {
+    public ResponseEntity<?> updateVehicle(@PathVariable @Min(1) Long vehicleId, @RequestBody Map<String, Object> vehicleData) {
         try {
             Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
             if (vehicleOpt.isEmpty()) {
@@ -238,11 +233,12 @@ public class VehicleAPI {
             
             // Kiểm tra nếu cố gắng thay đổi group_id
             if (vehicleData.containsKey("groupId")) {
-                String newGroupId = (String) vehicleData.get("groupId");
-                String currentGroupId = vehicle.getGroup() != null ? vehicle.getGroup().getGroupId() : null;
+                Object newGroupIdObj = vehicleData.get("groupId");
+                Long newGroupId = (newGroupIdObj != null) ? Long.valueOf(newGroupIdObj.toString()) : null;
+                Long currentGroupId = vehicle.getGroup() != null ? vehicle.getGroup().getGroupId() : null;
                 
-                // Nếu newGroupId là null hoặc rỗng, xóa nhóm khỏi xe
-                if (newGroupId == null || newGroupId.trim().isEmpty()) {
+                // Nếu newGroupId là null, xóa nhóm khỏi xe
+                if (newGroupId == null) {
                     vehicle.setGroup(null);
                 } else if (currentGroupId == null || !newGroupId.equals(currentGroupId)) {
                     // Nếu group_id thay đổi (hoặc xe chưa có nhóm)
@@ -335,7 +331,7 @@ public class VehicleAPI {
      */
     @DeleteMapping("/{vehicleId}")
     @Transactional(rollbackFor = Exception.class)
-    public ResponseEntity<?> deleteVehicle(@PathVariable String vehicleId) {
+    public ResponseEntity<?> deleteVehicle(@PathVariable @Min(1) Long vehicleId) {
         try {
             Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
             if (vehicleOpt.isEmpty()) {
@@ -344,14 +340,14 @@ public class VehicleAPI {
             }
             
             Vehicle vehicle = vehicleOpt.get();
-            String groupId = vehicle.getGroup() != null ? vehicle.getGroup().getGroupId() : null;
+            Long groupId = vehicle.getGroup() != null ? vehicle.getGroup().getGroupId() : null;
             
             // Xóa tất cả các bản ghi checkinoutlog liên quan đến xe trước
             // (nằm trong database legal_contract)
             // Lưu ý: vehicle_id trong checkinoutlog là INT, cần convert vehicleId (String) sang INT
             try {
                 int deletedCheckInOutLogs = entityManager.createNativeQuery(
-                    "DELETE FROM legal_contract.checkinoutlog WHERE vehicle_id = CAST(:vehicleId AS UNSIGNED)"
+                    "DELETE FROM legal_contract.checkinoutlog WHERE vehicle_id = :vehicleId"
                 ).setParameter("vehicleId", vehicleId).executeUpdate();
                 System.out.println("DEBUG: Đã xóa " + deletedCheckInOutLogs + " bản ghi checkinoutlog liên quan đến xe " + vehicleId);
             } catch (Exception e) {
@@ -364,7 +360,7 @@ public class VehicleAPI {
             // Lưu ý: vehicle_id trong vehicleservice là INT, cần convert vehicleId (String) sang INT
             try {
                 int deletedServices = entityManager.createNativeQuery(
-                    "DELETE FROM vehicle_management.vehicleservice WHERE vehicle_id = CAST(:vehicleId AS UNSIGNED)"
+                    "DELETE FROM vehicle_management.vehicleservice WHERE vehicle_id = :vehicleId"
                 ).setParameter("vehicleId", vehicleId).executeUpdate();
                 System.out.println("DEBUG: Đã xóa " + deletedServices + " dịch vụ liên quan đến xe " + vehicleId);
             } catch (Exception e) {

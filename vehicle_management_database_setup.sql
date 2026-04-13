@@ -4,105 +4,133 @@ USE vehicle_management;
 
 -- ========= 1. Danh mục nhóm xe =========
 CREATE TABLE vehiclegroup (
-                              group_id        INT AUTO_INCREMENT PRIMARY KEY,
-                              group_name      VARCHAR(255) NOT NULL,
-                              description     TEXT,
-                              creation_date   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    group_id        BIGINT AUTO_INCREMENT PRIMARY KEY,
+    group_name      VARCHAR(255) NOT NULL,
+    description     TEXT,
+    creation_date   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- ========= 2. Xe thuộc nhóm =========
 CREATE TABLE vehicle (
-                         vehicle_id      VARCHAR(20) PRIMARY KEY,
-                         group_id        INT NOT NULL,
-                         vehicle_number  VARCHAR(20) NOT NULL,
-                         vehicle_type    VARCHAR(50) NOT NULL,
-                         status          VARCHAR(50) NOT NULL DEFAULT 'available',
-                         FOREIGN KEY (group_id) REFERENCES vehiclegroup(group_id),
-                         UNIQUE KEY uk_vehicle_number (vehicle_number)
+    vehicle_id      BIGINT AUTO_INCREMENT PRIMARY KEY,
+    group_id        BIGINT NOT NULL,
+    vehicle_number  VARCHAR(20) NOT NULL,
+    vehicle_type    VARCHAR(50) NOT NULL,
+    status          VARCHAR(50) NOT NULL DEFAULT 'available',
+    FOREIGN KEY (group_id) REFERENCES vehiclegroup(group_id),
+    UNIQUE KEY uk_vehicle_number (vehicle_number)
 ) ENGINE=InnoDB;
 
 -- ========= 3. Lịch sử sử dụng xe =========
 CREATE TABLE vehiclehistory (
-                                history_id      INT AUTO_INCREMENT PRIMARY KEY,
-                                group_id        INT NOT NULL,
-                                user_id         INT NOT NULL,
-                                usage_start     TIMESTAMP NOT NULL,
-                                usage_end       TIMESTAMP NULL,
-                                FOREIGN KEY (group_id) REFERENCES vehiclegroup(group_id)
+    history_id      BIGINT AUTO_INCREMENT PRIMARY KEY,
+    group_id        BIGINT NOT NULL,
+    user_id         BIGINT NOT NULL,
+    usage_start     TIMESTAMP NOT NULL,
+    usage_end       TIMESTAMP NULL,
+    FOREIGN KEY (group_id) REFERENCES vehiclegroup(group_id)
 ) ENGINE=InnoDB;
 
 -- ========= 4. Danh mục GÓI DỊCH VỤ =========
 CREATE TABLE service (
-                         service_id      VARCHAR(20) PRIMARY KEY,
-                         service_name    VARCHAR(255) NOT NULL,
-                         service_type    VARCHAR(50) NOT NULL,   -- maintenance / repair / inspection ...
-                         created_date    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                         updated_date    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    service_id      BIGINT AUTO_INCREMENT PRIMARY KEY,
+    service_name    VARCHAR(255) NOT NULL,
+    service_type    VARCHAR(50) NOT NULL,   -- maintenance / repair / inspection ...
+    created_date    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_date    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- ========= 5. Đăng ký dịch vụ cho xe =========
 CREATE TABLE vehicleservice (
-                                service_id      VARCHAR(20) NOT NULL,
-                                vehicle_id      VARCHAR(20) NOT NULL,
-                                service_name    VARCHAR(255),          -- redundantly lưu để admin xem nhanh
-                                service_description TEXT,
-                                service_type    VARCHAR(50),
-                                request_date    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                status          VARCHAR(50) DEFAULT 'pending',
-                                completion_date TIMESTAMP NULL,
-                                group_ref_id    INT NULL,              -- mapping sang group_management
-                                requested_by_user_id INT NULL,
-                                requested_by_user_name VARCHAR(150),
-                                preferred_start_datetime DATETIME NULL,
-                                preferred_end_datetime   DATETIME NULL,
-                                PRIMARY KEY (service_id, vehicle_id),
-                                FOREIGN KEY (service_id) REFERENCES service(service_id),
-                                FOREIGN KEY (vehicle_id) REFERENCES vehicle(vehicle_id)
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    service_id      BIGINT NOT NULL,
+    vehicle_id      BIGINT NOT NULL,
+    service_name    VARCHAR(255),
+    service_description TEXT,
+    service_type    VARCHAR(50),
+    request_date    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status          VARCHAR(50) DEFAULT 'pending',
+    completion_date TIMESTAMP NULL,
+    group_ref_id    BIGINT NULL,
+    requested_by_user_id BIGINT NULL,
+    requested_by_user_name VARCHAR(150),
+    preferred_start_datetime DATETIME NULL,
+    preferred_end_datetime   DATETIME NULL,
+    FOREIGN KEY (service_id) REFERENCES service(service_id),
+    FOREIGN KEY (vehicle_id) REFERENCES vehicle(vehicle_id)
 ) ENGINE=InnoDB;
 
--- ========= 6. Dữ liệu mẫu =========
-INSERT INTO vehiclegroup (group_name, description, creation_date) VALUES
-                                                                      ('EV Fleet Alpha', 'Nhóm xe điện phục vụ nội thành và khách hàng doanh nghiệp.', '2024-01-15 09:00:00'),
-                                                                      ('EV Fleet Beta',  'Nhóm xe điện phục vụ khách hàng khu vực ngoại thành.',      '2024-02-10 08:30:00');
+-- ========= 6. Dữ liệu mẫu lớn (50+ bản ghi mỗi bảng) =========
 
-INSERT INTO vehicle (vehicle_id, group_id, vehicle_number, vehicle_type, status) VALUES
-                                                                         ('1', 1, 'EV-ALPHA-01', 'SUV',       'available'),
-                                                                         ('2', 1, 'EV-ALPHA-02', 'Sedan',     'in_service'),
-                                                                         ('3', 2, 'EV-BETA-01',  'Hatchback', 'maintenance');
+-- 10 Nhóm xe
+INSERT INTO vehiclegroup (group_name, description) VALUES
+('HCM Urban Fleet', 'Đội xe phục vụ khu vực nội thành TP.HCM'),
+('Hanoi Express', 'Dịch vụ vận chuyển nhanh tại Hà Nội'),
+('Da Nang Coastal', 'Nhóm xe du lịch khu vực miền Trung'),
+('Can Tho Logistics', 'Vận tải hàng hóa khu vực miền Bắc'),
+('Hai Phong Port', 'Hỗ trợ logistics khu vực cảng biển'),
+('Long An Green', 'Đội xe điện thân thiện môi trường Long An'),
+('Binh Duong Pro', 'Giải pháp di chuyển cho doanh nghiệp Bình Dương'),
+('Dong Nai Commuter', 'Xe điện đưa đón nhân viên Đồng Nai'),
+('Quang Ninh Tourism', 'Dịch vụ xe điện tham quan Vịnh Hạ Long'),
+('Standard Support', 'Nhóm xe hỗ trợ kỹ thuật và cứu hộ');
 
-INSERT INTO vehiclehistory (group_id, user_id, usage_start, usage_end) VALUES
-                                                                           (1, 101, '2024-10-01 08:00:00', '2024-10-01 18:00:00'),
-                                                                           (1, 102, '2024-10-03 07:30:00', '2024-10-03 19:15:00'),
-                                                                           (2, 201, '2024-10-05 09:00:00', NULL);
+-- Nạp thêm 40 nhóm xe để đủ 50
+INSERT INTO vehiclegroup (group_name, description) SELECT CONCAT('Group ', id), 'Mô tả chi tiết nhóm xe' FROM (
+    WITH RECURSIVE seq AS (SELECT 1 AS id UNION ALL SELECT id + 1 FROM seq WHERE id < 40)
+    SELECT id + 10 AS id FROM seq
+) AS d;
 
-INSERT INTO service (service_id, service_name, service_type) VALUES
-                                                                 ('SRV001', 'Bảo dưỡng định kỳ',     'maintenance'),
-                                                                 ('SRV002', 'Thay lốp trước',        'repair'),
-                                                                 ('SRV003', 'Kiểm định an toàn',     'inspection'),
-                                                                 ('SRV004', 'Sửa chữa hệ thống phanh','repair');
+-- 50 Xe
+INSERT INTO vehicle (group_id, vehicle_number, vehicle_type, status) VALUES
+(1, '51A-123.45', 'Sedan', 'available'), (1, '51A-234.56', 'SUV', 'in_service'), (1, '51A-345.67', 'Sedan', 'maintenance'),
+(2, '30B-111.11', 'SUV', 'available'), (2, '30B-222.22', 'SUV', 'in_service'), (2, '30B-333.33', 'Van', 'available'),
+(3, '43C-444.44', 'Sedan', 'available'), (3, '43C-555.55', 'Hatchback', 'available'),
+(4, '65D-666.66', 'Truck', 'available'), (5, '15E-777.77', 'Truck', 'in_service');
 
-INSERT INTO vehicleservice
-(service_id, vehicle_id, service_name, service_description, service_type, request_date, status, completion_date, group_ref_id, requested_by_user_id, requested_by_user_name)
-VALUES
-    ('SRV001', '1', 'Bảo dưỡng định kỳ',      'Kiểm tra tổng quát pin và hệ thống điện.', 'maintenance', '2024-10-02 10:30:00', 'pending',   NULL,                    1, 101, 'Nam Vũ'),
-    ('SRV002', '1', 'Thay lốp trước',         'Lốp trước mòn, cần thay mới.',             'repair',      '2024-10-04 11:00:00', 'in_progress', NULL,                  1, 101, 'Nam Vũ'),
-    ('SRV003', '2', 'Kiểm định an toàn',      'Kiểm định an toàn cuối năm.',              'inspection',  '2024-09-28 09:15:00', 'pending',    NULL,                    1, 102, 'Lan Trần'),
-    ('SRV004', '3', 'Sửa chữa hệ thống phanh','Kiểm tra và sửa chữa hệ thống phanh.',    'repair',      '2024-10-06 14:00:00', 'completed', '2024-10-08 10:20:00', 2, 201, 'Hải Phạm');
+-- Nạp thêm 40 xe để đủ 50
+INSERT INTO vehicle (group_id, vehicle_number, vehicle_type, status) SELECT 
+    (MOD(id, 10) + 1), 
+    CONCAT('EV-', id), 
+    ELT(MOD(id, 4) + 1, 'Sedan', 'SUV', 'Hatchback', 'Electric Bus'),
+    ELT(MOD(id, 3) + 1, 'available', 'in_service', 'maintenance')
+FROM (
+    WITH RECURSIVE seq AS (SELECT 1 AS id UNION ALL SELECT id + 1 FROM seq WHERE id < 40)
+    SELECT id + 10 AS id FROM seq
+) AS d;
 
--- ========= 7. View nhanh để admin kiểm tra =========
-SELECT '=== GROUPS ===' AS section;
-SELECT group_id, group_name, creation_date FROM vehiclegroup;
+-- 20 Loại dịch vụ
+INSERT INTO service (service_name, service_type) VALUES
+('Bảo dưỡng pin định kỳ', 'maintenance'),
+('Kiểm tra phanh & lốp', 'maintenance'),
+('Thay lốp xe', 'repair'),
+('Sửa chữa động cơ điện', 'repair'),
+('Vệ sinh nội ngoại thất', 'maintenance'),
+('Kiểm định an toàn năm', 'inspection'),
+('Cập nhật Firmware v2.0', 'inspection'),
+('Thay thế kính chắn gió', 'repair'),
+('Kiểm tra hệ thống điều hòa', 'maintenance'),
+('Cứu hộ khẩn cấp', 'repair');
 
-SELECT '=== VEHICLES ===' AS section;
-SELECT vehicle_id, vehicle_number, vehicle_type, status FROM vehicle;
+-- Thêm dịch vụ cho đủ 50
+INSERT INTO service (service_name, service_type) SELECT CONCAT('Dịch vụ chuyên sâu ', id), ELT(MOD(id, 3) + 1, 'maintenance', 'repair', 'inspection') FROM (
+    WITH RECURSIVE seq AS (SELECT 1 AS id UNION ALL SELECT id + 1 FROM seq WHERE id < 40)
+    SELECT id + 10 AS id FROM seq
+) AS d;
 
-SELECT '=== SERVICE CATALOG ===' AS section;
-SELECT service_id, service_name, service_type FROM service;
-
-SELECT '=== BOOKINGS ===' AS section;
-SELECT service_id, vehicle_id, service_name, service_type, status, request_date FROM vehicleservice;
-SET SQL_SAFE_UPDATES = 0;
-
-DELETE FROM vehicle_management.vehicleservice;
-
-SET SQL_SAFE_UPDATES = 1;    -- (tuỳ chọn, bật lại)
+-- 50+ Vehicleservice (Đăng ký dịch vụ)
+INSERT INTO vehicleservice (service_id, vehicle_id, service_name, service_description, service_type, status, group_ref_id, requested_by_user_id, requested_by_user_name)
+SELECT 
+    (MOD(id, 50) + 1),
+    (MOD(id, 50) + 1),
+    'Bảo trì định kỳ hệ số',
+    'Kiểm tra toàn diện định kỳ theo quy trình chuẩn của hãng.',
+    'maintenance',
+    ELT(MOD(id, 3) + 1, 'pending', 'in_progress', 'completed'),
+    (MOD(id, 10) + 1),
+    (100 + id),
+    CONCAT('User_', id)
+FROM (
+    WITH RECURSIVE seq AS (SELECT 1 AS id UNION ALL SELECT id + 1 FROM seq WHERE id < 60)
+    SELECT id FROM seq
+) AS d;

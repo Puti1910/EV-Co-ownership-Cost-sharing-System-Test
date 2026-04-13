@@ -20,14 +20,14 @@ public interface VehicleServiceRepository extends JpaRepository<Vehicleservice, 
      * @param vehicleId ID của xe
      * @return Danh sách các dịch vụ
      */
-    List<Vehicleservice> findByVehicle_VehicleId(String vehicleId);
+    List<Vehicleservice> findByVehicle_VehicleId(Long vehicleId);
     
     /**
      * Tìm tất cả các dịch vụ theo service_id
      * @param serviceId ID của dịch vụ
      * @return Danh sách các đăng ký dịch vụ
      */
-    List<Vehicleservice> findByService_ServiceId(String serviceId);
+    List<Vehicleservice> findByService_ServiceId(Long serviceId);
     
     /**
      * Tìm đăng ký dịch vụ theo service_id và vehicle_id (lấy bản ghi mới nhất)
@@ -35,7 +35,7 @@ public interface VehicleServiceRepository extends JpaRepository<Vehicleservice, 
      * @param vehicleId ID của xe
      * @return Optional Vehicleservice
      */
-    Optional<Vehicleservice> findByIdServiceIdAndIdVehicleId(String serviceId, String vehicleId);
+    Optional<Vehicleservice> findByIdServiceIdAndIdVehicleId(Long serviceId, Long vehicleId);
     
     /**
      * Kiểm tra đăng ký dịch vụ có tồn tại không
@@ -43,7 +43,7 @@ public interface VehicleServiceRepository extends JpaRepository<Vehicleservice, 
      * @param vehicleId ID của xe
      * @return true nếu tồn tại
      */
-    boolean existsByService_ServiceIdAndVehicle_VehicleId(String serviceId, String vehicleId);
+    boolean existsByService_ServiceIdAndVehicle_VehicleId(Long serviceId, Long vehicleId);
     
     /**
      * Xóa đăng ký dịch vụ theo service_id và vehicle_id (xóa tất cả)
@@ -52,7 +52,7 @@ public interface VehicleServiceRepository extends JpaRepository<Vehicleservice, 
      */
     @Modifying
     @Transactional
-    void deleteByIdServiceIdAndIdVehicleId(String serviceId, String vehicleId);
+    void deleteByIdServiceIdAndIdVehicleId(Long serviceId, Long vehicleId);
     
     /**
      * Xóa tất cả các dịch vụ của một xe
@@ -61,12 +61,12 @@ public interface VehicleServiceRepository extends JpaRepository<Vehicleservice, 
     @Modifying
     @Transactional
     @Query("DELETE FROM Vehicleservice v WHERE v.vehicle.vehicleId = :vehicleId")
-    void deleteByVehicleId(@Param("vehicleId") String vehicleId);
+    void deleteByVehicleId(@Param("vehicleId") Long vehicleId);
     
     /**
      * Kiểm tra duplicate bằng native query
      */
-    long countByIdServiceIdAndIdVehicleId(String serviceId, String vehicleId);
+    long countByIdServiceIdAndIdVehicleId(Long serviceId, Long vehicleId);
     
     /**
      * Kiểm tra xem có dịch vụ đang chờ (pending/in_progress) không
@@ -75,7 +75,7 @@ public interface VehicleServiceRepository extends JpaRepository<Vehicleservice, 
     @Query("SELECT COUNT(v) FROM Vehicleservice v " +
            "WHERE v.id.serviceId = :serviceId AND v.id.vehicleId = :vehicleId " +
            "AND LOWER(v.status) IN ('pending', 'in_progress', 'in progress')")
-    long countActiveByServiceIdAndVehicleId(@Param("serviceId") String serviceId, @Param("vehicleId") String vehicleId);
+    long countActiveByServiceIdAndVehicleId(@Param("serviceId") Long serviceId, @Param("vehicleId") Long vehicleId);
 
     /**
      * Lấy danh sách service template độc nhất từ bảng vehicleservice

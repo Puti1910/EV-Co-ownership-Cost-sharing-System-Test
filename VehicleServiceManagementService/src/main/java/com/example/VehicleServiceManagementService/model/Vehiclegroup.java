@@ -10,8 +10,9 @@ import jakarta.persistence.*;
 public class Vehiclegroup {
 
     @Id
-    @Column(name = "group_id", length = 20)
-    private String groupId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "group_id")
+    private Long groupId;
 
     @Column(name = "group_name", length = 100)
     private String name;
@@ -20,11 +21,11 @@ public class Vehiclegroup {
     private String description;
 
     // Getter và Setter cho groupId
-    public String getGroupId() {
+    public Long getGroupId() {
         return groupId;
     }
 
-    public void setGroupId(String groupId) {
+    public void setGroupId(Long groupId) {
         this.groupId = groupId;
     }
 

@@ -90,10 +90,29 @@ public class VehicleServiceAPI {
     /**
      * Lấy đăng ký dịch vụ theo service_id và vehicle_id (lấy bản ghi mới nhất)
      */
-    @GetMapping("/service/{serviceId}/vehicle/{vehicleId}")
+    @GetMapping("/service/{serviceIdStr}/vehicle/{vehicleIdStr}")
     public ResponseEntity<?> getVehicleServiceByServiceAndVehicle(
-            @PathVariable @Min(1) Long serviceId,
-            @PathVariable @Min(1) Long vehicleId) {
+            @PathVariable String serviceIdStr,
+            @PathVariable String vehicleIdStr) {
+        Long serviceId;
+        Long vehicleId;
+        
+        try {
+            serviceId = Long.parseLong(serviceIdStr);
+            vehicleId = Long.parseLong(vehicleIdStr);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", "ID không đúng định dạng hoặc vượt quá giới hạn số (overflow)"));
+        }
+
+        if (serviceId < 1) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", "serviceId không hợp lệ (phải >= 1)"));
+        }
+        if (vehicleId < 1) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", "vehicleId không hợp lệ (phải >= 1)"));
+        }
         try {
             Optional<Vehicleservice> serviceOpt = vehicleServiceRepository.findByIdServiceIdAndIdVehicleId(serviceId, vehicleId);
             if (serviceOpt.isPresent()) {
@@ -101,10 +120,10 @@ public class VehicleServiceAPI {
                 return ResponseEntity.ok(response);
             }
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Không tìm thấy đăng ký dịch vụ với serviceId: " + serviceId + " và vehicleId: " + vehicleId);
+                    .body(Map.of("success", false, "message", "Không tìm thấy đăng ký dịch vụ với serviceId: " + serviceId + " và vehicleId: " + vehicleId));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Đã xảy ra lỗi khi lấy thông tin dịch vụ: " + e.getMessage());
+                    .body(Map.of("success", false, "message", "Đã xảy ra lỗi khi lấy thông tin dịch vụ: " + e.getMessage()));
         }
     }
 

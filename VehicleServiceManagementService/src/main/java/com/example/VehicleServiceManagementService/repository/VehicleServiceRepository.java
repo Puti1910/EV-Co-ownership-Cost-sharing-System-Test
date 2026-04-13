@@ -35,7 +35,8 @@ public interface VehicleServiceRepository extends JpaRepository<Vehicleservice, 
      * @param vehicleId ID của xe
      * @return Optional Vehicleservice
      */
-    Optional<Vehicleservice> findByIdServiceIdAndIdVehicleId(Long serviceId, Long vehicleId);
+    @Query("SELECT v FROM Vehicleservice v WHERE v.id.serviceId = :serviceId AND v.id.vehicleId = :vehicleId")
+    Optional<Vehicleservice> findByIdServiceIdAndIdVehicleId(@Param("serviceId") Long serviceId, @Param("vehicleId") Long vehicleId);
     
     /**
      * Kiểm tra đăng ký dịch vụ có tồn tại không

@@ -5,6 +5,8 @@ import com.example.VehicleServiceManagementService.model.Vehicle;
 import com.example.VehicleServiceManagementService.service.VehicleGroupService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -146,9 +148,9 @@ public class VehicleGroupAPI {
 
     // Lọc nhóm xe theo tên và trạng thái
     @GetMapping("/filter")
-    public List<Vehiclegroup> filterVehicleGroups(
-            @RequestParam(value = "searchQuery", required = false, defaultValue = "") String searchQuery,
-            @RequestParam(value = "statusFilter", required = false, defaultValue = "Tất cả") String statusFilter) {
-        return vehicleGroupService.filterVehicleGroups(searchQuery, statusFilter);
+    public ResponseEntity<?> filterVehicleGroups(
+            @RequestParam(value = "searchQuery") @NotBlank @Size(max = 100) String searchQuery,
+            @RequestParam(value = "statusFilter") @NotBlank @Size(max = 20) String statusFilter) {
+        return ResponseEntity.ok(vehicleGroupService.filterVehicleGroups(searchQuery, statusFilter));
     }
 }

@@ -21,18 +21,23 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "service", "vehicle"})
 public class Vehicleservice {
 
-    @EmbeddedId
-    private VehicleserviceId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
 
-    // Thay đổi optional = true để có thể load được ngay cả khi foreign key không tồn tại
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @MapsId("serviceId")
-    @JoinColumn(name = "service_id", nullable = false)
+    @Column(name = "service_id", nullable = false)
+    private Long serviceId;
+
+    @Column(name = "vehicle_id", nullable = false)
+    private Long vehicleId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_id", insertable = false, updatable = false)
     private ServiceType service;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @MapsId("vehicleId")
-    @JoinColumn(name = "vehicle_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicle_id", insertable = false, updatable = false)
     private Vehicle vehicle;
 
     @Size(max = 255)
@@ -72,9 +77,15 @@ public class Vehicleservice {
     @Column(name = "preferred_end_datetime")
     private LocalDateTime preferredEndDatetime;
 
-    // Manual Getters/Setters for all fields (Robustness against Lombok failure)
-    public VehicleserviceId getId() { return id; }
-    public void setId(VehicleserviceId id) { this.id = id; }
+    // Manual Getters/Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Long getServiceId() { return serviceId; }
+    public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
+
+    public Long getVehicleId() { return vehicleId; }
+    public void setVehicleId(Long vehicleId) { this.vehicleId = vehicleId; }
 
     public ServiceType getService() { return service; }
     public void setService(ServiceType service) { this.service = service; }
@@ -115,48 +126,14 @@ public class Vehicleservice {
     public LocalDateTime getPreferredEndDatetime() { return preferredEndDatetime; }
     public void setPreferredEndDatetime(LocalDateTime preferredEndDatetime) { this.preferredEndDatetime = preferredEndDatetime; }
 
-    
-    // Helper methods để dễ dàng truy cập serviceId và vehicleId
-    public Long getServiceId() {
-        if (id != null && id.getServiceId() != null) {
-            return id.getServiceId();
-        }
-        return service != null ? service.getServiceId() : null;
-    }
-
-    public void setServiceId(Long serviceId) {
-        if (id == null) {
-            id = new VehicleserviceId();
-        }
-        id.setServiceId(serviceId);
-    }
-    
-    public Long getVehicleId() {
-        if (id != null && id.getVehicleId() != null) {
-            return id.getVehicleId();
-        }
-        return vehicle != null ? vehicle.getVehicleId() : null;
-    }
-
-    public void setVehicleId(Long vehicleId) {
-        if (id == null) {
-            id = new VehicleserviceId();
-        }
-        id.setVehicleId(vehicleId);
-    }
-    
-    // Method để đảm bảo serviceType luôn được set từ ServiceType nếu null
-    // Được gọi sau khi entity được load từ database
     @PostLoad
     public void ensureServiceType() {
-        // Nếu serviceType null hoặc rỗng, lấy từ ServiceType entity
         if ((serviceType == null || serviceType.trim().isEmpty()) && service != null) {
             String serviceTypeFromService = service.getServiceType();
             if (serviceTypeFromService != null && !serviceTypeFromService.trim().isEmpty()) {
                 this.serviceType = serviceTypeFromService;
             }
         }
-        // Đảm bảo serviceName cũng được set nếu null
         if ((serviceName == null || serviceName.trim().isEmpty()) && service != null) {
             String serviceNameFromService = service.getServiceName();
             if (serviceNameFromService != null && !serviceNameFromService.trim().isEmpty()) {

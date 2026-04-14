@@ -166,21 +166,15 @@ public class MaintenanceBookingService {
             Vehicleservice saved = vehicleServiceService.saveVehicleService(vehicleService);
             
             System.out.println("✅ [BOOKING] Vehicleservice đã được lưu thành công vào database!");
-            System.out.println("✅ [BOOKING] Saved entity - ServiceId: " + saved.getServiceId() + ", VehicleId: " + saved.getVehicleId() + 
-                             ", Status: " + saved.getStatus());
-            log.info("✅ [BOOKING] Vehicleservice đã được lưu thành công vào database!");
-            log.info("✅ [BOOKING] Saved entity - ServiceId: {}, VehicleId: {}, Status: {}, Id: {}", 
-                    saved.getServiceId(), saved.getVehicleId(), saved.getStatus(), saved.getId());
             
-            // Kiểm tra lại xem đã thực sự lưu vào database chưa
-            com.example.VehicleServiceManagementService.model.VehicleserviceId verifyId = 
-                    new com.example.VehicleServiceManagementService.model.VehicleserviceId(
-                            saved.getServiceId(), saved.getVehicleId());
-            Optional<Vehicleservice> verify = vehicleServiceRepository.findById(verifyId);
+            // Kiểm tra lại xem đã thực hiện lưu chưa bằng cách tìm bản ghi mới nhất
+            Optional<Vehicleservice> verify = vehicleServiceRepository.findTopByServiceIdAndVehicleIdOrderByRequestDateDesc(
+                    saved.getServiceId(), saved.getVehicleId());
+            
             if (verify.isPresent()) {
-                log.info("✅ [BOOKING] Xác nhận: Dữ liệu đã tồn tại trong database!");
+                log.info("✅ [BOOKING] Xác nhận: Dữ liệu đã tồn tại trong database! ID: {}", verify.get().getId());
             } else {
-                log.error("❌ [BOOKING] CẢNH BÁO: Dữ liệu không tồn tại trong database sau khi save!");
+                log.error("❌ [BOOKING] CẢNH BÁO: Không tìm thấy dữ liệu sau khi save!");
             }
 
             Map<String, Object> response = new LinkedHashMap<>();

@@ -141,7 +141,7 @@ public class VehicleServiceAPI {
                  return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ArrayList<>());
             }
             
-            List<Map<String, Object>> result = vehicleServiceRepository.findByVehicle_VehicleId(vehicleId).stream()
+            List<Map<String, Object>> result = vehicleServiceRepository.findByVehicleId(vehicleId).stream()
                     .map(this::convertToMap)
                     .collect(Collectors.toList());
             
@@ -335,61 +335,109 @@ public class VehicleServiceAPI {
     /**
      * Cập nhật đăng ký dịch vụ theo serviceId + vehicleId
      */
-    @PutMapping("/service/{serviceId}/vehicle/{vehicleId}")
+    @PutMapping("/service/{serviceIdStr}/vehicle/{vehicleIdStr}")
     public ResponseEntity<?> updateVehicleService(
-            @PathVariable @Min(1) Long serviceId,
-            @PathVariable @Min(1) Long vehicleId,
+            @PathVariable String serviceIdStr,
+            @PathVariable String vehicleIdStr,
             @RequestBody Map<String, Object> requestData) {
+        Long serviceId;
+        Long vehicleId;
+        try {
+            serviceId = Long.parseLong(serviceIdStr);
+            vehicleId = Long.parseLong(vehicleIdStr);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", "ID không hợp lệ hoặc vượt quá giới hạn (overflow)"));
+        }
+
+        if (serviceId < 1 || vehicleId < 1) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", "ID phải lớn hơn hoặc bằng 1"));
+        }
+
         try {
             Optional<Vehicleservice> serviceOpt = vehicleServiceRepository.findByIdServiceIdAndIdVehicleId(serviceId, vehicleId);
             if (serviceOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Không tìm thấy đăng ký dịch vụ với serviceId: " + serviceId + " và vehicleId: " + vehicleId);
+                        .body(Map.of("success", false, "message", "Không tìm thấy đăng ký dịch vụ với serviceId: " + serviceId + " và vehicleId: " + vehicleId));
             }
 
             Vehicleservice service = serviceOpt.get();
             
             if (requestData.containsKey("serviceDescription")) {
-                service.setServiceDescription((String) requestData.get("serviceDescription"));
+                String desc = (String) requestData.get("serviceDescription");
+                if (desc != null && desc.length() > 65535) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("success", false, "message", "Mô tả dịch vụ quá dài (tối đa 65535 ký tự)"));
+                }
+                service.setServiceDescription(desc);
             }
             
             if (requestData.containsKey("serviceType")) {
-                service.setServiceType((String) requestData.get("serviceType"));
+                String type = (String) requestData.get("serviceType");
+                if (type == null || type.trim().isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("success", false, "message", "serviceType không được để trống"));
+                }
+                if (type.length() > 50) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("success", false, "message", "serviceType không được vượt quá 50 ký tự"));
+                }
+                service.setServiceType(type);
             }
             
             if (requestData.containsKey("status")) {
                 String newStatus = (String) requestData.get("status");
+                if (newStatus == null || newStatus.trim().isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("success", false, "message", "Trạng thái không được để trống"));
+                }
+                
+                String statusLower = newStatus.trim().toLowerCase();
+                if (!statusLower.equals("pending") && !statusLower.equals("in_progress") && 
+                    !statusLower.equals("in progress") && !statusLower.equals("completed")) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("success", false, "message", "Trạng thái không hợp lệ. Chỉ chấp nhận: pending, in_progress, completed"));
+                }
+
                 String oldStatus = service.getStatus();
-                service.setStatus(newStatus);
+                service.setStatus(statusLower);
                 
                 // Tự động set completionDate khi status = completed
-                if (newStatus != null && newStatus.equalsIgnoreCase("completed")) {
+                if (statusLower.equals("completed")) {
                     if (service.getCompletionDate() == null) {
                         service.setCompletionDate(Instant.now());
-                        System.out.println("✅ Tự động set completionDate = " + Instant.now());
                     }
-                } else if (newStatus != null && (newStatus.equalsIgnoreCase("pending") || newStatus.equalsIgnoreCase("in_progress") || newStatus.equalsIgnoreCase("in progress"))) {
+                } else {
                     // Reset completionDate nếu chuyển về pending/in_progress
                     service.setCompletionDate(null);
                 }
                 
-                // Đồng bộ trạng thái vehicle sau khi cập nhật status của vehicleservice
+                // Đồng bộ trạng thái vehicle
                 Long vehicleIdFromEntity = service.getVehicleId();
-                if (vehicleIdFromEntity != null && (oldStatus == null || !oldStatus.equalsIgnoreCase(newStatus))) {
+                if (vehicleIdFromEntity != null && (oldStatus == null || !oldStatus.equalsIgnoreCase(statusLower))) {
                     try {
-                        System.out.println("🔄 [UPDATE STATUS] Đồng bộ vehicle status sau khi cập nhật vehicleservice status");
                         vehicleServiceService.syncVehicleStatus(vehicleIdFromEntity);
-                    } catch (Exception e) {
-                        System.err.println("⚠️ [SYNC WARNING] Lỗi khi đồng bộ vehicle status: " + e.getMessage());
-                        // Không throw exception để không ảnh hưởng đến việc cập nhật vehicleservice
-                    }
+                    } catch (Exception ignored) {}
                 }
             }
             
             if (requestData.containsKey("completionDate")) {
                 String completionDateStr = (String) requestData.get("completionDate");
                 if (completionDateStr != null && !completionDateStr.isEmpty()) {
-                    service.setCompletionDate(Instant.parse(completionDateStr));
+                    try {
+                        Instant instant = Instant.parse(completionDateStr);
+                        // Kiểm tra tầm vực của MySQL DATETIME (1000-01-01 to 9999-12-31)
+                        // Khoảng 253402300799s là 9999-12-31T23:59:59Z
+                        if (instant.getEpochSecond() > 253402300799L || instant.getEpochSecond() < -30610224000L) {
+                            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                    .body(Map.of("success", false, "message", "Năm của completionDate phải nằm trong khoảng từ 1000 đến 9999"));
+                        }
+                        service.setCompletionDate(instant);
+                    } catch (Exception e) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(Map.of("success", false, "message", "Định dạng completionDate không hợp lệ (Expect ISO 8601, e.g. 2024-04-13T00:00:00Z)"));
+                    }
                 } else {
                     service.setCompletionDate(null);
                 }
@@ -402,7 +450,7 @@ public class VehicleServiceAPI {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Đã xảy ra lỗi khi cập nhật dịch vụ: " + e.getMessage());
+                    .body(Map.of("success", false, "message", "Đã xảy ra lỗi khi cập nhật dịch vụ: " + e.getMessage()));
         }
     }
     
@@ -414,9 +462,9 @@ public class VehicleServiceAPI {
             @PathVariable @Min(1) Long serviceId,
             @PathVariable @Min(1) Long vehicleId) {
         try {
-            long count = vehicleServiceRepository.countByIdServiceIdAndIdVehicleId(serviceId, vehicleId);
+            long count = vehicleServiceRepository.countByServiceIdAndVehicleId(serviceId, vehicleId);
             if (count > 0) {
-                vehicleServiceRepository.deleteByIdServiceIdAndIdVehicleId(serviceId, vehicleId);
+                vehicleServiceRepository.deleteByServiceIdAndVehicleId(serviceId, vehicleId);
                 
                 // Đồng bộ trạng thái vehicle sau khi xóa vehicleservice
                 if (vehicleId != null) {

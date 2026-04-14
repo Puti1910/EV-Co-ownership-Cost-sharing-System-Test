@@ -7,7 +7,7 @@ CREATE TABLE vehiclegroup (
     group_id        BIGINT AUTO_INCREMENT PRIMARY KEY,
     group_name      VARCHAR(255) NOT NULL,
     description     TEXT,
-    creation_date   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    creation_date   DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- ========= 2. Xe thuộc nhóm =========
@@ -36,8 +36,8 @@ CREATE TABLE service (
     service_id      BIGINT AUTO_INCREMENT PRIMARY KEY,
     service_name    VARCHAR(255) NOT NULL,
     service_type    VARCHAR(50) NOT NULL,   -- maintenance / repair / inspection ...
-    created_date    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_date    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    created_date    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_date    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- ========= 5. Đăng ký dịch vụ cho xe =========
@@ -48,9 +48,9 @@ CREATE TABLE vehicleservice (
     service_name    VARCHAR(255),
     service_description TEXT,
     service_type    VARCHAR(50),
-    request_date    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    request_date    DATETIME DEFAULT CURRENT_TIMESTAMP,
     status          VARCHAR(50) DEFAULT 'pending',
-    completion_date TIMESTAMP NULL,
+    completion_date DATETIME NULL,
     group_ref_id    BIGINT NULL,
     requested_by_user_id BIGINT NULL,
     requested_by_user_name VARCHAR(150),

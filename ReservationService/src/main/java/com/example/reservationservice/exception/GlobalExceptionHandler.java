@@ -60,6 +60,14 @@ public class GlobalExceptionHandler {
                 "message", "Dữ liệu vi phạm ràng buộc cơ sở dữ liệu: giá trị quá dài hoặc không hợp lệ"));
     }
 
+    /** FS_26/27 – Lỗi xác thực hoặc thiếu Token */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<?> handleUnauthorized(UnauthorizedException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                "error", "Unauthorized",
+                "message", ex.getMessage()));
+    }
+
     /**
      * @Valid annotation violations (JSR-303) – ví dụ @Size(max=50) trên issuedBy
      */

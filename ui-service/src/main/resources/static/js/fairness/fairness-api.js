@@ -1,4 +1,4 @@
-(function(window) {
+(function (window) {
     const API_BASE = typeof window.getApiBaseUrl === 'function'
         ? window.getApiBaseUrl()
         : 'http://localhost:8084';
@@ -38,49 +38,8 @@
         return handleResponse(res);
     }
 
-    async function issueCheckpoint(reservationId, payload) {
-        const url = `${API_BASE}/api/reservations/${reservationId}/checkpoints`;
-        const res = await httpClient(url, {
-            method: 'POST',
-            headers: jsonHeaders,
-            body: JSON.stringify(payload)
-        });
-        return handleResponse(res);
-    }
-
-    async function listCheckpoints(reservationId) {
-        const url = `${API_BASE}/api/reservations/${reservationId}/checkpoints`;
-        const res = await httpClient(url);
-        return handleResponse(res);
-    }
-
-    async function scanCheckpoint(payload) {
-        const url = `${API_BASE}/api/reservations/checkpoints/scan`;
-        const res = await httpClient(url, {
-            method: 'POST',
-            headers: jsonHeaders,
-            body: JSON.stringify(payload)
-        });
-        return handleResponse(res);
-    }
-
-    async function signCheckpoint(checkpointId, payload) {
-        const url = `${API_BASE}/api/reservations/checkpoints/${checkpointId}/sign`;
-        const res = await httpClient(url, {
-            method: 'POST',
-            headers: jsonHeaders,
-            body: JSON.stringify(payload)
-        });
-        return handleResponse(res);
-    }
-
     window.FairnessAPI = {
         fetchFairnessSummary,
-        requestFairnessSuggestion,
-        issueCheckpoint,
-        listCheckpoints,
-        scanCheckpoint,
-        signCheckpoint
+        requestFairnessSuggestion
     };
 })(window);
-

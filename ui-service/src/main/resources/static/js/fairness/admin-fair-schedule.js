@@ -1,4 +1,4 @@
-(function() {
+(function () {
     const API_BASE = typeof window.getApiBaseUrl === 'function'
         ? window.getApiBaseUrl()
         : 'http://localhost:8084';
@@ -28,9 +28,6 @@
             currentRange = Number(rangeSelect.value || 30);
             loadFairnessSummary();
         });
-
-        document.getElementById('issueCheckinBtn').addEventListener('click', () => handleIssueCheckpoint('CHECK_IN'));
-        document.getElementById('issueCheckoutBtn').addEventListener('click', () => handleIssueCheckpoint('CHECK_OUT'));
     }
 
     async function loadVehicleOptions() {
@@ -285,89 +282,7 @@
             <dt class="col-5">Trạng thái</dt><dd class="col-7">${reservation.status}</dd>
             <dt class="col-5">Ghi chú</dt><dd class="col-7">${reservation.purpose || '—'}</dd>
         `;
-
-        document.getElementById('issueCheckinBtn').dataset.reservationId = reservation.reservationId;
-        document.getElementById('issueCheckoutBtn').dataset.reservationId = reservation.reservationId;
-
-        document.getElementById('checkpointPreview').style.display = 'none';
-        document.getElementById('signaturePreview').classList.add('d-none');
-        document.getElementById('signaturePlaceholder').classList.remove('d-none');
-
-        loadCheckpointHistory(reservation.reservationId);
         reservationModal.show();
-    }
-
-    async function loadCheckpointHistory(reservationId) {
-        const container = document.getElementById('checkpointHistory');
-        container.innerHTML = '<div class="text-muted small">Đang tải...</div>';
-        try {
-            const checkpoints = await window.FairnessAPI.listCheckpoints(reservationId);
-            if (!checkpoints.length) {
-                container.innerHTML = '<div class="text-muted small">Chưa có mã nào.</div>';
-                return;
-            }
-            container.innerHTML = checkpoints.map(cp => `
-                <div class="border rounded-3 p-2 mb-2">
-                    <div class="d-flex justify-content-between">
-                        <strong>${cp.checkpointType === 'CHECK_IN' ? 'Check-in' : 'Check-out'}</strong>
-                        <span class="priority-chip priority-${cp.status}">
-                            ${cp.status}
-                        </span>
-                    </div>
-                    <small class="text-muted d-block">Tạo lúc: ${formatTime(cp.issuedAt)}</small>
-                    ${cp.scannedAt ? `<small class="text-muted d-block">QR quét lúc ${formatTime(cp.scannedAt)}</small>` : ''}
-                    ${cp.signedAt ? `<small class="text-muted d-block">Ký lúc ${formatTime(cp.signedAt)}</small>` : ''}
-                </div>
-            `).join('');
-
-            // show last signature if exist
-            const signed = checkpoints.find(cp => !!cp.signatureData);
-            if (signed) {
-                const img = document.getElementById('signaturePreview');
-                img.src = signed.signatureData;
-                img.classList.remove('d-none');
-                document.getElementById('signaturePlaceholder').classList.add('d-none');
-            }
-        } catch (error) {
-            container.innerHTML = `<div class="text-danger small">${error.message}</div>`;
-        }
-    }
-
-    async function handleIssueCheckpoint(type) {
-        const btn = type === 'CHECK_IN'
-            ? document.getElementById('issueCheckinBtn')
-            : document.getElementById('issueCheckoutBtn');
-        const reservationId = btn.dataset.reservationId;
-        if (!reservationId) return;
-
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang tạo...';
-
-        try {
-            const checkpoint = await window.FairnessAPI.issueCheckpoint(Number(reservationId), {
-                type,
-                issuedBy: 'ADMIN'
-            });
-            showCheckpointPreview(checkpoint);
-            await loadCheckpointHistory(Number(reservationId));
-        } catch (error) {
-            showToast(error.message || 'Không thể tạo mã QR');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = type === 'CHECK_IN'
-                ? '<i class="bi bi-qr-code-scan"></i> Tạo QR Check-in'
-                : '<i class="bi bi-qr-code"></i> Tạo QR Check-out';
-        }
-    }
-
-    function showCheckpointPreview(checkpoint) {
-        const preview = document.getElementById('checkpointPreview');
-        preview.style.display = 'block';
-        const img = document.getElementById('checkpointQrImage');
-        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(checkpoint.qrPayload)}`;
-        document.getElementById('checkpointToken').textContent = checkpoint.qrToken;
-        document.getElementById('checkpointExpire').textContent =
-            checkpoint.expiresAt ? formatTime(checkpoint.expiresAt) : '—';
     }
 
     function showToast(message) {
@@ -375,4 +290,3 @@
         alert(message);
     }
 })();
-

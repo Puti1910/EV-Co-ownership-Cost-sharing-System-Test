@@ -37,34 +37,19 @@ public class ServiceAPI {
     public ResponseEntity<?> getAllServices(
             @RequestParam(required = false, defaultValue = "10") @Min(1) @Max(100) Integer size) {
         
-        // Manual validation to guarantee 400 Bad Request
-        if (size != null && (size < 1 || size > 100)) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", "Dữ liệu không hợp lệ: size must be between 1 and 100");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        List<ServiceType> services = serviceService.getAllServices();
+        System.out.println("✅ API: Đã lấy " + services.size() + " dịch vụ từ bảng service");
+        
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (ServiceType service : services) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("serviceId", service.getServiceId());
+            map.put("serviceName", service.getServiceName());
+            map.put("serviceType", service.getServiceType());
+            result.add(map);
         }
         
-        try {
-            List<ServiceType> services = serviceService.getAllServices();
-            System.out.println("✅ API: Đã lấy " + services.size() + " dịch vụ từ bảng service");
-            
-            // Convert ServiceType to Map for consistent response format
-            List<Map<String, Object>> result = new ArrayList<>();
-            for (ServiceType service : services) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("serviceId", service.getServiceId());
-                map.put("serviceName", service.getServiceName());
-                map.put("serviceType", service.getServiceType());
-                result.add(map);
-            }
-            
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            System.err.println("❌ API: Lỗi khi lấy danh sách dịch vụ: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<>());
-        }
+        return ResponseEntity.ok(result);
     }
 
     /**
@@ -93,44 +78,20 @@ public class ServiceAPI {
      * @return ResponseEntity với ServiceType đã được tạo
      */
     @PostMapping
-    public ResponseEntity<?> addService(@Valid @RequestBody ServiceType service, BindingResult bindingResult) {
-        try {
-            // Validation
-            if (bindingResult.hasErrors()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(createErrorResponse("Dữ liệu không hợp lệ: " + bindingResult.getFieldError().getDefaultMessage()));
+    public ResponseEntity<?> addService(@Valid @RequestBody ServiceType service) {
+        // Nếu có serviceId, kiểm tra đã tồn tại chưa
+        if (service.getServiceId() != null) {
+            if (serviceService.existsById(service.getServiceId())) {
+                throw new com.example.VehicleServiceManagementService.exception.ConflictException("Service ID '" + service.getServiceId() + "' đã tồn tại");
             }
-
-            if (service.getServiceName() == null || service.getServiceName().trim().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(createErrorResponse("Tên dịch vụ không được để trống"));
-            }
-
-            // Nếu có serviceId, kiểm tra đã tồn tại chưa
-            if (service.getServiceId() != null) {
-                if (serviceService.existsById(service.getServiceId())) {
-                    return ResponseEntity.status(HttpStatus.CONFLICT)
-                            .body(createErrorResponse("Service ID '" + service.getServiceId() + "' đã tồn tại"));
-                }
-            }
-
-            ServiceType savedService = serviceService.addService(service);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Thêm dịch vụ thành công");
-            response.put("data", savedService);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(createErrorResponse("Service ID đã tồn tại"));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(createErrorResponse(e.getMessage()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("Đã xảy ra lỗi khi thêm dịch vụ: " + e.getMessage()));
         }
+
+        ServiceType savedService = serviceService.addService(service);
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Thêm dịch vụ thành công");
+        response.put("data", savedService);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
@@ -140,32 +101,16 @@ public class ServiceAPI {
      * @return ResponseEntity với ServiceType đã được cập nhật hoặc thông báo lỗi
      */
     @PutMapping("/{serviceId}")
-    public ResponseEntity<?> updateService(@PathVariable Long serviceId, @Valid @RequestBody ServiceType service, BindingResult bindingResult) {
-        try {
-            // Validation
-            if (bindingResult.hasErrors()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(createErrorResponse("Dữ liệu không hợp lệ: " + bindingResult.getFieldError().getDefaultMessage()));
-            }
-
-            ServiceType updatedService = serviceService.updateService(serviceId, service);
-            if (updatedService != null) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", true);
-                response.put("message", "Cập nhật dịch vụ thành công");
-                response.put("data", updatedService);
-                return ResponseEntity.ok(response);
-            }
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(createErrorResponse("Không tìm thấy dịch vụ với ID: " + serviceId));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(createErrorResponse(e.getMessage()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("Đã xảy ra lỗi khi cập nhật dịch vụ: " + e.getMessage()));
+    public ResponseEntity<?> updateService(@PathVariable Long serviceId, @Valid @RequestBody ServiceType service) {
+        ServiceType updatedService = serviceService.updateService(serviceId, service);
+        if (updatedService == null) {
+            throw new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy dịch vụ với ID: " + serviceId);
         }
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Cập nhật dịch vụ thành công");
+        response.put("data", updatedService);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -175,27 +120,14 @@ public class ServiceAPI {
      */
     @DeleteMapping("/{serviceId}")
     public ResponseEntity<?> deleteService(@PathVariable Long serviceId) {
-        try {
-            boolean deleted = serviceService.deleteService(serviceId);
-            if (deleted) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", true);
-                response.put("message", "Dịch vụ đã được xóa thành công");
-                return ResponseEntity.ok(response);
-            }
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(createErrorResponse("Không tìm thấy dịch vụ với ID: " + serviceId));
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(createErrorResponse("Không thể xóa dịch vụ vì đang được sử dụng trong hệ thống"));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(createErrorResponse(e.getMessage()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("Đã xảy ra lỗi khi xóa dịch vụ: " + e.getMessage()));
+        boolean deleted = serviceService.deleteService(serviceId);
+        if (!deleted) {
+            throw new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy dịch vụ với ID: " + serviceId);
         }
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Dịch vụ đã được xóa thành công");
+        return ResponseEntity.ok(response);
     }
 
     /**

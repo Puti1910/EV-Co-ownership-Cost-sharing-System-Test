@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.example.VehicleServiceManagementService.integration.UserAccountClient;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -31,6 +32,9 @@ public class VehicleServiceService {
 
     @Autowired
     private ServiceRepository serviceRepository;
+
+    @Autowired
+    private UserAccountClient userAccountClient;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -104,7 +108,7 @@ public class VehicleServiceService {
      */
     public ServiceType validateAndGetService(Long serviceId) {
         return serviceRepository.findById(serviceId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy dịch vụ với ID: " + serviceId));
+                .orElseThrow(() -> new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy dịch vụ với ID: " + serviceId));
     }
 
     /**
@@ -112,7 +116,16 @@ public class VehicleServiceService {
      */
     public Vehicle validateAndGetVehicle(Long vehicleId) {
         return vehicleRepository.findById(vehicleId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy xe với ID: " + vehicleId));
+                .orElseThrow(() -> new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy xe với ID: " + vehicleId));
+    }
+
+    /**
+     * Kiểm tra User tồn tại qua User Account Service
+     */
+    public void validateAndGetUser(Long userId) {
+        if (userId != null && !userAccountClient.existsById(userId)) {
+            throw new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId);
+        }
     }
 
     /**

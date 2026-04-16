@@ -9,11 +9,14 @@ import com.example.VehicleServiceManagementService.model.Vehicleservice;
 import com.example.VehicleServiceManagementService.repository.VehicleServiceRepository;
 import com.example.VehicleServiceManagementService.service.VehicleServiceService;
 import com.example.VehicleServiceManagementService.service.MaintenanceBookingService;
+import com.example.VehicleServiceManagementService.dto.VehicleServiceRequest;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -156,113 +159,61 @@ public class VehicleServiceAPI {
         }
     }
 
-    /**
-     * Đăng ký dịch vụ xe mới
-     */
     @PostMapping
-    public ResponseEntity<?> registerVehicleService(@RequestBody Map<String, Object> requestData) {
+    public ResponseEntity<?> registerVehicleService(@Valid @RequestBody VehicleServiceRequest request) {
         System.out.println("═══════════════════════════════════════════════════════");
         System.out.println("🔵 [REGISTER SERVICE] Bắt đầu xử lý đăng ký dịch vụ");
-        System.out.println("📥 Request data: " + requestData);
+        System.out.println("📥 Request data: " + request);
         
-        try {
-            // Validation
-            Long serviceId = toLong(requestData.get("serviceId"));
-            if (serviceId == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("serviceId là bắt buộc và phải là số");
+        Long serviceId = request.getServiceId();
+        Long vehicleId = request.getVehicleId();
+        Long requestedByUserId = request.getRequestedByUserId();
+        String status = request.getStatus();
+        String requestedByName = request.getRequestedByUserName();
+
+        // Validate User existence
+        vehicleServiceService.validateAndGetUser(requestedByUserId);
+
+        // status custom validation (có thể đưa vào annotation @Pattern sau này)
+        if (status != null && !status.trim().isEmpty()) {
+            String statusLower = status.trim().toLowerCase();
+            if (!statusLower.equals("pending") && !statusLower.equals("in_progress") &&
+                !statusLower.equals("in progress") && !statusLower.equals("completed")) {
+                throw new IllegalArgumentException("Trạng thái không hợp lệ. Chỉ chấp nhận: pending, in_progress, completed");
             }
-
-            Long vehicleId = toLong(requestData.get("vehicleId"));
-            if (vehicleId == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("vehicleId là bắt buộc và phải là số");
-            }
-
-            // Validate và lấy service, vehicle
-            ServiceType service;
-            Vehicle vehicle;
-            try {
-                service = vehicleServiceService.validateAndGetService(serviceId);
-                vehicle = vehicleServiceService.validateAndGetVehicle(vehicleId);
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-            }
-
-            // KIỂM TRA DUPLICATE TRƯỚC KHI TẠO ENTITY
-            // Chỉ chặn nếu có dịch vụ đang chờ (pending/in_progress) chưa completed
-            System.out.println("   🔍 [CHECK DUPLICATE] Kiểm tra dịch vụ đang chờ...");
-            System.out.println("   - serviceId: " + serviceId);
-            System.out.println("   - vehicleId: " + vehicleId);
-            
-            // Kiểm tra xem có dịch vụ đang chờ (pending/in_progress) không
-            long activeCount = vehicleServiceRepository.countActiveByServiceIdAndVehicleId(serviceId, vehicleId);
-            if (activeCount > 0) {
-                System.err.println("   ⚠️ [ACTIVE SERVICE] Đã tồn tại " + activeCount + " dịch vụ đang chờ với serviceId=" + serviceId + " và vehicleId=" + vehicleId);
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Dịch vụ này đã được đăng ký cho xe này và đang trong trạng thái chờ xử lý. Vui lòng hoàn thành dịch vụ trước đó hoặc hủy đăng ký cũ.");
-            }
-            
-            // Với id làm primary key, có thể đăng ký nhiều lần
-            // Chỉ kiểm tra xem có dịch vụ đang chờ (pending/in_progress) không
-            // Nếu có dịch vụ completed, vẫn cho phép đăng ký lại
-            
-            System.out.println("   ✅ [NO CONFLICT] Không có conflict, tiếp tục tạo entity...");
-
-            // Tạo entity
-            String serviceDescription = (String) requestData.get("serviceDescription");
-            String status = (String) requestData.get("status");
-            
-            Long groupRefId = toLong(requestData.getOrDefault("groupRefId", requestData.get("groupId")));
-            Long requestedByUserId = toLong(requestData.getOrDefault("requestedByUserId", requestData.get("userId")));
-            String requestedByName = toStringValue(requestData.getOrDefault("requestedByUserName", requestData.get("requestedByName")));
-            LocalDateTime preferredStart = parseDateTime(requestData.get("preferredStartDatetime"));
-            LocalDateTime preferredEnd = parseDateTime(requestData.get("preferredEndDatetime"));
-
-            Vehicleservice vehicleService = vehicleServiceService.createVehicleService(
-                service,
-                vehicle,
-                serviceDescription,
-                status,
-                groupRefId,
-                requestedByUserId,
-                requestedByName,
-                preferredStart,
-                preferredEnd
-            );
-
-            // Lưu vào database
-            Vehicleservice savedService = vehicleServiceService.saveVehicleService(vehicleService);
-                
-            System.out.println("✅ [SUCCESS] Đã đăng ký dịch vụ thành công!");
-            System.out.println("   - Service ID: " + savedService.getServiceId());
-            System.out.println("   - Vehicle ID: " + savedService.getVehicleId());
-            System.out.println("═══════════════════════════════════════════════════════");
-            
-            // Convert sang Map để trả về
-            Map<String, Object> response = convertToMap(savedService);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-                
-        } catch (IllegalArgumentException e) {
-            System.err.println("❌ [VALIDATION ERROR] " + e.getMessage());
-            String errorMessage = e.getMessage();
-            // Kiểm tra nếu là lỗi duplicate
-            if (errorMessage.contains("đã được đăng ký") || errorMessage.contains("trùng lặp")) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(errorMessage);
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
-                
-        } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            System.err.println("❌ [DATABASE ERROR] " + e.getMessage());
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Lỗi ràng buộc dữ liệu: " + (e.getRootCause() != null ? e.getRootCause().getMessage() : e.getMessage()));
-            
-        } catch (Exception e) {
-            System.err.println("❌ [ERROR] " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Đã xảy ra lỗi khi đăng ký dịch vụ: " + e.getMessage());
         }
+
+        // Validate và lấy service, vehicle
+        ServiceType service = vehicleServiceService.validateAndGetService(serviceId);
+        Vehicle vehicle = vehicleServiceService.validateAndGetVehicle(vehicleId);
+
+        // KIỂM TRA DUPLICATE
+        long activeCount = vehicleServiceRepository.countActiveByServiceIdAndVehicleId(serviceId, vehicleId);
+        if (activeCount > 0) {
+            throw new com.example.VehicleServiceManagementService.exception.ConflictException("Dịch vụ này đã được đăng ký cho xe này và đang trong trạng thái chờ xử lý.");
+        }
+
+        // Tạo entity
+        LocalDateTime preferredStart = parseDateTime(request.getPreferredStartDatetime());
+        LocalDateTime preferredEnd = parseDateTime(request.getPreferredEndDatetime());
+
+        Vehicleservice vehicleService = vehicleServiceService.createVehicleService(
+            service,
+            vehicle,
+            request.getServiceDescription(),
+            status,
+            request.getGroupRefId(),
+            requestedByUserId,
+            requestedByName,
+            preferredStart,
+            preferredEnd
+        );
+
+        Vehicleservice savedService = vehicleServiceService.saveVehicleService(vehicleService);
+            
+        System.out.println("✅ [SUCCESS] Đã đăng ký dịch vụ thành công!");
+        Map<String, Object> response = convertToMap(savedService);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
@@ -297,39 +248,17 @@ public class VehicleServiceAPI {
         }
     }
 
-    /**
-     * Đặt lịch bảo dưỡng cho xe
-     */
     @PostMapping("/maintenance/book")
-    public ResponseEntity<?> bookMaintenance(@RequestBody MaintenanceBookingRequest request) {
+    public ResponseEntity<?> bookMaintenance(@Valid @RequestBody MaintenanceBookingRequest request) {
+
         System.out.println("═══════════════════════════════════════════════════════");
         System.out.println("🔵 [BOOK MAINTENANCE] Nhận request đặt dịch vụ bảo dưỡng");
         System.out.println("📥 Request - userId: " + request.getUserId() + ", groupId: " + request.getGroupId() + 
                           ", vehicleId: " + request.getVehicleId() + ", serviceId: " + request.getServiceId());
-        try {
-            Map<String, Object> result = maintenanceBookingService.bookMaintenance(request);
-            System.out.println("✅ [BOOK MAINTENANCE] Thành công!");
-            System.out.println("═══════════════════════════════════════════════════════");
-            return ResponseEntity.ok(result);
-        } catch (IllegalArgumentException e) {
-            System.err.println("❌ [BOOK MAINTENANCE] Lỗi validation: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                    "success", false,
-                    "message", e.getMessage()
-            ));
-        } catch (Exception e) {
-            System.err.println("❌ [BOOK MAINTENANCE] Lỗi không xác định: " + e.getMessage());
-            System.err.println("   Error Type: " + e.getClass().getName());
-            if (e.getCause() != null) {
-                System.err.println("   Cause: " + e.getCause().getMessage());
-            }
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "success", false,
-                    "message", e.getMessage()
-            ));
-        }
+        Map<String, Object> result = maintenanceBookingService.bookMaintenance(request);
+        System.out.println("✅ [BOOK MAINTENANCE] Thành công!");
+        System.out.println("═══════════════════════════════════════════════════════");
+        return ResponseEntity.ok(result);
     }
 
     /**
@@ -495,31 +424,31 @@ public class VehicleServiceAPI {
         }
     }
     
-        /**
-         * Đồng bộ trạng thái vehicle dựa trên vehicleservice
-         * @param vehicleId ID của vehicle cần đồng bộ
-         * @return Response với kết quả đồng bộ
-         */
-        @PostMapping("/sync-vehicle-status/{vehicleId}")
-        public ResponseEntity<?> syncVehicleStatus(@PathVariable Long vehicleId) {
-            try {
-                System.out.println("🔄 [API] Đồng bộ trạng thái vehicle: " + vehicleId);
-                vehicleServiceService.syncVehicleStatus(vehicleId);
-                return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "Đã đồng bộ trạng thái vehicle thành công",
-                    "vehicleId", vehicleId
-                ));
-            } catch (Exception e) {
-                System.err.println("❌ [API] Lỗi khi đồng bộ trạng thái vehicle: " + e.getMessage());
-                e.printStackTrace();
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of(
-                            "success", false,
-                            "message", "Đã xảy ra lỗi khi đồng bộ trạng thái: " + e.getMessage()
-                        ));
-            }
+    @PostMapping("/sync-vehicle-status/{vehicleIdStr}")
+    public ResponseEntity<?> syncVehicleStatus(@PathVariable String vehicleIdStr) {
+        Long vehicleId;
+        try {
+            vehicleId = Long.parseLong(vehicleIdStr);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", "ID không hợp lệ hoặc vượt quá giới hạn (overflow)"));
         }
+        if (vehicleId < 1) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", "vehicleId không hợp lệ (phải >= 1)"));
+        }
+        
+        // validateAndGetVehicle sẽ ném ResourceNotFoundException (404) nếu không tìm thấy xe
+        vehicleServiceService.validateAndGetVehicle(vehicleId);
+        
+        System.out.println("🔄 [API] Đồng bộ trạng thái vehicle: " + vehicleId);
+        vehicleServiceService.syncVehicleStatus(vehicleId);
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Đã đồng bộ trạng thái vehicle thành công",
+            "vehicleId", vehicleId
+        ));
+    }
         
         /**
          * Đồng bộ trạng thái cho tất cả vehicles
@@ -630,7 +559,8 @@ public class VehicleServiceAPI {
         if (value instanceof String str && !str.isBlank()) {
             try {
                 return LocalDateTime.parse(str);
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Định dạng ngày tháng không hợp lệ (Yêu cầu ISO format, ví dụ: 2026-04-14T10:00:00Z)");
             }
         }
         return null;

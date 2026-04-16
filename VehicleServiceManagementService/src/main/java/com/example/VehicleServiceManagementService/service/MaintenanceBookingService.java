@@ -26,6 +26,8 @@ import com.example.VehicleServiceManagementService.model.Vehicle;
 import com.example.VehicleServiceManagementService.model.Vehiclegroup;
 import com.example.VehicleServiceManagementService.model.Vehicleservice;
 import com.example.VehicleServiceManagementService.repository.ServiceRepository;
+import com.example.VehicleServiceManagementService.repository.VehicleRepository;
+import com.example.VehicleServiceManagementService.integration.UserAccountClient;
 
 import lombok.RequiredArgsConstructor;
 
@@ -40,6 +42,8 @@ public class MaintenanceBookingService {
     private final VehicleDataSyncService vehicleDataSyncService;
     private final ServiceService serviceService;
     private final com.example.VehicleServiceManagementService.repository.VehicleServiceRepository vehicleServiceRepository;
+    private final VehicleRepository vehicleRepository;
+    private final com.example.VehicleServiceManagementService.integration.UserAccountClient userAccountClient;
 
     public MaintenanceBookingService(
             GroupManagementClient groupClient,
@@ -47,13 +51,17 @@ public class MaintenanceBookingService {
             ServiceRepository serviceRepository,
             VehicleDataSyncService vehicleDataSyncService,
             ServiceService serviceService,
-            com.example.VehicleServiceManagementService.repository.VehicleServiceRepository vehicleServiceRepository) {
+            com.example.VehicleServiceManagementService.repository.VehicleServiceRepository vehicleServiceRepository,
+            VehicleRepository vehicleRepository,
+            com.example.VehicleServiceManagementService.integration.UserAccountClient userAccountClient) {
         this.groupClient = groupClient;
         this.vehicleServiceService = vehicleServiceService;
         this.serviceRepository = serviceRepository;
         this.vehicleDataSyncService = vehicleDataSyncService;
         this.serviceService = serviceService;
         this.vehicleServiceRepository = vehicleServiceRepository;
+        this.vehicleRepository = vehicleRepository;
+        this.userAccountClient = userAccountClient;
     }
 
     /**
@@ -105,8 +113,13 @@ public class MaintenanceBookingService {
         try {
             validateRequest(request);
 
+            // Kiểm tra User ID tồn tại
+            if (!userAccountClient.existsById(request.getUserId())) {
+                throw new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy người dùng với ID: " + request.getUserId());
+            }
+
             Map<String, Object> groupPayload = groupClient.getGroup(request.getGroupId())
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhóm xe #" + request.getGroupId()));
+                    .orElseThrow(() -> new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy nhóm xe #" + request.getGroupId()));
 
             groupClient.getMembership(request.getGroupId(), request.getUserId())
                     .orElseThrow(() -> new IllegalArgumentException("Người dùng không thuộc nhóm này"));
@@ -114,6 +127,11 @@ public class MaintenanceBookingService {
             Long resolvedVehicleId = resolveVehicleId(request, groupPayload);
             log.info("📝 [BOOKING] Vehicle ID đã được resolve: {}", resolvedVehicleId);
             
+            // KIỂM TRA XE TỒN TẠI (Để tránh lỗi 500 khi sync xe giả)
+            if (!vehicleRepository.existsById(resolvedVehicleId)) {
+                throw new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy xe với ID: " + resolvedVehicleId);
+            }
+
             Vehiclegroup groupEntity = vehicleDataSyncService.ensureGroupSynced(request.getGroupId(), groupPayload);
             Map<String, Object> vehicleSnapshot = new HashMap<>();
             if (request.getVehicleName() != null) {
@@ -191,13 +209,8 @@ public class MaintenanceBookingService {
         // Ưu tiên tìm theo serviceId
         if (request.getServiceId() != null) {
             Long serviceId = request.getServiceId();
-            // Tìm lại một lần nữa để tránh race condition
-            Optional<ServiceType> serviceOpt = serviceRepository.findById(serviceId);
-            if (serviceOpt.isPresent()) {
-                return serviceOpt.get();
-            }
-            // Nếu không tìm thấy theo ID, tự động tạo mới
-            return createServiceIfNotExists(serviceId, request.getServiceName());
+            return serviceRepository.findById(serviceId)
+                    .orElseThrow(() -> new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy dịch vụ với ID: " + serviceId));
         }
         
         // Tìm theo serviceName
@@ -302,15 +315,13 @@ public class MaintenanceBookingService {
     }
 
     private Long resolveVehicleId(MaintenanceBookingRequest request, Map<String, Object> groupPayload) {
-        Object groupVehicleId = groupPayload.get("vehicleId");
+        // In 1-N model, the group doesn't have a single vehicleId in its metadata.
+        // We must rely on the vehicleId provided in the request.
         Long targetVehicleId = request.getVehicleId();
-        if (groupVehicleId != null) {
-            Long normalized = toLong(groupVehicleId);
-            if (!Objects.equals(normalized, targetVehicleId)) {
-                log.warn("VehicleId {} từ yêu cầu khác với vehicleId {} trong nhóm, sẽ ưu tiên group", targetVehicleId, normalized);
-            }
-            targetVehicleId = normalized;
-        }
+        
+        // Optionally, we could verify if the vehicle belongs to the group here, 
+        // but ensureVehicleSynced already handles the relationship.
+        
         return targetVehicleId;
     }
 

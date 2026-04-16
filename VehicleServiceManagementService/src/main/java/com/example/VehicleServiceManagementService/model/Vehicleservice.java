@@ -68,7 +68,7 @@ public class Vehicleservice {
     @Column(name = "requested_by_user_id")
     private Long requestedByUserId;
 
-    @Column(name = "requested_by_user_name", length = 150)
+    @Column(name = "requested_by_user_name", length = 255)
     private String requestedByUserName;
 
     @Column(name = "preferred_start_datetime")

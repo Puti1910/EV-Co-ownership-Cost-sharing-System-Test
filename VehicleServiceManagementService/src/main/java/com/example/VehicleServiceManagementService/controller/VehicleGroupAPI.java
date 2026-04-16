@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -94,24 +95,15 @@ public class VehicleGroupAPI {
         }
     }
 
-    // Thêm nhóm xe mới
     @PostMapping
-    public Vehiclegroup addVehicleGroup(@RequestBody Vehiclegroup vehicleGroup) {
-        return vehicleGroupService.addVehicleGroup(vehicleGroup);
+    public ResponseEntity<?> addVehicleGroup(@Valid @RequestBody Vehiclegroup vehicleGroup) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(vehicleGroupService.addVehicleGroup(vehicleGroup));
     }
 
-    /**
-     * Sửa thông tin nhóm xe
-     * Có thể sửa: tên, trạng thái, mô tả
-     * 
-     * @param groupIdStr ID của nhóm xe cần sửa
-     * @param vehicleGroup Đối tượng chứa thông tin cần cập nhật
-     * @return ResponseEntity với Vehiclegroup đã được cập nhật hoặc thông báo lỗi
-     */
     @PutMapping("/{groupIdStr}")
     public ResponseEntity<?> updateVehicleGroup(
             @PathVariable String groupIdStr, 
-            @RequestBody Vehiclegroup vehicleGroup) {
+            @Valid @RequestBody Vehiclegroup vehicleGroup) {
         Long groupId;
         try {
             groupId = Long.parseLong(groupIdStr);
@@ -122,17 +114,6 @@ public class VehicleGroupAPI {
 
         if (groupId < 1) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("groupId phải lớn hơn hoặc bằng 1");
-        }
-
-        // Validation thủ công cho các trường
-        if (vehicleGroup.getName() == null || vehicleGroup.getName().trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tên nhóm xe không được để trống");
-        }
-        if (vehicleGroup.getName().length() > 100) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tên nhóm xe không được vượt quá 100 ký tự");
-        }
-        if (vehicleGroup.getDescription() != null && vehicleGroup.getDescription().length() > 255) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Mô tả không được vượt quá 255 ký tự");
         }
 
         try {

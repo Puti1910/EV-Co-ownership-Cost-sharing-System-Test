@@ -36,7 +36,7 @@ public class GroupManagementService {
                 .map(existingGroup -> {
                     existingGroup.setGroupName(group.getGroupName());
                     existingGroup.setAdminId(group.getAdminId());
-                    existingGroup.setVehicleId(group.getVehicleId());
+// existingGroup.setVehicleId(group.getVehicleId()); // Removed for 1-N support
                     existingGroup.setStatus(group.getStatus());
                     return groupRepository.save(existingGroup);
                 });

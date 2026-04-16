@@ -155,23 +155,8 @@ public class GroupManagementController {
             
             logger.info("🔵 [CREATE GROUP] Group data prepared: groupName={}, adminId={}", group.getGroupName(), group.getAdminId());
             
-            if (requestData.containsKey("vehicleId")) {
-                Object vehicleIdObj = requestData.get("vehicleId");
-                if (vehicleIdObj != null) {
-                    Integer vehicleIdInt = null;
-                    if (vehicleIdObj instanceof Number) {
-                        vehicleIdInt = ((Number) vehicleIdObj).intValue();
-                    } else if (vehicleIdObj instanceof String) {
-                        try {
-                            vehicleIdInt = Integer.parseInt((String) vehicleIdObj);
-                        } catch (NumberFormatException e) {
-                            logger.warn("Invalid vehicleId format: {}", vehicleIdObj);
-                            vehicleIdInt = null;
-                        }
-                    }
-                    group.setVehicleId(vehicleIdInt);
-                }
-            }
+            // vehicleId logic removed for 1-N support
+
             if (requestData.containsKey("status")) {
                 String statusStr = (String) requestData.get("status");
                 group.setStatus("Active".equalsIgnoreCase(statusStr) ? Group.GroupStatus.Active : Group.GroupStatus.Inactive);
@@ -260,25 +245,8 @@ public class GroupManagementController {
             if (requestData.containsKey("adminId")) {
                 existingGroup.setAdminId(((Number) requestData.get("adminId")).intValue());
             }
-            if (requestData.containsKey("vehicleId")) {
-                Object vehicleIdObj = requestData.get("vehicleId");
-                if (vehicleIdObj != null) {
-                    Integer vehicleIdInt = null;
-                    if (vehicleIdObj instanceof Number) {
-                        vehicleIdInt = ((Number) vehicleIdObj).intValue();
-                    } else if (vehicleIdObj instanceof String) {
-                        try {
-                            vehicleIdInt = Integer.parseInt((String) vehicleIdObj);
-                        } catch (NumberFormatException e) {
-                            logger.warn("Invalid vehicleId format: {}", vehicleIdObj);
-                            vehicleIdInt = null;
-                        }
-                    }
-                    existingGroup.setVehicleId(vehicleIdInt);
-                } else {
-                    existingGroup.setVehicleId(null);
-                }
-            }
+            // vehicleId logic removed for 1-N support
+
             if (requestData.containsKey("status")) {
                 String statusStr = (String) requestData.get("status");
                 existingGroup.setStatus("Active".equalsIgnoreCase(statusStr) ? Group.GroupStatus.Active : Group.GroupStatus.Inactive);
@@ -1641,7 +1609,7 @@ public class GroupManagementController {
         map.put("groupId", contract.getGroup().getGroupId());
         map.put("groupName", contract.getGroup().getGroupName());
         map.put("groupAdminId", contract.getGroup().getAdminId());
-        map.put("vehicleId", contract.getGroup().getVehicleId());
+        // map.put("vehicleId", contract.getGroup().getVehicleId()); // Removed for 1-N support
         map.put("contractCode", contract.getContractCode());
         map.put("contractStatus", normalizeContractStatus(contract.getContractStatus()));
         map.put("status", normalizeContractStatus(contract.getContractStatus()));

@@ -14,7 +14,6 @@ public class GroupResponseDto {
     private Integer groupId;
     private String groupName;
     private Integer adminId;
-    private Integer vehicleId;
     private LocalDateTime createdAt;
     private String status;
     private Integer memberCount;
@@ -31,7 +30,7 @@ public class GroupResponseDto {
         dto.setGroupId(group.getGroupId());
         dto.setGroupName(group.getGroupName());
         dto.setAdminId(group.getAdminId());
-        dto.setVehicleId(group.getVehicleId());
+        // dto.setVehicleId(group.getVehicleId()); // Removed for 1-N support
         dto.setCreatedAt(group.getCreatedAt());
         dto.setStatus(group.getStatus() != null ? group.getStatus().name() : null);
         dto.setMemberCount(memberCount);

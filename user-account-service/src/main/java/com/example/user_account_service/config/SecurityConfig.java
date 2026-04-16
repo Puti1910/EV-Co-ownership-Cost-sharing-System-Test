@@ -83,6 +83,7 @@ public class SecurityConfig {
                         // API Public
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/auth/users/register", "/api/auth/users/login", "/api/auth/users/refresh", "/api/auth/users/logout").permitAll()
+                        .requestMatchers("/api/auth/users/*/exists").permitAll()
 
                         // Endpoint trung gian để nhận JWT và set cookie (public)
                         .requestMatchers("/user/auth").permitAll()

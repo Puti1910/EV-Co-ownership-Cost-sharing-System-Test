@@ -246,6 +246,15 @@ public class UserController {
         }
     }
 
+    /**
+     * API kiểm tra sự tồn tại của người dùng (PUBLIC - dành cho inter-service calls)
+     */
+    @GetMapping("/{userId}/exists")
+    public ResponseEntity<Boolean> userExists(@PathVariable Long userId) {
+        logger.info("Inter-service call: Checking existence for userId: {}", userId);
+        return ResponseEntity.ok(userService.existsById(userId));
+    }
+
     private User getAuthenticatedUser(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             logger.error("getAuthenticatedUser - Authentication is null or name is null");

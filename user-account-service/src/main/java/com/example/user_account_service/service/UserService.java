@@ -53,6 +53,11 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+    public boolean existsById(Long userId) {
+        if (userId == null) return false;
+        return userRepository.existsById(userId);
+    }
+
     /**
      * Đăng ký người dùng mới và trả về bộ đôi token.
      */

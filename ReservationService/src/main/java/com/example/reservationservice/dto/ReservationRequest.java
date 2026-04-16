@@ -29,6 +29,14 @@ public class ReservationRequest {
     @Size(max = 255, message = "Mục đích sử dụng không được quá 255 ký tự")
     private String purpose;
 
+    public String getPurpose() {
+        return purpose;
+    }
+
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
+    }
+
     // Cho phép null hoặc chuỗi rỗng (sẽ dùng default BOOKED ở service)
     // Nếu có giá trị thì phải là một trong 4 giá trị hợp lệ (case-sensitive)
     @Pattern(
@@ -36,4 +44,15 @@ public class ReservationRequest {
         message = "status must be one of: BOOKED, IN_USE, COMPLETED, CANCELLED"
     )
     private String status;
+
+    public Integer getUserId() { return userId; }
+    public void setUserId(Integer userId) { this.userId = userId; }
+    public Integer getVehicleId() { return vehicleId; }
+    public void setVehicleId(Integer vehicleId) { this.vehicleId = vehicleId; }
+    public LocalDateTime getStartDatetime() { return startDatetime; }
+    public void setStartDatetime(LocalDateTime startDatetime) { this.startDatetime = startDatetime; }
+    public LocalDateTime getEndDatetime() { return endDatetime; }
+    public void setEndDatetime(LocalDateTime endDatetime) { this.endDatetime = endDatetime; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

@@ -50,6 +50,7 @@ public class GroupManagementApiService {
         try {
             // Lấy tất cả groups và tìm group có vehicleId phù hợp
             String url = groupManagementServiceUrl + "/api/groups";
+            
             ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
@@ -60,11 +61,11 @@ public class GroupManagementApiService {
             if (response.getBody() != null) {
                 return response.getBody().stream()
                     .filter(group -> {
-                        Object vehicleIdObj = group.get("vehicleId");
-                        if (vehicleIdObj == null) return false;
-                        Integer groupVehicleId = vehicleIdObj instanceof Number 
-                            ? ((Number) vehicleIdObj).intValue() 
-                            : Integer.parseInt(vehicleIdObj.toString());
+                        Object vIdObj = group.get("vehicleId");
+                        if (vIdObj == null) return false;
+                        Integer groupVehicleId = vIdObj instanceof Number 
+                            ? ((Number) vIdObj).intValue() 
+                            : Integer.parseInt(vIdObj.toString());
                         return groupVehicleId.equals(vehicleId);
                     })
                     .findFirst();

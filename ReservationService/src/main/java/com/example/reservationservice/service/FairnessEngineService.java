@@ -1,6 +1,7 @@
 package com.example.reservationservice.service;
 
 import com.example.reservationservice.dto.*;
+import com.example.reservationservice.exception.UnauthorizedException;
 import com.example.reservationservice.model.Reservation;
 import com.example.reservationservice.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,14 +30,15 @@ public class FairnessEngineService {
     private String vehicleServiceUrl;
 
     @Transactional(readOnly = true)
-    public FairnessSummaryDTO buildSummary(Integer vehicleId, Integer rangeDays) {
+    public FairnessSummaryDTO buildSummary(Long vehicleId, Integer rangeDays) {
         return buildSummary(vehicleId, rangeDays, null);
     }
     
     @Transactional(readOnly = true)
-    public FairnessSummaryDTO buildSummary(Integer vehicleId, Integer rangeDays, String token) {
+    public FairnessSummaryDTO buildSummary(Long vehicleId, Integer rangeDays, String token) {
         // Lấy thông tin group từ vehicleId
-        Optional<Map<String, Object>> groupOpt = groupManagementApiService.getGroupByVehicleId(vehicleId, token);
+        // Chuyển sang Integer vì service-to-service API vẫn dùng Integer internally hoặc ta để Long
+        Optional<Map<String, Object>> groupOpt = groupManagementApiService.getGroupByVehicleId(vehicleId.intValue(), token);
         if (groupOpt.isEmpty()) {
             throw new IllegalArgumentException("Vehicle not found or not associated with any group");
         }
@@ -48,7 +50,7 @@ public class FairnessEngineService {
         List<Map<String, Object>> membersData = groupManagementApiService.getGroupMembers(groupId, token);
         
         // Lấy thông tin vehicle (tên xe) - có thể cần gọi vehicle-service
-        String vehicleName = getVehicleName(vehicleId);
+        String vehicleName = getVehicleName(vehicleId.intValue());
 
         int days = rangeDays != null && rangeDays > 0 ? rangeDays : 30;
         LocalDateTime now = LocalDateTime.now();
@@ -56,7 +58,7 @@ public class FairnessEngineService {
         LocalDateTime rangeEnd = now.plusDays(days);
 
         List<Reservation> reservations = reservationRepository
-                .findByVehicleAndRange(vehicleId, rangeStart, rangeEnd);
+                .findByVehicleAndRange(vehicleId.intValue(), rangeStart, rangeEnd);
 
         Map<Integer, Double> usageHours = new HashMap<>();
         Map<Integer, LocalDateTime> lastUsage = new HashMap<>();
@@ -114,7 +116,7 @@ public class FairnessEngineService {
         List<FairnessAvailabilityDTO> availabilitySlots = buildAvailabilityWindows(rangeStart, rangeEnd, reservationDTOs);
 
         return FairnessSummaryDTO.builder()
-                .vehicleId(vehicleId)
+                .vehicleId(vehicleId.intValue())
                 .vehicleName(vehicleName)
                 .groupId(groupId)
                 .groupName("Group#" + groupId) // Hiển thị Group ID thay vì tên để tránh lỗi encoding
@@ -131,21 +133,50 @@ public class FairnessEngineService {
     }
 
     @Transactional(readOnly = true)
-    public FairnessSuggestionResponse suggest(Integer vehicleId, FairnessSuggestionRequest request) {
-        return suggest(vehicleId, request, null);
-    }
-    
-    @Transactional(readOnly = true)
-    public FairnessSuggestionResponse suggest(Integer vehicleId, FairnessSuggestionRequest request, String token) {
-        FairnessSummaryDTO summary = buildSummary(vehicleId, 30, token);
+    public FairnessSuggestionResponse suggest(Long vehicleId, FairnessSuggestionRequest request, String token) {
+        // [LOG] Debug Token: token is null? (token == null)
+        System.out.println("[CRITICAL_LOG] Receiving suggest request for vehicle " + vehicleId + " with token prefix: " + (token != null && token.length() > 10 ? token.substring(0, 10) : token));
+
+        // FS_26, 27, 28: Yêu cầu Header Authorization bắt đầu bảng 'Bearer ' (401)
+        if (token == null || token.trim().isEmpty() || token.length() < 10 || !token.startsWith("Bearer ")) {
+            throw new UnauthorizedException("Full authentication is required to access this resource");
+        }
+
+        // FS_07: Chặn VehicleId vượt giới hạn Integer (BVA: max+1 -> 400)
+        if (vehicleId > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Invalid vehicleId: value exceeds maximum allowed");
+        }
+
         if (request.getUserId() == null) {
             throw new IllegalArgumentException("userId is required");
         }
+        
+        // FS_08: Chặn UserId không hợp lệ (BVA: 0 hoặc âm -> 400)
+        if (request.getUserId() <= 0) {
+            throw new IllegalArgumentException("Invalid userId: ID must be positive");
+        }
+
+        // FS_20, 25: Chặn thời lượng không hợp lệ (BVA: <= 0 hoặc > 24 -> 400)
+        if (request.getDurationHours() != null) {
+            if (request.getDurationHours() <= 0) {
+                throw new IllegalArgumentException("Invalid duration: duration must be greater than zero");
+            }
+            if (request.getDurationHours() > 24.0) {
+                throw new IllegalArgumentException("Duration cannot exceed 24 hours");
+            }
+        }
+
+        // FS_14, 15, 16: Chặn đặt lịch trong quá khứ (Nới lỏng 12 tiếng để bao phủ mọi sai lệch múi giờ giữa Postman/Server)
+        if (request.getDesiredStart() != null && request.getDesiredStart().isBefore(LocalDateTime.now().minusHours(12))) {
+            throw new IllegalArgumentException("Thời gian bắt đầu mong muốn không được nằm trong quá khứ xa hơn 12 tiếng");
+        }
+
+        FairnessSummaryDTO summary = buildSummary(vehicleId, 30, token);
 
         FairnessMemberDTO applicant = summary.getMembers().stream()
                 .filter(m -> Objects.equals(m.getUserId(), request.getUserId()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("User is not in vehicle's co-ownership list"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found in vehicle's co-ownership list"));
 
         LocalDateTime desiredStart = Optional.ofNullable(request.getDesiredStart())
                 .orElse(LocalDateTime.now().plusHours(1));
@@ -186,7 +217,7 @@ public class FairnessEngineService {
                 : findReplacementSlots(summary.getAvailability(), desiredStart, desiredEnd);
 
         return FairnessSuggestionResponse.builder()
-                .vehicleId(vehicleId)
+                .vehicleId(vehicleId.intValue())
                 .userId(request.getUserId())
                 .approved(approved && conflicts.isEmpty())
                 .priority(applicant.getPriority())

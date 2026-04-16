@@ -333,6 +333,10 @@ public class CostController {
         if (costId < 1 || costId > 1000000) {
             return ResponseEntity.badRequest().build();
         }
+        if (!costService.getCostById(costId).isPresent()) {
+            logger.warn("Cost not found for splits: costId={}", costId);
+            return ResponseEntity.notFound().build();
+        }
         try {
             List<CostShare> costShares = costShareService.getCostSharesByCostId(costId);
             List<CostShareDto> costShareDtos = costShares.stream()
@@ -357,6 +361,10 @@ public class CostController {
         logger.info("=== createCostSplits() method called for costId: {} ===", costId);
         if (costId < 1 || costId > 1000000) {
             return ResponseEntity.badRequest().build();
+        }
+        if (!costService.getCostById(costId).isPresent()) {
+            logger.warn("Cost not found for creating splits: costId={}", costId);
+            return ResponseEntity.notFound().build();
         }
         logger.info("Request: {}", request);
 
@@ -487,6 +495,10 @@ public class CostController {
         if (costId < 1 || costId > 1000000) {
             return ResponseEntity.badRequest().build();
         }
+        if (!costService.getCostById(costId).isPresent()) {
+            logger.warn("Cost not found for history: costId={}", costId);
+            return ResponseEntity.notFound().build();
+        }
         try {
             List<Map<String, Object>> history = costShareService.getCostShareHistory(costId);
             logger.info("Retrieved {} history items for costId: {}", history.size(), costId);
@@ -505,6 +517,10 @@ public class CostController {
         logger.info("=== getCostShareStatus() method called for costId: {} ===", costId);
         if (costId < 1 || costId > 1000000) {
             return ResponseEntity.badRequest().build();
+        }
+        if (!costService.getCostById(costId).isPresent()) {
+            logger.warn("Cost not found for status: costId={}", costId);
+            return ResponseEntity.notFound().build();
         }
         try {
             boolean isShared = costShareService.isCostShared(costId);

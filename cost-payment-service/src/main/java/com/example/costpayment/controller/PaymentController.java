@@ -92,7 +92,7 @@ public class PaymentController {
             logger.warn("Invalid costId: {}. Exceeds maximum limit.", costId);
             return ResponseEntity.notFound().build(); // 404
         }
-        
+
         List<Payment> payments = paymentService.getPaymentsByCostId(costId);
         return ResponseEntity.ok(payments);
     }
@@ -281,9 +281,10 @@ public class PaymentController {
         }
         if (id > 1000000) {
             logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.<String, Object>of("error", "Id exceeds limits"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.<String, Object>of("error", "Id exceeds limits"));
         }
-        
+
         try {
             Map<String, Object> details = paymentService.getPaymentDetails(id);
 
@@ -317,9 +318,10 @@ public class PaymentController {
         }
         if (id > 1000000) {
             logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.<String, Object>of("success", false, "message", "Id exceeds limits"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.<String, Object>of("success", false, "message", "Id exceeds limits"));
         }
-        
+
         try {
             Optional<Payment> paymentOpt = paymentService.getPaymentById(id);
 
@@ -369,9 +371,10 @@ public class PaymentController {
         }
         if (id > 1000000) {
             logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.<String, Object>of("success", false, "message", "Id exceeds limits"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.<String, Object>of("success", false, "message", "Id exceeds limits"));
         }
-        
+
         try {
             Optional<Payment> paymentOpt = paymentService.getPaymentById(id);
 
@@ -415,9 +418,10 @@ public class PaymentController {
         }
         if (id > 1000000) {
             logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.<String, Object>of("error", "Id exceeds limits"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.<String, Object>of("error", "Id exceeds limits"));
         }
-        
+
         try {
             // Convert Map to Payment object with proper enum handling
             Payment paymentData = new Payment();
@@ -526,9 +530,10 @@ public class PaymentController {
         }
         if (id > 1000000) {
             logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.<String, Object>of("error", "Id exceeds limits"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.<String, Object>of("error", "Id exceeds limits"));
         }
-        
+
         try {
             boolean deleted = paymentService.deletePayment(id);
 

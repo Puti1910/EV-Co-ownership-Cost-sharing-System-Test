@@ -129,8 +129,10 @@ INSERT INTO GroupMember (groupId, userId, role, ownershipPercent) VALUES
 -- Group 4: Chỉ có admin, còn 80%
 (4, 6, 'Admin', 20.0),
 
--- Group 5: Để trống 100%
-(5, 7, 'Admin', 0.0);
+-- Group 5: Đã thêm thành viên để test
+(5, 7, 'Admin', 50.0),
+(5, 8, 'Member', 30.0),
+(5, 9, 'Member', 20.0);
 
 -- Bỏ phiếu
 INSERT INTO Voting (groupId, topic, optionA, optionB, totalVotes) VALUES 

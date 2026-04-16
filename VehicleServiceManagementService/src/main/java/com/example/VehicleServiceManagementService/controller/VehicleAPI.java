@@ -1,5 +1,7 @@
 package com.example.VehicleServiceManagementService.controller;
 
+import com.example.VehicleServiceManagementService.service.VehicleCleanupService;
+
 import com.example.VehicleServiceManagementService.model.Vehicle;
 import com.example.VehicleServiceManagementService.model.Vehiclegroup;
 import com.example.VehicleServiceManagementService.repository.VehicleRepository;
@@ -35,6 +37,9 @@ public class VehicleAPI {
     
     @PersistenceContext
     private EntityManager entityManager;
+
+    @Autowired
+    private VehicleCleanupService vehicleCleanupService;
 
     /**
      * Lấy tất cả các xe
@@ -434,29 +439,19 @@ public class VehicleAPI {
             Long groupId = vehicle.getGroup() != null ? vehicle.getGroup().getGroupId() : null;
             
             // Xóa tất cả các bản ghi checkinoutlog liên quan đến xe trước
-            // (nằm trong database legal_contract)
-            // Lưu ý: vehicle_id trong checkinoutlog là INT, cần convert vehicleId (String) sang INT
+            // Sử dụng VehicleCleanupService với REQUIRES_NEW để tránh làm hỏng transaction chính
             try {
-                int deletedCheckInOutLogs = entityManager.createNativeQuery(
-                    "DELETE FROM legal_contract.checkinoutlog WHERE vehicle_id = :vehicleId"
-                ).setParameter("vehicleId", vehicleId).executeUpdate();
-                System.out.println("DEBUG: Đã xóa " + deletedCheckInOutLogs + " bản ghi checkinoutlog liên quan đến xe " + vehicleId);
+                vehicleCleanupService.deleteCheckInOutLogs(vehicleId);
             } catch (Exception e) {
-                System.err.println("DEBUG: Lỗi khi xóa checkinoutlog liên quan: " + e.getMessage());
-                // Tiếp tục xóa các dữ liệu khác dù có lỗi khi xóa checkinoutlog
+                System.err.println("DEBUG: Lỗi khi xóa checkinoutlog liên quan (xe vẫn sẽ được xóa): " + e.getMessage());
             }
             
             // Xóa tất cả các dịch vụ liên quan đến xe trước
-            // Với id làm primary key, có thể xóa bằng cách xóa theo vehicle_id
-            // Lưu ý: vehicle_id trong vehicleservice là INT, cần convert vehicleId (String) sang INT
+            // Sử dụng VehicleCleanupService với REQUIRES_NEW để tránh làm hỏng transaction chính
             try {
-                int deletedServices = entityManager.createNativeQuery(
-                    "DELETE FROM vehicle_management.vehicleservice WHERE vehicle_id = :vehicleId"
-                ).setParameter("vehicleId", vehicleId).executeUpdate();
-                System.out.println("DEBUG: Đã xóa " + deletedServices + " dịch vụ liên quan đến xe " + vehicleId);
+                vehicleCleanupService.deleteVehicleServices(vehicleId);
             } catch (Exception e) {
-                System.err.println("DEBUG: Lỗi khi xóa dịch vụ liên quan: " + e.getMessage());
-                // Tiếp tục xóa xe dù có lỗi khi xóa dịch vụ
+                System.err.println("DEBUG: Lỗi khi xóa dịch vụ liên quan (xe vẫn sẽ được xóa): " + e.getMessage());
             }
             
             // Xóa xe

@@ -60,6 +60,14 @@ public interface VehicleServiceRepository extends JpaRepository<Vehicleservice, 
     @Transactional
     @Query("DELETE FROM Vehicleservice v WHERE v.vehicleId = :vehicleId")
     void deleteByVehicleId(@Param("vehicleId") Long vehicleId);
+
+    /**
+     * Xóa tất cả đăng ký dịch vụ theo service_id
+     */
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Vehicleservice v WHERE v.serviceId = :serviceId")
+    void deleteByServiceId(@Param("serviceId") Long serviceId);
     
     /**
      * Đếm số lượng theo cặp ID

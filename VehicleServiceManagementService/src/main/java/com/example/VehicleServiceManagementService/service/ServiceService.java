@@ -154,11 +154,15 @@ public class ServiceService {
         }
 
         try {
+            // Xóa tất cả các liên kết trong bảng vehicleservice trước để tránh lỗi khóa ngoại
+            vehicleServiceRepository.deleteByServiceId(serviceId);
+            System.out.println("DEBUG: Đã xóa các liên kết trong vehicleservice cho serviceId: " + serviceId);
+
             serviceRepository.deleteById(serviceId);
             return true;
         } catch (DataIntegrityViolationException e) {
             throw new DataIntegrityViolationException(
-                "Không thể xóa dịch vụ '" + serviceId + "' vì đang được sử dụng trong hệ thống", e);
+                "Không thể xóa dịch vụ '" + serviceId + "' vì vẫn còn ràng buộc dữ liệu không thể xóa tự động", e);
         }
     }
 

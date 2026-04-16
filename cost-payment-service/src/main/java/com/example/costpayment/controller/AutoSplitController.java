@@ -42,6 +42,11 @@ public class AutoSplitController {
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year) {
         
+        if (costId == null || costId < 1 || costId > 1000000 ||
+            groupId == null || groupId < 1 || groupId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "costId hoặc groupId không hợp lệ"));
+        }
+        
         // Lấy tháng/năm hiện tại nếu không có
         if (month == null) {
             month = java.time.LocalDate.now().getMonthValue();
@@ -236,6 +241,11 @@ public class AutoSplitController {
             @RequestParam Integer groupId,
             @RequestHeader(value = "Authorization", required = false) String token) {
         
+        if (costId == null || costId < 1 || costId > 1000000 ||
+            groupId == null || groupId < 1 || groupId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         Map<Integer, Double> ownershipMap = autoSplitService.getGroupOwnership(groupId, token);
         List<CostShare> shares = autoSplitService.splitByOwnership(costId, ownershipMap);
         
@@ -252,6 +262,11 @@ public class AutoSplitController {
             @RequestParam Integer groupId,
             @RequestParam Integer month,
             @RequestParam Integer year) {
+        
+        if (costId == null || costId < 1 || costId > 1000000 ||
+            groupId == null || groupId < 1 || groupId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         
         // Lấy km từ database
         List<UsageTrackingDto> usageList = usageTrackingService.getGroupUsageInMonth(groupId, month, year);
@@ -286,6 +301,10 @@ public class AutoSplitController {
             @RequestParam Integer costId,
             @RequestBody List<Integer> userIds) {
         
+        if (costId == null || costId < 1 || costId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         List<CostShare> shares = autoSplitService.splitEqually(costId, userIds);
         
         return ResponseEntity.ok(shares);
@@ -298,6 +317,9 @@ public class AutoSplitController {
     @GetMapping("/ownership/{groupId}")
     public ResponseEntity<Map<Integer, Double>> getGroupOwnership(@PathVariable Integer groupId,
                                                                   @RequestHeader(value = "Authorization", required = false) String token) {
+        if (groupId == null || groupId < 1 || groupId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         Map<Integer, Double> ownership = autoSplitService.getGroupOwnership(groupId, token);
         return ResponseEntity.ok(ownership);
     }

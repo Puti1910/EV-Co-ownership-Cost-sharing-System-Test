@@ -52,9 +52,9 @@ public class CostShareRestController {
      */
     @GetMapping("/user/{userId}/pending")
     public ResponseEntity<List<CostShareDto>> getPendingCostSharesByUserId(@PathVariable Integer userId) {
-        // BVA Validation: userId phải là số nguyên dương
-        if (userId == null || userId <= 0) {
-            logger.warn("Invalid userId: {}. Must be a positive integer.", userId);
+        // BVA Validation: userId phải trong khoảng 1 - 1,000,000
+        if (userId == null || userId < 1 || userId > 1000000) {
+            logger.warn("Invalid userId: {}. Must be between 1 and 1,000,000.", userId);
             return ResponseEntity.badRequest().build();
         }
         try {
@@ -101,11 +101,11 @@ public class CostShareRestController {
     public ResponseEntity<Map<String, Object>> confirmPayment(
             @PathVariable Integer shareId,
             @RequestBody Map<String, Object> paymentInfo) {
-        // BVA Validation: shareId phải là số nguyên dương
-        if (shareId == null || shareId <= 0) {
-            logger.warn("Invalid shareId: {}. Must be a positive integer.", shareId);
+        // BVA Validation: shareId phải trong khoảng 1 - 1,000,000
+        if (shareId == null || shareId < 1 || shareId > 1000000) {
+            logger.warn("Invalid shareId: {}. Must be between 1 and 1,000,000.", shareId);
             return ResponseEntity.badRequest()
-                    .body(Map.of("error", "shareId không hợp lệ. Phải là số nguyên dương (>= 1)."));
+                    .body(Map.of("error", "shareId không hợp lệ. Phải từ 1 đến 1.000.000."));
         }
         try {
             logger.info("Processing payment confirmation for shareId: {}", shareId);
@@ -158,9 +158,9 @@ public class CostShareRestController {
      */
     @GetMapping("/user/{userId}/history")
     public ResponseEntity<List<CostShareDto>> getPaymentHistoryByUserId(@PathVariable Integer userId) {
-        // BVA Validation: userId phải là số nguyên dương
-        if (userId == null || userId <= 0) {
-            logger.warn("Invalid userId: {}. Must be a positive integer.", userId);
+        // BVA Validation: userId phải trong khoảng 1 - 1,000,000
+        if (userId == null || userId < 1 || userId > 1000000) {
+            logger.warn("Invalid userId: {}. Must be between 1 and 1,000,000.", userId);
             return ResponseEntity.badRequest().build();
         }
         try {

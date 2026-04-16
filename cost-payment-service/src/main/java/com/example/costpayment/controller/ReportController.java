@@ -35,6 +35,9 @@ public class ReportController {
             @RequestParam Integer vehicleId,
             @RequestParam Integer month,
             @RequestParam Integer year) {
+        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId"));
+        }
         try {
             logger.info("Getting monthly cost report: vehicleId={}, month={}, year={}", vehicleId, month, year);
             Map<String, Object> report = reportService.getMonthlyCostReport(vehicleId, month, year);
@@ -54,6 +57,9 @@ public class ReportController {
             @RequestParam Integer vehicleId,
             @RequestParam Integer quarter,
             @RequestParam Integer year) {
+        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId"));
+        }
         try {
             logger.info("Getting quarterly cost report: vehicleId={}, quarter={}, year={}", vehicleId, quarter, year);
             Map<String, Object> report = reportService.getQuarterlyCostReport(vehicleId, quarter, year);
@@ -72,6 +78,9 @@ public class ReportController {
     public ResponseEntity<?> getYearlyCostReport(
             @RequestParam Integer vehicleId,
             @RequestParam Integer year) {
+        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId"));
+        }
         try {
             logger.info("Getting yearly cost report: vehicleId={}, year={}", vehicleId, year);
             Map<String, Object> report = reportService.getYearlyCostReport(vehicleId, year);
@@ -91,6 +100,9 @@ public class ReportController {
             @RequestParam Integer groupId,
             @RequestParam Integer month,
             @RequestParam Integer year) {
+        if (groupId == null || groupId < 1 || groupId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid groupId"));
+        }
         try {
             logger.info("Comparing usage with ownership: groupId={}, month={}, year={}", groupId, month, year);
             Map<String, Object> report = reportService.compareUsageWithOwnership(groupId, month, year);
@@ -111,6 +123,12 @@ public class ReportController {
             @RequestParam(required = false) Integer groupId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        if (userId == null || userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid userId"));
+        }
+        if (groupId != null && (groupId < 1 || groupId > 1000000)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid groupId"));
+        }
         try {
             logger.info("Getting personal analysis: userId={}, groupId={}, period={} to {}", 
                 userId, groupId, startDate, endDate);
@@ -131,6 +149,9 @@ public class ReportController {
             @RequestParam Integer groupId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        if (groupId == null || groupId < 1 || groupId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid groupId"));
+        }
         try {
             logger.info("Getting financial report: groupId={}, period={} to {}", groupId, startDate, endDate);
             Map<String, Object> report = reportService.getFinancialReport(groupId, startDate, endDate);
@@ -150,6 +171,9 @@ public class ReportController {
             @RequestParam Integer vehicleId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId"));
+        }
         try {
             logger.info("Getting cost statistics by type: vehicleId={}, period={} to {}", vehicleId, startDate, endDate);
             Map<String, Object> statistics = reportService.getCostStatisticsByType(vehicleId, startDate, endDate);
@@ -169,6 +193,9 @@ public class ReportController {
             @RequestParam Integer userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        if (userId == null || userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid userId"));
+        }
         try {
             logger.info("Getting user cost payment summary: userId={}, period={} to {}", userId, startDate, endDate);
             Map<String, Object> summary = reportService.getUserCostPaymentSummary(userId, startDate, endDate);

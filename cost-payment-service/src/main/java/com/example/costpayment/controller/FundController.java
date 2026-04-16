@@ -99,6 +99,11 @@ public class FundController {
             return ResponseEntity.ok(summary);
         } catch (Exception e) {
             logger.error("Error getting fund summary for fundId={}: {}", fundId, e.getMessage());
+            // Trả về 404 nếu không tìm thấy quỹ thay vì 500
+            if (e.getMessage() != null && e.getMessage().toLowerCase().contains("không tìm thấy")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", e.getMessage()));
+            }
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }

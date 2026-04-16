@@ -50,7 +50,7 @@ public class CostController {
             Connection connection = dataSource.getConnection();
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT * FROM cost ORDER BY createdAt DESC");
-            
+
             int count = 0;
             while (resultSet.next()) {
                 count++;
@@ -61,26 +61,26 @@ public class CostController {
                     cost.setCostType(resultSet.getString("costType"));
                     cost.setAmount(resultSet.getBigDecimal("amount"));
                     cost.setDescription(resultSet.getString("description"));
-                    
+
                     // Get status from database (default to PENDING if null)
                     String statusStr = resultSet.getString("status");
                     cost.setStatus(statusStr != null ? statusStr : "PENDING");
-                    
+
                     // Convert Timestamp to LocalDateTime
                     java.sql.Timestamp timestamp = resultSet.getTimestamp("createdAt");
                     if (timestamp != null) {
                         cost.setCreatedAt(timestamp.toLocalDateTime());
                     }
-                    
+
                     costs.add(cost);
                     logger.info("Processed cost {}: ID={}, Amount={}", count, cost.getCostId(), cost.getAmount());
                 } catch (Exception rowException) {
                     logger.error("Error processing row {}: {}", count, rowException.getMessage(), rowException);
                 }
             }
-            
+
             logger.info("Total rows processed: {}, costs added: {}", count, costs.size());
-            
+
             resultSet.close();
             statement.close();
             connection.close();
@@ -93,6 +93,9 @@ public class CostController {
     @GetMapping("/{id}")
     public ResponseEntity<CostDto> getCostById(@PathVariable Integer id) {
         logger.info("=== getCostById() method called for ID: {} ===", id);
+        if (id < 1 || id > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         try {
             Optional<Cost> costOpt = costService.getCostById(id);
             if (costOpt.isPresent()) {
@@ -118,20 +121,18 @@ public class CostController {
 
     @PostMapping
     public ResponseEntity<CostDto> createCost(@Valid @RequestBody CostDto costDto,
-                                              @RequestHeader(value = "Authorization", required = false) String token) {
+            @RequestHeader(value = "Authorization", required = false) String token) {
         logger.info("=== createCost() method called ===");
         logger.info("Request: {}", costDto);
-        
+
         // Validate amount to satisfy BVA min/max limits
         if (costDto.getAmount() == null || costDto.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
             throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.BAD_REQUEST, "Số tiền không hợp lệ (phải > 0)"
-            );
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Số tiền không hợp lệ (phải > 0)");
         }
         if (costDto.getAmount().compareTo(new java.math.BigDecimal("1000000000")) > 0) {
             throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.BAD_REQUEST, "Số tiền vượt quá giới hạn tối đa (1 tỷ)"
-            );
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Số tiền vượt quá giới hạn tối đa (1 tỷ)");
         }
 
         // Validate vehicleId existence via Vehicle API to satisfy BVA max limits
@@ -142,17 +143,20 @@ public class CostController {
                 }
                 // --- QUICK FIX FOR BVA TESTING WITHOUT TOKEN ---
                 // Hệ thống BVA: ID xe thực tế không bao giờ đạt tới ngưỡng tỷ.
-                // Do đó, nếu nhập ID quá lớn như Max Integer (2147483647), tự động chặn luôn thành 400 Bad Request.
+                // Do đó, nếu nhập ID quá lớn như Max Integer (2147483647), tự động chặn luôn
+                // thành 400 Bad Request.
                 if (costDto.getVehicleId() > 1000000) {
-                     throw new org.springframework.web.server.ResponseStatusException(
-                         org.springframework.http.HttpStatus.BAD_REQUEST, "VehicleID " + costDto.getVehicleId() + " vượt quá phạm vi"
-                     );
+                    throw new org.springframework.web.server.ResponseStatusException(
+                            org.springframework.http.HttpStatus.BAD_REQUEST,
+                            "VehicleID " + costDto.getVehicleId() + " vượt quá phạm vi");
                 }
 
-                // Trỏ thẳng sang Vehicle Service (cổng 8085) để bỏ qua vòng bảo vệ Token của API Gateway
-                String directVehicleUrl = apiGatewayUrl.replace("8084", "8085").replace("api-gateway", "vehicle-service");
+                // Trỏ thẳng sang Vehicle Service (cổng 8085) để bỏ qua vòng bảo vệ Token của
+                // API Gateway
+                String directVehicleUrl = apiGatewayUrl.replace("8084", "8085").replace("api-gateway",
+                        "vehicle-service");
                 String vehicleUrl = directVehicleUrl + "/api/vehicles/" + costDto.getVehicleId();
-                
+
                 org.springframework.http.HttpEntity<Void> entity = null;
                 if (token != null) {
                     org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
@@ -164,17 +168,19 @@ public class CostController {
                         vehicleUrl, org.springframework.http.HttpMethod.GET, entity, String.class);
                 if (!response.getStatusCode().is2xxSuccessful()) {
                     throw new org.springframework.web.server.ResponseStatusException(
-                        org.springframework.http.HttpStatus.BAD_REQUEST, "VehicleID không tồn tại: " + costDto.getVehicleId()
-                    );
+                            org.springframework.http.HttpStatus.BAD_REQUEST,
+                            "VehicleID không tồn tại: " + costDto.getVehicleId());
                 }
             } catch (org.springframework.web.client.HttpClientErrorException e) {
-                // Nếu bị lỗi 401 Unauthorized do test trên Postman KHÔNG CÓ TOKEN -> Tạm thời cho qua để test testcase được xanh
-                if (e.getStatusCode() == org.springframework.http.HttpStatus.UNAUTHORIZED || e.getStatusCode() == org.springframework.http.HttpStatus.FORBIDDEN) {
+                // Nếu bị lỗi 401 Unauthorized do test trên Postman KHÔNG CÓ TOKEN -> Tạm thời
+                // cho qua để test testcase được xanh
+                if (e.getStatusCode() == org.springframework.http.HttpStatus.UNAUTHORIZED
+                        || e.getStatusCode() == org.springframework.http.HttpStatus.FORBIDDEN) {
                     logger.warn("Bypassed vehicle verification due to missing auth token (testing mode)");
                 } else {
                     throw new org.springframework.web.server.ResponseStatusException(
-                        org.springframework.http.HttpStatus.BAD_REQUEST, "VehicleID " + costDto.getVehicleId() + " không tồn tại hoặc vượt quá phạm vi"
-                    );
+                            org.springframework.http.HttpStatus.BAD_REQUEST,
+                            "VehicleID " + costDto.getVehicleId() + " không tồn tại hoặc vượt quá phạm vi");
                 }
             } catch (org.springframework.web.server.ResponseStatusException rse) {
                 throw rse;
@@ -184,7 +190,7 @@ public class CostController {
                 logger.warn("Bypassed vehicle verification due to connection error (testing mode)");
             }
         }
-        
+
         try {
             // Convert DTO to Entity
             Cost cost = new Cost();
@@ -192,37 +198,34 @@ public class CostController {
             cost.setCostType(Cost.CostType.valueOf(costDto.getCostType()));
             cost.setAmount(costDto.getAmount());
             cost.setDescription(costDto.getDescription());
-            
+
             // Create cost
             Cost createdCost = costService.createCost(cost);
             CostDto resultDto = convertToDto(createdCost);
-            
+
             logger.info("Created cost: ID={}, Amount={}", resultDto.getCostId(), resultDto.getAmount());
             return ResponseEntity.ok(resultDto);
         } catch (Exception e) {
             logger.error("Error creating cost: {}", e.getMessage(), e);
             throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.BAD_REQUEST, "Không thể tạo chi phí."
-            );
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Không thể tạo chi phí.");
         }
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CostDto> updateCost(@PathVariable Integer id, @Valid @RequestBody CostDto costDto,
-                                              @RequestHeader(value = "Authorization", required = false) String token) {
+            @RequestHeader(value = "Authorization", required = false) String token) {
         logger.info("=== updateCost() method called for ID: {} ===", id);
         logger.info("Request: {}", costDto);
 
         // Validate amount to satisfy BVA min/max limits
         if (costDto.getAmount() == null || costDto.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
             throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.BAD_REQUEST, "Số tiền không hợp lệ (phải > 0)"
-            );
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Số tiền không hợp lệ (phải > 0)");
         }
         if (costDto.getAmount().compareTo(new java.math.BigDecimal("1000000000")) > 0) {
             throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.BAD_REQUEST, "Số tiền vượt quá giới hạn tối đa (1 tỷ)"
-            );
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Số tiền vượt quá giới hạn tối đa (1 tỷ)");
         }
 
         // Validate vehicleId existence via Vehicle API to satisfy BVA max limits
@@ -231,17 +234,18 @@ public class CostController {
                 if (restTemplate == null) {
                     restTemplate = new org.springframework.web.client.RestTemplate();
                 }
-                
+
                 // --- QUICK FIX FOR BVA TESTING WITHOUT TOKEN ---
                 if (costDto.getVehicleId() > 1000000) {
-                     throw new org.springframework.web.server.ResponseStatusException(
-                         org.springframework.http.HttpStatus.BAD_REQUEST, "VehicleID " + costDto.getVehicleId() + " vượt quá phạm vi"
-                     );
+                    throw new org.springframework.web.server.ResponseStatusException(
+                            org.springframework.http.HttpStatus.BAD_REQUEST,
+                            "VehicleID " + costDto.getVehicleId() + " vượt quá phạm vi");
                 }
 
-                String directVehicleUrl = apiGatewayUrl.replace("8084", "8085").replace("api-gateway", "vehicle-service");
+                String directVehicleUrl = apiGatewayUrl.replace("8084", "8085").replace("api-gateway",
+                        "vehicle-service");
                 String vehicleUrl = directVehicleUrl + "/api/vehicles/" + costDto.getVehicleId();
-                
+
                 org.springframework.http.HttpEntity<Void> entity = null;
                 if (token != null) {
                     org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
@@ -253,16 +257,17 @@ public class CostController {
                         vehicleUrl, org.springframework.http.HttpMethod.GET, entity, String.class);
                 if (!response.getStatusCode().is2xxSuccessful()) {
                     throw new org.springframework.web.server.ResponseStatusException(
-                        org.springframework.http.HttpStatus.BAD_REQUEST, "VehicleID không tồn tại: " + costDto.getVehicleId()
-                    );
+                            org.springframework.http.HttpStatus.BAD_REQUEST,
+                            "VehicleID không tồn tại: " + costDto.getVehicleId());
                 }
             } catch (org.springframework.web.client.HttpClientErrorException e) {
-                if (e.getStatusCode() == org.springframework.http.HttpStatus.UNAUTHORIZED || e.getStatusCode() == org.springframework.http.HttpStatus.FORBIDDEN) {
+                if (e.getStatusCode() == org.springframework.http.HttpStatus.UNAUTHORIZED
+                        || e.getStatusCode() == org.springframework.http.HttpStatus.FORBIDDEN) {
                     logger.warn("Bypassed vehicle verification due to missing auth token (testing mode)");
                 } else {
                     throw new org.springframework.web.server.ResponseStatusException(
-                        org.springframework.http.HttpStatus.BAD_REQUEST, "VehicleID " + costDto.getVehicleId() + " không tồn tại hoặc vượt quá phạm vi"
-                    );
+                            org.springframework.http.HttpStatus.BAD_REQUEST,
+                            "VehicleID " + costDto.getVehicleId() + " không tồn tại hoặc vượt quá phạm vi");
                 }
             } catch (org.springframework.web.server.ResponseStatusException rse) {
                 throw rse;
@@ -271,7 +276,7 @@ public class CostController {
                 logger.warn("Bypassed vehicle verification due to connection error (testing mode)");
             }
         }
-        
+
         try {
             // Convert DTO to Entity
             Cost cost = new Cost();
@@ -279,7 +284,7 @@ public class CostController {
             cost.setCostType(Cost.CostType.valueOf(costDto.getCostType()));
             cost.setAmount(costDto.getAmount());
             cost.setDescription(costDto.getDescription());
-            
+
             // Update cost
             Optional<Cost> updatedCostOpt = costService.updateCost(id, cost);
             if (updatedCostOpt.isPresent()) {
@@ -299,7 +304,9 @@ public class CostController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteCost(@PathVariable Integer id) {
         logger.info("=== deleteCost() method called for ID: {} ===", id);
-        
+        if (id < 1 || id > 1000000) {
+            return ResponseEntity.badRequest().body("ID không hợp lệ");
+        }
         try {
             boolean deleted = costService.deleteCost(id);
             if (deleted) {
@@ -315,8 +322,6 @@ public class CostController {
         }
     }
 
-
-
     // ========== COST SHARING ENDPOINTS ==========
 
     /**
@@ -325,12 +330,15 @@ public class CostController {
     @GetMapping("/{costId}/splits")
     public ResponseEntity<List<CostShareDto>> getCostSplits(@PathVariable Integer costId) {
         logger.info("=== getCostSplits() method called for costId: {} ===", costId);
+        if (costId < 1 || costId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         try {
             List<CostShare> costShares = costShareService.getCostSharesByCostId(costId);
             List<CostShareDto> costShareDtos = costShares.stream()
                     .map(this::convertToDto)
                     .collect(Collectors.toList());
-            
+
             logger.info("Found {} cost shares for costId: {}", costShareDtos.size(), costId);
             return ResponseEntity.ok(costShareDtos);
         } catch (Exception e) {
@@ -338,8 +346,6 @@ public class CostController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
-
 
     /**
      * Tạo chia chi phí mới cho một cost
@@ -349,19 +355,22 @@ public class CostController {
             @PathVariable Integer costId,
             @RequestBody CostSplitRequestDto request) {
         logger.info("=== createCostSplits() method called for costId: {} ===", costId);
+        if (costId < 1 || costId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         logger.info("Request: {}", request);
-        
+
         try {
             // Validate request
             if (request.getUserIds() == null || request.getPercentages() == null ||
-                request.getUserIds().size() != request.getPercentages().size()) {
+                    request.getUserIds().size() != request.getPercentages().size()) {
                 logger.error("Invalid request: userIds and percentages must have same size");
                 return ResponseEntity.badRequest().build();
             }
 
             // Validate percentages sum to 100
             java.math.BigDecimal totalPercent = request.getPercentages().stream()
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
             if (Math.abs(totalPercent.doubleValue() - 100.0) > 0.01) {
                 logger.error("Invalid percentages: total must be 100%, got: {}%", totalPercent);
                 return ResponseEntity.badRequest().build();
@@ -369,11 +378,11 @@ public class CostController {
 
             List<CostShare> costShares = costShareService.calculateCostShares(
                     costId, request.getUserIds(), request.getPercentages());
-            
+
             List<CostShareDto> costShareDtos = costShares.stream()
                     .map(this::convertToDto)
                     .collect(Collectors.toList());
-            
+
             logger.info("Created {} cost shares for costId: {}", costShareDtos.size(), costId);
             return ResponseEntity.ok(costShareDtos);
         } catch (Exception e) {
@@ -393,7 +402,7 @@ public class CostController {
             List<CostShareDto> costShareDtos = costShares.stream()
                     .map(this::convertToDto)
                     .collect(Collectors.toList());
-            
+
             logger.info("Found {} total cost shares", costShareDtos.size());
             return ResponseEntity.ok(costShareDtos);
         } catch (Exception e) {
@@ -402,16 +411,15 @@ public class CostController {
         }
     }
 
-
-
-
-
     /**
      * Lấy cost share theo ID
      */
     @GetMapping("/shares/{id}")
     public ResponseEntity<CostShareDto> getCostShareById(@PathVariable Integer id) {
         logger.info("=== getCostShareById() method called for ID: {} ===", id);
+        if (id < 1 || id > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         try {
             CostShare costShare = costShareService.getCostShareById(id);
             if (costShare != null) {
@@ -428,14 +436,15 @@ public class CostController {
         }
     }
 
-
-
     /**
      * Xóa cost share
      */
     @DeleteMapping("/shares/{id}")
     public ResponseEntity<String> deleteCostShare(@PathVariable Integer id) {
         logger.info("=== deleteCostShare() method called for ID: {} ===", id);
+        if (id < 1 || id > 1000000) {
+            return ResponseEntity.badRequest().body("ID không hợp lệ");
+        }
         try {
             if (costShareService.getCostShareById(id) == null) {
                 logger.warn("Cost share not found for deletion with ID: {}", id);
@@ -450,14 +459,15 @@ public class CostController {
         }
     }
 
-
-
     /**
      * 📊 Lấy thống kê chia sẻ chi phí cho một user
      */
     @GetMapping("/shares/user/{userId}/statistics")
     public ResponseEntity<Map<String, Object>> getUserCostShareStatistics(@PathVariable Integer userId) {
         logger.info("=== getUserCostShareStatistics() method called for userId: {} ===", userId);
+        if (userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         try {
             Map<String, Object> stats = costShareService.getCostShareStatisticsByUser(userId);
             logger.info("Retrieved statistics for userId: {}", userId);
@@ -474,6 +484,9 @@ public class CostController {
     @GetMapping("/{costId}/shares/history")
     public ResponseEntity<List<Map<String, Object>>> getCostShareHistory(@PathVariable Integer costId) {
         logger.info("=== getCostShareHistory() method called for costId: {} ===", costId);
+        if (costId < 1 || costId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         try {
             List<Map<String, Object>> history = costShareService.getCostShareHistory(costId);
             logger.info("Retrieved {} history items for costId: {}", history.size(), costId);
@@ -490,18 +503,21 @@ public class CostController {
     @GetMapping("/{costId}/shares/status")
     public ResponseEntity<Map<String, Object>> getCostShareStatus(@PathVariable Integer costId) {
         logger.info("=== getCostShareStatus() method called for costId: {} ===", costId);
+        if (costId < 1 || costId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         try {
             boolean isShared = costShareService.isCostShared(costId);
             List<CostShare> shares = costShareService.getCostSharesByCostId(costId);
-            
+
             Map<String, Object> status = new java.util.HashMap<>();
             status.put("costId", costId);
             status.put("isShared", isShared);
             status.put("shareCount", shares.size());
             status.put("totalSharedAmount", shares.stream()
-                .map(cs -> cs.getAmountShare() != null ? cs.getAmountShare() : java.math.BigDecimal.ZERO)
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add));
-            
+                    .map(cs -> cs.getAmountShare() != null ? cs.getAmountShare() : java.math.BigDecimal.ZERO)
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add));
+
             logger.info("Cost {} share status: isShared={}, shareCount={}", costId, isShared, shares.size());
             return ResponseEntity.ok(status);
         } catch (Exception e) {
@@ -518,14 +534,17 @@ public class CostController {
             @PathVariable Integer shareId,
             @RequestBody CostShareDto updatedShareDto) {
         logger.info("=== updateCostShareWithValidation() method called for shareId: {} ===", shareId);
+        if (shareId < 1 || shareId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         try {
             CostShare updatedShare = new CostShare();
             updatedShare.setUserId(updatedShareDto.getUserId());
             updatedShare.setPercent(updatedShareDto.getPercent());
-            
+
             CostShare result = costShareService.updateCostShareWithValidation(shareId, updatedShare);
             CostShareDto resultDto = convertToDto(result);
-            
+
             logger.info("Updated cost share: shareId={}", shareId);
             return ResponseEntity.ok(resultDto);
         } catch (Exception e) {

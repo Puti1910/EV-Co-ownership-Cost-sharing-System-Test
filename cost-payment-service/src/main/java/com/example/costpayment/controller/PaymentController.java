@@ -41,6 +41,9 @@ public class PaymentController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Payment> getPaymentById(@PathVariable Integer id) {
+        if (id == null || id < 1 || id > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         Optional<Payment> payment = paymentService.getPaymentById(id);
         return payment.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -52,6 +55,9 @@ public class PaymentController {
      */
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Payment>> getPaymentsByUserId(@PathVariable Integer userId) {
+        if (userId == null || userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         List<Payment> payments = paymentService.getPaymentsByUserId(userId);
         return ResponseEntity.ok(payments);
     }
@@ -62,6 +68,9 @@ public class PaymentController {
      */
     @GetMapping("/user/{userId}/pending")
     public ResponseEntity<List<Payment>> getPendingPaymentsByUserId(@PathVariable Integer userId) {
+        if (userId == null || userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         List<Payment> payments = paymentService.getPendingPaymentsByUserId(userId);
         return ResponseEntity.ok(payments);
     }
@@ -72,6 +81,9 @@ public class PaymentController {
      */
     @GetMapping("/user/{userId}/history")
     public ResponseEntity<List<Payment>> getPaymentHistoryByUserId(@PathVariable Integer userId) {
+        if (userId == null || userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         List<Payment> payments = paymentService.getPaymentHistoryByUserId(userId);
         return ResponseEntity.ok(payments);
     }
@@ -84,13 +96,9 @@ public class PaymentController {
     public ResponseEntity<List<Payment>> getPaymentsByCostId(@PathVariable Integer costId) {
         logger.info("=== getPaymentsByCostId() called with costId: {} ===", costId);
         // BVA Validation: costId (min = 1, max = 1000000)
-        if (costId == null || costId <= 0) {
-            logger.warn("Invalid costId: {}. Must be a positive integer.", costId);
-            return ResponseEntity.badRequest().build(); // 400
-        }
-        if (costId > 1000000) {
-            logger.warn("Invalid costId: {}. Exceeds maximum limit.", costId);
-            return ResponseEntity.notFound().build(); // 404
+        if (costId == null || costId < 1 || costId > 1000000) {
+            logger.warn("Invalid costId: {}. Must be between 1 and 1,000,000.", costId);
+            return ResponseEntity.badRequest().build(); // Standardized to 400 for BVA
         }
 
         List<Payment> payments = paymentService.getPaymentsByCostId(costId);
@@ -122,6 +130,9 @@ public class PaymentController {
             @PathVariable Integer id,
             @RequestBody Map<String, String> request) {
 
+        if (id == null || id < 1 || id > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
         String status = request.get("status");
         if (status == null || status.isEmpty()) {
             return ResponseEntity.badRequest().build();
@@ -138,6 +149,9 @@ public class PaymentController {
      */
     @PostMapping("/{id}/process")
     public ResponseEntity<Map<String, Object>> processPayment(@PathVariable Integer id) {
+        if (id == null || id < 1 || id > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Invalid id"));
+        }
         try {
             Optional<Payment> paymentOpt = paymentService.updatePaymentStatus(id, "PAID");
 
@@ -171,6 +185,9 @@ public class PaymentController {
     public ResponseEntity<Map<String, Object>> confirmPayment(
             @PathVariable Integer id,
             @RequestBody Map<String, Object> request) {
+        if (id == null || id < 1 || id > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Invalid id"));
+        }
         try {
             // Get payment
             Optional<Payment> paymentOpt = paymentService.getPaymentById(id);
@@ -275,14 +292,9 @@ public class PaymentController {
     public ResponseEntity<Map<String, Object>> getPaymentDetails(@PathVariable Integer id) {
         logger.info("=== getPaymentDetails() called with id: {} ===", id);
         // BVA Validation: id (min = 1, max = 1000000)
-        if (id == null || id <= 0) {
-            logger.warn("Invalid id: {}. Must be a positive integer.", id);
+        if (id == null || id < 1 || id > 1000000) {
+            logger.warn("Invalid id: {}. Must be between 1 and 1,000,000.", id);
             return ResponseEntity.badRequest().body(Map.<String, Object>of("error", "Invalid id"));
-        }
-        if (id > 1000000) {
-            logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.<String, Object>of("error", "Id exceeds limits"));
         }
 
         try {
@@ -312,14 +324,9 @@ public class PaymentController {
             @RequestBody(required = false) Map<String, String> request) {
         logger.info("=== adminConfirmPayment() called with id: {} ===", id);
         // BVA Validation: id (min = 1, max = 1000000)
-        if (id == null || id <= 0) {
-            logger.warn("Invalid id: {}. Must be a positive integer.", id);
+        if (id == null || id < 1 || id > 1000000) {
+            logger.warn("Invalid id: {}. Must be between 1 and 1,000,000.", id);
             return ResponseEntity.badRequest().body(Map.<String, Object>of("success", false, "message", "Invalid id"));
-        }
-        if (id > 1000000) {
-            logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.<String, Object>of("success", false, "message", "Id exceeds limits"));
         }
 
         try {
@@ -365,14 +372,9 @@ public class PaymentController {
     public ResponseEntity<Map<String, Object>> sendPaymentReminder(@PathVariable Integer id) {
         logger.info("=== sendPaymentReminder() called with id: {} ===", id);
         // BVA Validation: id (min = 1, max = 1000000)
-        if (id == null || id <= 0) {
-            logger.warn("Invalid id: {}. Must be a positive integer.", id);
+        if (id == null || id < 1 || id > 1000000) {
+            logger.warn("Invalid id: {}. Must be between 1 and 1,000,000.", id);
             return ResponseEntity.badRequest().body(Map.<String, Object>of("success", false, "message", "Invalid id"));
-        }
-        if (id > 1000000) {
-            logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.<String, Object>of("success", false, "message", "Id exceeds limits"));
         }
 
         try {
@@ -412,14 +414,9 @@ public class PaymentController {
             @RequestBody Map<String, Object> paymentDataMap) {
         logger.info("=== updatePayment() called with id: {} ===", id);
         // BVA Validation: id (min = 1, max = 1000000)
-        if (id == null || id <= 0) {
-            logger.warn("Invalid id: {}. Must be a positive integer.", id);
+        if (id == null || id < 1 || id > 1000000) {
+            logger.warn("Invalid id: {}. Must be between 1 and 1,000,000.", id);
             return ResponseEntity.badRequest().body(Map.<String, Object>of("error", "Invalid id"));
-        }
-        if (id > 1000000) {
-            logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.<String, Object>of("error", "Id exceeds limits"));
         }
 
         try {
@@ -524,14 +521,9 @@ public class PaymentController {
     public ResponseEntity<?> deletePayment(@PathVariable Integer id) {
         logger.info("=== deletePayment() called with id: {} ===", id);
         // BVA Validation: id (min = 1, max = 1000000)
-        if (id == null || id <= 0) {
-            logger.warn("Invalid id: {}. Must be a positive integer.", id);
+        if (id == null || id < 1 || id > 1000000) {
+            logger.warn("Invalid id: {}. Must be between 1 and 1,000,000.", id);
             return ResponseEntity.badRequest().body(Map.<String, Object>of("error", "Invalid id"));
-        }
-        if (id > 1000000) {
-            logger.warn("Invalid id: {}. Exceeds maximum limit.", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.<String, Object>of("error", "Id exceeds limits"));
         }
 
         try {

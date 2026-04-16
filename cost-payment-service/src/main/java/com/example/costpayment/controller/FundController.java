@@ -45,14 +45,9 @@ public class FundController {
     public ResponseEntity<?> getFundByGroupId(@PathVariable Integer groupId) {
         logger.info("=== getFundByGroupId() called with groupId: {} ===", groupId);
         // BVA Validation: groupId (min = 1, max = 1000000)
-        if (groupId == null || groupId <= 0) {
-            logger.warn("Invalid groupId: {}. Must be a positive integer.", groupId);
+        if (groupId == null || groupId < 1 || groupId > 1000000) {
+            logger.warn("Invalid groupId: {}. Must be between 1 and 1,000,000.", groupId);
             return ResponseEntity.badRequest().body(Map.<String, Object>of("error", "Invalid groupId"));
-        }
-        if (groupId > 1000000) {
-            logger.warn("Invalid groupId: {}. Exceeds maximum limit.", groupId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.<String, Object>of("error", "GroupId exceeds limits"));
         }
         try {
             return fundService.getFundByGroupId(groupId)
@@ -73,14 +68,9 @@ public class FundController {
     public ResponseEntity<?> createFundForGroup(@PathVariable Integer groupId) {
         logger.info("=== createFundForGroup() called with groupId: {} ===", groupId);
         // BVA Validation: groupId (min = 1, max = 1000000)
-        if (groupId == null || groupId <= 0) {
-            logger.warn("Invalid groupId: {}. Must be a positive integer.", groupId);
+        if (groupId == null || groupId < 1 || groupId > 1000000) {
+            logger.warn("Invalid groupId: {}. Must be between 1 and 1,000,000.", groupId);
             return ResponseEntity.badRequest().body(Map.<String, Object>of("error", "Invalid groupId"));
-        }
-        if (groupId > 1000000) {
-            logger.warn("Invalid groupId: {}. Exceeds maximum limit.", groupId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.<String, Object>of("error", "GroupId exceeds limits"));
         }
         try {
             GroupFund fund = fundService.createFundForGroup(groupId);
@@ -100,14 +90,9 @@ public class FundController {
     public ResponseEntity<?> getFundSummary(@PathVariable Integer fundId) {
         logger.info("=== getFundSummary() called with fundId: {} ===", fundId);
         // BVA Validation: fundId (min = 1, max = 1000000)
-        if (fundId == null || fundId <= 0) {
-            logger.warn("Invalid fundId: {}. Must be a positive integer.", fundId);
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            logger.warn("Invalid fundId: {}. Must be between 1 and 1,000,000.", fundId);
             return ResponseEntity.badRequest().body(Map.<String, Object>of("error", "Invalid fundId"));
-        }
-        if (fundId > 1000000) {
-            logger.warn("Invalid fundId: {}. Exceeds maximum limit.", fundId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.<String, Object>of("error", "FundId exceeds limits"));
         }
         try {
             FundSummaryDto summary = fundService.getFundSummary(fundId);
@@ -187,6 +172,9 @@ public class FundController {
      */
     @GetMapping("/{fundId}/pending-requests")
     public ResponseEntity<?> getPendingRequests(@PathVariable Integer fundId) {
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid fundId"));
+        }
         try {
             logger.info("Getting pending requests for fundId={}", fundId);
             List<FundTransaction> requests = fundService.getPendingRequests(fundId);
@@ -333,6 +321,9 @@ public class FundController {
      */
     @PostMapping("/transactions/{transactionId}/approve")
     public ResponseEntity<?> approveTransaction(@PathVariable Integer transactionId) {
+        if (transactionId == null || transactionId < 1 || transactionId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid transactionId"));
+        }
         try {
             ApproveRequestDto request = new ApproveRequestDto();
             request.setTransactionId(transactionId);
@@ -365,6 +356,9 @@ public class FundController {
     public ResponseEntity<?> rejectTransaction(
             @PathVariable Integer transactionId,
             @RequestBody(required = false) Map<String, String> body) {
+        if (transactionId == null || transactionId < 1 || transactionId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid transactionId"));
+        }
         try {
             ApproveRequestDto request = new ApproveRequestDto();
             request.setTransactionId(transactionId);
@@ -404,6 +398,9 @@ public class FundController {
     public ResponseEntity<?> voteOnWithdrawRequest(
             @PathVariable Integer transactionId,
             @Valid @RequestBody VoteRequestDto request) {
+        if (transactionId == null || transactionId < 1 || transactionId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid transactionId"));
+        }
         try {
             request.setTransactionId(transactionId);
             FundTransaction transaction = fundService.voteOnWithdrawRequest(request);
@@ -431,6 +428,9 @@ public class FundController {
      */
     @GetMapping("/pending-vote-requests/user/{userId}")
     public ResponseEntity<?> getPendingVoteRequestsForUser(@PathVariable Integer userId) {
+        if (userId == null || userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid userId"));
+        }
         try {
             List<FundTransaction> requests = fundService.getPendingVoteRequestsForUser(userId);
             return ResponseEntity.ok(requests);
@@ -451,6 +451,9 @@ public class FundController {
      */
     @GetMapping("/{fundId}/transactions")
     public ResponseEntity<?> getAllTransactions(@PathVariable Integer fundId) {
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid fundId"));
+        }
         try {
             List<FundTransaction> transactions = fundService.getAllTransactions(fundId);
 
@@ -518,6 +521,9 @@ public class FundController {
      */
     @GetMapping("/transactions/user/{userId}")
     public ResponseEntity<?> getTransactionsByUser(@PathVariable Integer userId) {
+        if (userId == null || userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid userId"));
+        }
         try {
             List<FundTransaction> transactions = fundService.getTransactionsByUser(userId);
 
@@ -577,6 +583,9 @@ public class FundController {
     public ResponseEntity<?> getTransactionsByType(
             @PathVariable Integer fundId,
             @PathVariable String type) {
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid fundId"));
+        }
         try {
             List<FundTransaction> transactions = fundService.getTransactionsByType(fundId, type);
             return ResponseEntity.ok(transactions);
@@ -596,6 +605,9 @@ public class FundController {
             @PathVariable Integer fundId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid fundId"));
+        }
         try {
             List<FundTransaction> transactions = fundService.getTransactionsByDateRange(fundId, start, end);
             return ResponseEntity.ok(transactions);
@@ -612,6 +624,9 @@ public class FundController {
      */
     @GetMapping("/transactions/{transactionId}")
     public ResponseEntity<?> getTransactionById(@PathVariable Integer transactionId) {
+        if (transactionId == null || transactionId < 1 || transactionId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid transactionId"));
+        }
         try {
             return fundService.getTransactionById(transactionId)
                     .map(transaction -> {
@@ -671,6 +686,10 @@ public class FundController {
     public ResponseEntity<?> cancelTransaction(
             @PathVariable Integer transactionId,
             @RequestParam Integer userId) {
+        if (transactionId == null || transactionId < 1 || transactionId > 1000000 ||
+            userId == null || userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid transactionId or userId"));
+        }
         try {
             FundTransaction transaction = fundService.cancelWithdrawRequest(transactionId, userId);
 
@@ -700,6 +719,9 @@ public class FundController {
      */
     @GetMapping("/{fundId}/statistics")
     public ResponseEntity<?> getStatistics(@PathVariable Integer fundId) {
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid fundId"));
+        }
         try {
             // Kiểm tra fund có tồn tại không
             Optional<GroupFund> fundOpt = fundService.getFundById(fundId);
@@ -760,6 +782,9 @@ public class FundController {
             @PathVariable Integer fundId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid fundId"));
+        }
         try {
             logger.info("Getting financial report for fundId={}, period={} to {}", fundId, startDate, endDate);
 

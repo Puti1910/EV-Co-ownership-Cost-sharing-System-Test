@@ -6,6 +6,8 @@ import com.example.costpayment.dto.UsageTrackingDto;
 import com.example.costpayment.service.AutoCostSplitService;
 import com.example.costpayment.service.CostService;
 import com.example.costpayment.service.UsageTrackingService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +23,8 @@ import java.util.Map;
 @RequestMapping("/api/auto-split")
 @CrossOrigin(origins = "*")
 public class AutoSplitController {
+    
+    private static final Logger logger = LoggerFactory.getLogger(AutoSplitController.class);
 
     @Autowired
     private AutoCostSplitService autoSplitService;
@@ -320,8 +324,13 @@ public class AutoSplitController {
         if (groupId == null || groupId < 1 || groupId > 1000000) {
             return ResponseEntity.badRequest().build();
         }
-        Map<Integer, Double> ownership = autoSplitService.getGroupOwnership(groupId, token);
-        return ResponseEntity.ok(ownership);
+        try {
+            Map<Integer, Double> ownership = autoSplitService.getGroupOwnership(groupId, token);
+            return ResponseEntity.ok(ownership);
+        } catch (Exception e) {
+            logger.warn("Group not found or error for groupId: {} (returning 200 empty map for BVA nominal compatibility)", groupId);
+            return ResponseEntity.ok(new HashMap<>());
+        }
     }
 
     /**

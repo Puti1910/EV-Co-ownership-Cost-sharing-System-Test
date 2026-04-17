@@ -30,8 +30,10 @@ public class UsageTrackingController {
             @PathVariable Integer groupId,
             @RequestParam Integer month,
             @RequestParam Integer year) {
-        if (groupId == null || groupId < 1 || groupId > 1000000) {
-            return ResponseEntity.badRequest().build();
+        if (groupId == null || groupId < 1 || groupId > 1000000 || 
+            month == null || month < 1 || month > 12 || 
+            year == null || year < 2000 || year > 2100) {
+            return ResponseEntity.badRequest().body(null); // Return 400
         }
         
         List<UsageTrackingDto> usage = usageTrackingService.getGroupUsageInMonth(groupId, month, year);
@@ -49,7 +51,9 @@ public class UsageTrackingController {
             @RequestParam Integer month,
             @RequestParam Integer year) {
         if (groupId == null || groupId < 1 || groupId > 1000000 ||
-            userId == null || userId < 1 || userId > 1000000) {
+            userId == null || userId < 1 || userId > 1000000 ||
+            month == null || month < 1 || month > 12 || 
+            year == null || year < 2000 || year > 2100) {
             return ResponseEntity.badRequest().build();
         }
         
@@ -83,7 +87,9 @@ public class UsageTrackingController {
             @RequestParam Integer year,
             @RequestParam Double kmDriven) {
         if (groupId == null || groupId < 1 || groupId > 1000000 ||
-            userId == null || userId < 1 || userId > 1000000) {
+            userId == null || userId < 1 || userId > 1000000 ||
+            month == null || month < 1 || month > 12 || 
+            year == null || year < 2000 || year > 2100) {
             return ResponseEntity.badRequest().build();
         }
         
@@ -96,8 +102,13 @@ public class UsageTrackingController {
      * GET /api/usage-tracking/user/{userId}/history
      */
     @GetMapping("/user/{userId}/history")
-    public ResponseEntity<List<UsageTracking>> getUserHistory(@PathVariable Integer userId) {
-        if (userId == null || userId < 1 || userId > 1000000) {
+    public ResponseEntity<List<UsageTracking>> getUserHistory(
+            @PathVariable Integer userId,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year) {
+        if (userId == null || userId < 1 || userId > 1000000 ||
+            (month != null && (month < 1 || month > 12)) ||
+            (year != null && (year < 2000 || year > 2100))) {
             return ResponseEntity.badRequest().build();
         }
         List<UsageTracking> history = usageTrackingService.getUserUsageHistory(userId);
@@ -113,7 +124,9 @@ public class UsageTrackingController {
             @PathVariable Integer groupId,
             @RequestParam Integer month,
             @RequestParam Integer year) {
-        if (groupId == null || groupId < 1 || groupId > 1000000) {
+        if (groupId == null || groupId < 1 || groupId > 1000000 ||
+            month == null || month < 1 || month > 12 || 
+            year == null || year < 2000 || year > 2100) {
             return ResponseEntity.badRequest().build();
         }
         

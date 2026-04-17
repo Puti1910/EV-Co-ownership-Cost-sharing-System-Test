@@ -47,8 +47,10 @@ public class AutoSplitController {
             @RequestParam(required = false) Integer year) {
         
         if (costId == null || costId < 1 || costId > 1000000 ||
-            groupId == null || groupId < 1 || groupId > 1000000) {
-            return ResponseEntity.badRequest().body(Map.of("error", "costId hoặc groupId không hợp lệ"));
+            groupId == null || groupId < 1 || groupId > 1000000 ||
+            (month != null && (month < 1 || month > 12)) ||
+            (year != null && (year < 2000 || year > 2100))) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid ID, month or year"));
         }
         
         // Lấy tháng/năm hiện tại nếu không có
@@ -268,7 +270,9 @@ public class AutoSplitController {
             @RequestParam Integer year) {
         
         if (costId == null || costId < 1 || costId > 1000000 ||
-            groupId == null || groupId < 1 || groupId > 1000000) {
+            groupId == null || groupId < 1 || groupId > 1000000 ||
+            month == null || month < 1 || month > 12 ||
+            year == null || year < 2000 || year > 2100) {
             return ResponseEntity.badRequest().build();
         }
         

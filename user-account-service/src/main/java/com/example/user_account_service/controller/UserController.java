@@ -189,6 +189,9 @@ public class UserController {
         try {
             User user = getAuthenticatedUser(authentication);
 
+            // Validate file size and content
+            validateFile(file, "ảnh đại diện");
+
             // 1. Lưu file và nhận lại tên file duy nhất
             String savedFileName = storageService.storeFile(file, user.getUserId());
 
@@ -220,16 +223,21 @@ public class UserController {
             User user = getAuthenticatedUser(authentication);
             Map<String, String> uploadedUrls = new HashMap<>();
 
-            if (idCardFront != null && !idCardFront.isEmpty()) {
+            // Kiểm tra từng file nếu có gửi lên
+            if (idCardFront != null) {
+                validateFile(idCardFront, "mặt trước CMND");
                 uploadedUrls.put("idCardFrontUrl", saveKycFile(idCardFront, user.getUserId()));
             }
-            if (idCardBack != null && !idCardBack.isEmpty()) {
+            if (idCardBack != null) {
+                validateFile(idCardBack, "mặt sau CMND");
                 uploadedUrls.put("idCardBackUrl", saveKycFile(idCardBack, user.getUserId()));
             }
-            if (driverLicense != null && !driverLicense.isEmpty()) {
+            if (driverLicense != null) {
+                validateFile(driverLicense, "bằng lái xe");
                 uploadedUrls.put("licenseImageUrl", saveKycFile(driverLicense, user.getUserId()));
             }
-            if (portrait != null && !portrait.isEmpty()) {
+            if (portrait != null) {
+                validateFile(portrait, "ảnh chân dung");
                 uploadedUrls.put("portraitImageUrl", saveKycFile(portrait, user.getUserId()));
             }
 
@@ -243,6 +251,18 @@ public class UserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Không thể xử lý hồ sơ KYC.");
+        }
+    }
+
+    /**
+     * Hàm kiểm tra tính hợp lệ của file (1 byte - 10MB)
+     */
+    private void validateFile(MultipartFile file, String fieldName) {
+        if (file == null || file.isEmpty()) {
+            throw new RuntimeException("Tệp " + fieldName + " không được để trống (0 byte).");
+        }
+        if (file.getSize() > 10 * 1024 * 1024) { // 10MB
+            throw new RuntimeException("Tệp " + fieldName + " vượt quá giới hạn 10MB.");
         }
     }
 

@@ -35,8 +35,10 @@ public class ReportController {
             @RequestParam Integer vehicleId,
             @RequestParam Integer month,
             @RequestParam Integer year) {
-        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId"));
+        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000 ||
+            month == null || month < 1 || month > 12 ||
+            year == null || year < 2000 || year > 2100) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId, month or year"));
         }
         try {
             logger.info("Getting monthly cost report: vehicleId={}, month={}, year={}", vehicleId, month, year);
@@ -57,8 +59,10 @@ public class ReportController {
             @RequestParam Integer vehicleId,
             @RequestParam Integer quarter,
             @RequestParam Integer year) {
-        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId"));
+        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000 ||
+            quarter == null || quarter < 1 || quarter > 4 ||
+            year == null || year < 2000 || year > 2100) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId, quarter or year"));
         }
         try {
             logger.info("Getting quarterly cost report: vehicleId={}, quarter={}, year={}", vehicleId, quarter, year);
@@ -78,8 +82,9 @@ public class ReportController {
     public ResponseEntity<?> getYearlyCostReport(
             @RequestParam Integer vehicleId,
             @RequestParam Integer year) {
-        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId"));
+        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000 ||
+            year == null || year < 2000 || year > 2100) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId or year"));
         }
         try {
             logger.info("Getting yearly cost report: vehicleId={}, year={}", vehicleId, year);
@@ -101,8 +106,10 @@ public class ReportController {
             @RequestParam Integer groupId,
             @RequestParam Integer month,
             @RequestParam Integer year) {
-        if (groupId == null || groupId < 1 || groupId > 1000000) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid groupId"));
+        if (groupId == null || groupId < 1 || groupId > 1000000 ||
+            month == null || month < 1 || month > 12 ||
+            year == null || year < 2000 || year > 2100) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid groupId, month or year"));
         }
         try {
             logger.info("Comparing usage with ownership: groupId={}, month={}, year={}", groupId, month, year);

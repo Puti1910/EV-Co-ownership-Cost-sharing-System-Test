@@ -59,6 +59,9 @@ public class PaymentController {
             return ResponseEntity.badRequest().build();
         }
         List<Payment> payments = paymentService.getPaymentsByUserId(userId);
+        if (payments.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(payments);
     }
 
@@ -72,6 +75,9 @@ public class PaymentController {
             return ResponseEntity.badRequest().build();
         }
         List<Payment> payments = paymentService.getPendingPaymentsByUserId(userId);
+        if (payments.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(payments);
     }
 
@@ -85,6 +91,9 @@ public class PaymentController {
             return ResponseEntity.badRequest().build();
         }
         List<Payment> payments = paymentService.getPaymentHistoryByUserId(userId);
+        if (payments.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(payments);
     }
 
@@ -102,6 +111,10 @@ public class PaymentController {
         }
 
         List<Payment> payments = paymentService.getPaymentsByCostId(costId);
+        if (payments.isEmpty()) {
+            logger.warn("No payments found for costId: {}. Returning 404 Not Found.", costId);
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(payments);
     }
 

@@ -87,7 +87,8 @@ public class ReportController {
             return ResponseEntity.ok(report);
         } catch (Exception e) {
             logger.error("Error getting yearly cost report: {}", e.getMessage(), e);
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            String errorMsg = e.getMessage() != null ? e.getMessage() : "Internal Server Error";
+            return ResponseEntity.status(500).body(Map.of("error", errorMsg));
         }
     }
 
@@ -158,7 +159,8 @@ public class ReportController {
             return ResponseEntity.ok(report);
         } catch (Exception e) {
             logger.error("Error getting financial report: {}", e.getMessage(), e);
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            String errorMsg = e.getMessage() != null ? e.getMessage() : "Internal Server Error during financial report generation";
+            return ResponseEntity.status(500).body(Map.of("error", errorMsg));
         }
     }
 

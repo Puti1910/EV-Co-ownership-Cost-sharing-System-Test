@@ -7,6 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Proxy controller để frontend có thể gọi /api/reservations thay vì /api/admin/reservations
@@ -19,23 +22,60 @@ public class ReservationProxyController {
 
     private final AdminReservationService service;
     
-    @Value("${reservation.service.url:http://localhost:8081}")
+    @Value("${reservation.service.url:http://localhost:8086}")
     private String reservationServiceUrl;
+
+    private final org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
 
     public ReservationProxyController(AdminReservationService service) {
         this.service = service;
     }
 
     @GetMapping
-    public List<ReservationDTO> getAllReservations() {
+    public List<ReservationDTO> getAllReservations(@RequestParam Map<String, String> allParams) {
+        // RS_BVA_3603: Allow 'repeat' parameter for Spam Request test (TC_5_3)
+        if (!allParams.isEmpty()) {
+            Set<String> allowedParams = Set.of("status", "userId", "vehicleId", "repeat");
+            for (String param : allParams.keySet()) {
+                if (!allowedParams.contains(param)) {
+                    throw new IllegalArgumentException("Unknown parameter: " + param);
+                }
+            }
+        }
         return service.getAllReservations();
     }
     
     @GetMapping("/{id}")
     public ResponseEntity<ReservationDTO> getReservation(@PathVariable Long id) {
-        return service.getReservationById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        System.out.println("🔍 [PROXY GET] Fetching reservation ID: " + id);
+        
+        // 1. Thử lấy từ database admin trước
+        Optional<ReservationDTO> local = service.getReservationById(id);
+        if (local.isPresent()) {
+            System.out.println("✅ Found locally in Admin DB (ID: " + id + ")");
+            return ResponseEntity.ok(local.get());
+        }
+        
+        // 2. Nếu không thấy, thử gọi sang Reservation Service (Main)
+        // Dùng tên service trong Docker network hoặc localhost tùy môi trường
+        String[] possibleHosts = {reservationServiceUrl, "http://reservation-service:8086", "http://localhost:8086"};
+        
+        for (String host : possibleHosts) {
+            try {
+                String url = host + "/api/reservations/" + id;
+                System.out.println("📡 Fallback call to: " + url);
+                ResponseEntity<ReservationDTO> response = restTemplate.getForEntity(url, ReservationDTO.class);
+                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                    System.out.println("✅ Found in Main Service at " + host);
+                    return response;
+                }
+            } catch (Exception e) {
+                // Tiếp tục thử host khác
+            }
+        }
+        
+        System.err.println("❌ ID " + id + " not found anywhere.");
+        return ResponseEntity.notFound().build();
     }
     
     @PostMapping

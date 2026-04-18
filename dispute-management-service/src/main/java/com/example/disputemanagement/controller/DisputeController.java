@@ -152,11 +152,17 @@ public class DisputeController {
     public ResponseEntity<?> assignDispute(@PathVariable Integer disputeId, @RequestBody Map<String, Integer> request) {
         try {
             Integer staffId = request.get("staffId");
-            if (staffId == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "staffId is required"));
+            if (staffId == null || staffId <= 0) {
+                return ResponseEntity.badRequest().body(Map.of("error", "staffId must be > 0"));
             }
             Dispute assigned = disputeService.assignDispute(disputeId, staffId);
             return ResponseEntity.ok(assigned);
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid assign payload", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            logger.error("Dispute not found when assigning", e);
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error assigning dispute", e);
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));

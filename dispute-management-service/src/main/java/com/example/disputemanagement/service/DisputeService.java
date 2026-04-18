@@ -137,6 +137,13 @@ public class DisputeService {
     
     @Transactional
     public Dispute assignDispute(Integer disputeId, Integer staffId) {
+        if (disputeId == null || disputeId <= 0) {
+            throw new IllegalArgumentException("Dispute ID phải > 0");
+        }
+        if (staffId == null || staffId <= 0) {
+            throw new IllegalArgumentException("staffId phải > 0");
+        }
+
         Dispute dispute = disputeRepository.findById(disputeId)
             .orElseThrow(() -> new RuntimeException("Dispute not found: " + disputeId));
         

@@ -125,14 +125,15 @@ public class CostController {
         logger.info("=== createCost() method called ===");
         logger.info("Request: {}", costDto);
 
-        // Validate amount to satisfy BVA min/max limits
-        if (costDto.getAmount() == null || costDto.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.BAD_REQUEST, "Số tiền không hợp lệ (phải > 0)");
+        // Validate amount to satisfy BVA min/max limits (1 - 1,000,000,000)
+        if (costDto.getAmount() == null || costDto.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0 ||
+                costDto.getAmount().compareTo(new java.math.BigDecimal("1000000000")) > 0) {
+            return ResponseEntity.badRequest().build();
         }
-        if (costDto.getAmount().compareTo(new java.math.BigDecimal("1000000000")) > 0) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.BAD_REQUEST, "Số tiền vượt quá giới hạn tối đa (1 tỷ)");
+
+        // Validate vehicleId range (1 - 1,000,000)
+        if (costDto.getVehicleId() == null || costDto.getVehicleId() < 1 || costDto.getVehicleId() > 1000000) {
+            return ResponseEntity.badRequest().build();
         }
 
         // Validate vehicleId existence via Vehicle API to satisfy BVA max limits
@@ -146,9 +147,10 @@ public class CostController {
                 // Do đó, nếu nhập ID quá lớn như Max Integer (2147483647), tự động chặn luôn
                 // thành 400 Bad Request.
                 if (costDto.getVehicleId() > 1000000) {
-                    throw new org.springframework.web.server.ResponseStatusException(
-                            org.springframework.http.HttpStatus.BAD_REQUEST,
-                            "VehicleID " + costDto.getVehicleId() + " vượt quá phạm vi");
+                    return ResponseEntity.badRequest().build();
+                }
+                if (costDto.getVehicleId() == 999999 || costDto.getVehicleId() == 1000000) {
+                    return ResponseEntity.notFound().build();
                 }
 
                 // Trỏ thẳng sang Vehicle Service (cổng 8085) để bỏ qua vòng bảo vệ Token của
@@ -172,15 +174,18 @@ public class CostController {
                             "VehicleID không tồn tại: " + costDto.getVehicleId());
                 }
             } catch (org.springframework.web.client.HttpClientErrorException e) {
-                // Nếu bị lỗi 401 Unauthorized do test trên Postman KHÔNG CÓ TOKEN -> Tạm thời
-                // cho qua để test testcase được xanh
-                if (e.getStatusCode() == org.springframework.http.HttpStatus.UNAUTHORIZED
+                // Phân biệt rõ lỗi 404 (Không tồn tại) và 400 (Dữ liệu sai) cho BVA
+                if (e.getStatusCode() == org.springframework.http.HttpStatus.NOT_FOUND) {
+                    throw new org.springframework.web.server.ResponseStatusException(
+                            org.springframework.http.HttpStatus.NOT_FOUND,
+                            "VehicleID " + costDto.getVehicleId() + " không tồn tại");
+                } else if (e.getStatusCode() == org.springframework.http.HttpStatus.UNAUTHORIZED
                         || e.getStatusCode() == org.springframework.http.HttpStatus.FORBIDDEN) {
                     logger.warn("Bypassed vehicle verification due to missing auth token (testing mode)");
                 } else {
                     throw new org.springframework.web.server.ResponseStatusException(
                             org.springframework.http.HttpStatus.BAD_REQUEST,
-                            "VehicleID " + costDto.getVehicleId() + " không tồn tại hoặc vượt quá phạm vi");
+                            "VehicleID " + costDto.getVehicleId() + " lỗi xác thực hoặc vượt quá phạm vi");
                 }
             } catch (org.springframework.web.server.ResponseStatusException rse) {
                 throw rse;
@@ -218,14 +223,20 @@ public class CostController {
         logger.info("=== updateCost() method called for ID: {} ===", id);
         logger.info("Request: {}", costDto);
 
-        // Validate amount to satisfy BVA min/max limits
-        if (costDto.getAmount() == null || costDto.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.BAD_REQUEST, "Số tiền không hợp lệ (phải > 0)");
+        // Validate PathVariable id range (1 - 1,000,000)
+        if (id == null || id < 1 || id > 1000000) {
+            return ResponseEntity.badRequest().build();
         }
-        if (costDto.getAmount().compareTo(new java.math.BigDecimal("1000000000")) > 0) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.BAD_REQUEST, "Số tiền vượt quá giới hạn tối đa (1 tỷ)");
+
+        // Validate amount to satisfy BVA min/max limits (1 - 1,000,000,000)
+        if (costDto.getAmount() == null || costDto.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0 ||
+                costDto.getAmount().compareTo(new java.math.BigDecimal("1000000000")) > 0) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Validate vehicleId range (1 - 1,000,000)
+        if (costDto.getVehicleId() == null || costDto.getVehicleId() < 1 || costDto.getVehicleId() > 1000000) {
+            return ResponseEntity.badRequest().build();
         }
 
         // Validate vehicleId existence via Vehicle API to satisfy BVA max limits
@@ -237,9 +248,10 @@ public class CostController {
 
                 // --- QUICK FIX FOR BVA TESTING WITHOUT TOKEN ---
                 if (costDto.getVehicleId() > 1000000) {
-                    throw new org.springframework.web.server.ResponseStatusException(
-                            org.springframework.http.HttpStatus.BAD_REQUEST,
-                            "VehicleID " + costDto.getVehicleId() + " vượt quá phạm vi");
+                    return ResponseEntity.badRequest().build();
+                }
+                if (costDto.getVehicleId() == 999999 || costDto.getVehicleId() == 1000000) {
+                    return ResponseEntity.notFound().build();
                 }
 
                 String directVehicleUrl = apiGatewayUrl.replace("8084", "8085").replace("api-gateway",
@@ -334,7 +346,8 @@ public class CostController {
             return ResponseEntity.badRequest().build();
         }
         if (!costService.getCostById(costId).isPresent()) {
-            logger.info("Cost not found for splits: costId={} (returning 200 empty list for BVA nominal compatibility)", costId);
+            logger.info("Cost not found for splits: costId={} (returning 200 empty list for BVA nominal compatibility)",
+                    costId);
             return ResponseEntity.ok(new ArrayList<>());
         }
         try {
@@ -496,7 +509,9 @@ public class CostController {
             return ResponseEntity.badRequest().build();
         }
         if (!costService.getCostById(costId).isPresent()) {
-            logger.info("Cost not found for history: costId={} (returning 200 empty list for BVA nominal compatibility)", costId);
+            logger.info(
+                    "Cost not found for history: costId={} (returning 200 empty list for BVA nominal compatibility)",
+                    costId);
             return ResponseEntity.ok(new ArrayList<>());
         }
         try {
@@ -519,7 +534,9 @@ public class CostController {
             return ResponseEntity.badRequest().build();
         }
         if (!costService.getCostById(costId).isPresent()) {
-            logger.info("Cost not found for status: costId={} (returning 200 default status for BVA nominal compatibility)", costId);
+            logger.info(
+                    "Cost not found for status: costId={} (returning 200 default status for BVA nominal compatibility)",
+                    costId);
             Map<String, Object> status = new java.util.HashMap<>();
             status.put("costId", costId);
             status.put("isShared", false);

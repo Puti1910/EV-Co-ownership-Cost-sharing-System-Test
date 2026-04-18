@@ -692,7 +692,7 @@ public class FundController {
             @PathVariable Integer transactionId,
             @RequestParam Integer userId) {
         if (transactionId == null || transactionId < 1 || transactionId > 1000000 ||
-            userId == null || userId < 1 || userId > 1000000) {
+                userId == null || userId < 1 || userId > 1000000) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid transactionId or userId"));
         }
         try {

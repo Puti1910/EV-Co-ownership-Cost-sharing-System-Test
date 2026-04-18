@@ -1,5 +1,6 @@
 package com.example.disputemanagement.service;
 
+import com.example.disputemanagement.dto.DisputeAttachmentRequest;
 import com.example.disputemanagement.entity.*;
 import com.example.disputemanagement.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;

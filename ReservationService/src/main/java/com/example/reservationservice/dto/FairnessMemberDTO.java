@@ -3,7 +3,7 @@ package com.example.reservationservice.dto;
 import java.time.LocalDateTime;
 
 public class FairnessMemberDTO {
-    private Integer userId;
+    private Long userId;
     private String fullName;
     private String email;
     private Double ownershipPercentage;
@@ -17,7 +17,7 @@ public class FairnessMemberDTO {
 
     public FairnessMemberDTO() {}
 
-    public FairnessMemberDTO(Integer userId, String fullName, String email, Double ownershipPercentage, 
+    public FairnessMemberDTO(Long userId, String fullName, String email, Double ownershipPercentage, 
                              Double usageHours, Double usagePercentage, Double difference, 
                              Double fairnessScore, String priority, LocalDateTime lastUsageEnd, 
                              LocalDateTime nextReservationStart) {
@@ -39,8 +39,8 @@ public class FairnessMemberDTO {
         return new FairnessMemberDTOBuilder();
     }
 
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer id) { this.userId = id; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long id) { this.userId = id; }
     public String getFullName() { return fullName; }
     public void setFullName(String n) { this.fullName = n; }
     public String getEmail() { return email; }
@@ -64,7 +64,7 @@ public class FairnessMemberDTO {
 
     public static class FairnessMemberDTOBuilder {
         private FairnessMemberDTO instance = new FairnessMemberDTO();
-        public FairnessMemberDTOBuilder userId(Integer v) { instance.setUserId(v); return this; }
+        public FairnessMemberDTOBuilder userId(Long v) { instance.setUserId(v); return this; }
         public FairnessMemberDTOBuilder fullName(String v) { instance.setFullName(v); return this; }
         public FairnessMemberDTOBuilder email(String v) { instance.setEmail(v); return this; }
         public FairnessMemberDTOBuilder ownershipPercentage(Double v) { instance.setOwnershipPercentage(v); return this; }

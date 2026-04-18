@@ -43,11 +43,19 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+            "error", "Not Found",
+            "message", ex.getMessage() != null ? ex.getMessage() : "Resource not found"
+        ));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
             "error", "Bad Request",
-            "message", ex.getMessage()
+            "message", ex.getMessage() != null ? ex.getMessage() : "Invalid argument"
         ));
     }
 
@@ -64,6 +72,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
             "error", "Conflict",
             "message", "Dữ liệu không hợp lệ hoặc bị trùng"
+        ));
+    }
+
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<?> handleJsonError(org.springframework.http.converter.HttpMessageNotReadableException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+            "error", "Bad Request",
+            "message", "JSON payload is invalid or malformed"
+        ));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleAllOtherExceptions(Exception ex) {
+        System.err.println("🔥 [CRITICAL] Catch-all handle: " + ex.getMessage());
+        ex.printStackTrace();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+            "error", "Bad Request",
+            "message", ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred"
         ));
     }
 }

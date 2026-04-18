@@ -6,7 +6,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 
 public class FairnessSuggestionRequest {
-    private Integer userId;
+    private Long userId;
     private LocalDateTime desiredStart;
     private Double durationHours = 2.0;
 
@@ -33,8 +33,8 @@ public class FairnessSuggestionRequest {
         }
     }
 
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer userId) { this.userId = userId; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
     public LocalDateTime getDesiredStart() { return desiredStart; }
     public Double getDurationHours() { return durationHours; }
     public void setDurationHours(Double durationHours) { this.durationHours = durationHours; }

@@ -16,17 +16,20 @@ import java.time.LocalDateTime;
 public class ReservationRequest {
 
     @Min(value = 1, message = "userId must be at least 1")
-    private Integer userId;
-
+    @Max(value = Long.MAX_VALUE, message = "userId không được vượt quá Max Long")
+    private Long userId;
+    
     @Min(value = 1, message = "vehicleId phải bắt đầu từ 1")
-    @Max(value = Integer.MAX_VALUE, message = "vehicleId không được vượt quá Max Integer")
-    private Integer vehicleId;
+    @Max(value = 2147483647L, message = "vehicleId không được vượt quá 2147483647")
+    private Long vehicleId;
 
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime startDatetime;
+
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime endDatetime;
 
-    @jakarta.validation.constraints.NotBlank(message = "purpose không được để trống")
-    @Size(max = 255, message = "Mục đích sử dụng không được quá 255 ký tự")
+    @Size(min = 1, max = 255, message = "Mục đích sử dụng phải từ 1 đến 255 ký tự")
     private String purpose;
 
     public String getPurpose() {
@@ -40,15 +43,15 @@ public class ReservationRequest {
     // Cho phép null hoặc chuỗi rỗng (sẽ dùng default BOOKED ở service)
     // Nếu có giá trị thì phải là một trong 4 giá trị hợp lệ (case-sensitive)
     @Pattern(
-        regexp = "^(BOOKED|IN_USE|COMPLETED|CANCELLED)?$",
+        regexp = "(?i)^(BOOKED|IN_USE|COMPLETED|CANCELLED)?$",
         message = "status must be one of: BOOKED, IN_USE, COMPLETED, CANCELLED"
     )
     private String status;
 
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer userId) { this.userId = userId; }
-    public Integer getVehicleId() { return vehicleId; }
-    public void setVehicleId(Integer vehicleId) { this.vehicleId = vehicleId; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+    public Long getVehicleId() { return vehicleId; }
+    public void setVehicleId(Long vehicleId) { this.vehicleId = vehicleId; }
     public LocalDateTime getStartDatetime() { return startDatetime; }
     public void setStartDatetime(LocalDateTime startDatetime) { this.startDatetime = startDatetime; }
     public LocalDateTime getEndDatetime() { return endDatetime; }

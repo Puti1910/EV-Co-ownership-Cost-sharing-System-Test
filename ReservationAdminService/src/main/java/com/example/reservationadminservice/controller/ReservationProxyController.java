@@ -22,7 +22,7 @@ public class ReservationProxyController {
 
     private final AdminReservationService service;
     
-    @Value("${reservation.service.url:http://localhost:8086}")
+    @Value("${reservation.service.url:http://reservation-service:8086}")
     private String reservationServiceUrl;
 
     private final org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
@@ -46,57 +46,97 @@ public class ReservationProxyController {
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<ReservationDTO> getReservation(@PathVariable Long id) {
-        System.out.println("🔍 [PROXY GET] Fetching reservation ID: " + id);
-        
-        // 1. Thử lấy từ database admin trước
-        Optional<ReservationDTO> local = service.getReservationById(id);
-        if (local.isPresent()) {
-            System.out.println("✅ Found locally in Admin DB (ID: " + id + ")");
-            return ResponseEntity.ok(local.get());
-        }
-        
-        // 2. Nếu không thấy, thử gọi sang Reservation Service (Main)
-        // Dùng tên service trong Docker network hoặc localhost tùy môi trường
-        String[] possibleHosts = {reservationServiceUrl, "http://reservation-service:8086", "http://localhost:8086"};
-        
-        for (String host : possibleHosts) {
-            try {
-                String url = host + "/api/reservations/" + id;
-                System.out.println("📡 Fallback call to: " + url);
-                ResponseEntity<ReservationDTO> response = restTemplate.getForEntity(url, ReservationDTO.class);
-                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                    System.out.println("✅ Found in Main Service at " + host);
-                    return response;
-                }
-            } catch (Exception e) {
-                // Tiếp tục thử host khác
+    public ResponseEntity<ReservationDTO> getReservation(@PathVariable String id) {
+        try {
+            Long longId = Long.parseLong(id);
+            if (longId <= 0) return ResponseEntity.status(404).build();
+            
+            System.out.println("🔍 [PROXY GET] Fetching reservation ID: " + longId);
+            
+            // 1. Thử lấy từ database admin trước
+            Optional<ReservationDTO> local = service.getReservationById(longId);
+            if (local.isPresent()) {
+                System.out.println("✅ Found locally in Admin DB (ID: " + longId + ")");
+                return ResponseEntity.ok(local.get());
             }
+            
+            // 2. Nếu không thấy, thử gọi sang Reservation Service (Main)
+            String[] prioritizedHosts = { reservationServiceUrl, "http://reservation-service:8086" };
+            java.util.LinkedHashSet<String> uniqueHosts = new java.util.LinkedHashSet<>(java.util.Arrays.asList(prioritizedHosts));
+            
+            for (String host : uniqueHosts) {
+                try {
+                    String url = host + "/api/reservations/" + longId;
+                    ResponseEntity<ReservationDTO> response = restTemplate.getForEntity(url, ReservationDTO.class);
+                    if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                        return response;
+                    }
+                } catch (Exception e) {}
+            }
+            return ResponseEntity.status(404).build();
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().build();
         }
-        
-        System.err.println("❌ ID " + id + " not found anywhere.");
-        return ResponseEntity.notFound().build();
     }
     
     @PostMapping
-    public ResponseEntity<ReservationDTO> createReservation(@jakarta.validation.Valid @RequestBody ReservationDTO dto) {
+    public ResponseEntity<?> createReservation(@jakarta.validation.Valid @RequestBody ReservationDTO dto) {
         try {
             ReservationDTO created = service.createReservation(dto);
             return ResponseEntity.ok(created);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage() != null ? e.getMessage() : "Create failed"));
         }
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<ReservationDTO> updateReservation(
-            @PathVariable Long id,
-            @RequestBody ReservationDTO dto) {
+    public ResponseEntity<?> updateReservation(
+            @PathVariable String id,
+            @RequestBody ReservationDTO dto,
+            @RequestHeader(value = "Authorization", required = false) String token) {
         try {
-            ReservationDTO updated = service.updateReservation(id, dto);
+            Long longId = Long.valueOf(id);
+            if (longId <= 0) {
+                return ResponseEntity.status(404).body(Map.of("error", "Not Found", "message", "Reservation not found"));
+            }
+
+            // [RS_BVA] Explicit Purpose Length Check for Proxy (TC_11_38)
+            if (dto.getPurpose() != null && dto.getPurpose().length() > 255) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Validation failed", "message", "purpose length > 255"));
+            }
+
+            // Tìm reservation hiện tại
+            Optional<ReservationDTO> existing = service.getReservationById(longId);
+            if (existing.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("error", "Reservation not found for ID: " + id));
+            }
+            
+            // 1. Diagnostic Logging
+            System.out.println("🔍 [ID_CHECK] Path ID: " + longId + " (" + longId.getClass().getSimpleName() + "), Body ID: " + (dto == null ? "null" : dto.getReservationId()) + " (" + (dto != null && dto.getReservationId() != null ? dto.getReservationId().getClass().getSimpleName() : "N/A") + ")");
+
+            // 2. TC_10_08: So khớp ID nghiêm ngặt (Phải có ID trong body và phải trùng với path)
+            if (dto != null) {
+                if (dto.getReservationId() == null || !dto.getReservationId().equals(longId)) {
+                    System.out.println("❌ [ID_CHECK] Mismatched or missing reservationId in body! Rejecting with 400.");
+                    return ResponseEntity.badRequest().body(Map.of("error", "Validation failed", "message", "Mismatched or missing reservationId in body"));
+                }
+            }
+            
+            ReservationDTO updated = service.updateReservation(longId, dto, false, token);
             return ResponseEntity.ok(updated);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid ID format"));
+        } catch (com.example.reservationadminservice.exception.ResourceNotFoundException e) {
+            return ResponseEntity.status(404).body(Map.of("error", "Not Found", "message", e.getMessage() != null ? e.getMessage() : "Not found"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            String msg = e.getMessage() != null ? e.getMessage() : "Update failed";
+            if (msg.contains("403 Forbidden") || msg.contains("403")) {
+                return ResponseEntity.status(403).body(Map.of("error", "Forbidden", "message", msg));
+            }
+            if (msg.toLowerCase().contains("not found") || msg.contains("không tìm thấy")) {
+                return ResponseEntity.status(404).body(Map.of("error", "Not Found", "message", msg));
+            }
+            return ResponseEntity.badRequest().body(Map.of("error", "Validation failed", "message", msg));
         }
     }
     
@@ -119,41 +159,85 @@ public class ReservationProxyController {
      * @return ReservationDTO đã được cập nhật
      */
     @PutMapping("/{id}/status")
-    public ResponseEntity<ReservationDTO> updateStatus(
-            @PathVariable Long id,
-            @RequestParam String status) {
+    public ResponseEntity<?> updateStatus(
+            @PathVariable String id,
+            @RequestParam String status,
+            @RequestHeader(value = "Authorization", required = false) String token) {
         try {
-            System.out.println("🔄 [PROXY UPDATE STATUS] Proxy request cập nhật trạng thái reservation ID: " + id + " → " + status);
+            System.out.println("🔄 [PROXY UPDATE STATUS] Request ID: " + id + " → " + status);
             
-            // Gọi Reservation Service để cập nhật từ bảng chính TRƯỚC
-            // Reservation Service sẽ tự động cập nhật cả 2 bảng
-            String url = reservationServiceUrl + "/api/reservations/" + id + "/status?status=" + status;
+            // 1. Validate ID (Must be positive numeric and within Long range)
+            Long longId = Long.valueOf(id);
+            if (longId <= 0) {
+                return ResponseEntity.status(404).body(Map.of("error", "Not Found", "message", "Reservation not found"));
+            }
             
-            System.out.println("📡 [PROXY API CALL] Gọi Reservation Service: " + url);
-            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
-            restTemplate.exchange(url, org.springframework.http.HttpMethod.PUT, null, Void.class);
+            // 2. Validate Status (Strictly allowed: BOOKED, IN_USE, CANCELLED, COMPLETED)
+            java.util.Set<String> validStatuses = java.util.Set.of("BOOKED", "IN_USE", "CANCELLED", "COMPLETED");
+            if (status == null || status.trim().isEmpty() || !validStatuses.contains(status.trim().toUpperCase())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid status value: " + status));
+            }
+
+            // 3. Gọi Reservation Service để cập nhật
+            String normalizedStatus = status.trim().toUpperCase();
+            String[] prioritizedHosts = { reservationServiceUrl, "http://reservation-service:8086" };
+            java.util.LinkedHashSet<String> uniqueHosts = new java.util.LinkedHashSet<>(java.util.Arrays.asList(prioritizedHosts));
+            boolean success = false;
             
-            System.out.println("✅ [PROXY SUCCESS] Đã gọi thành công Reservation Service để cập nhật trạng thái");
+            for (String host : uniqueHosts) {
+                try {
+                    String url = host + "/api/reservations/" + longId + "/status?status=" + normalizedStatus;
+                    System.out.println("📡 [PROXY API CALL] Calling: " + url);
+                    
+                    org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+                    if (token != null && !token.isEmpty()) {
+                        headers.set("Authorization", token.startsWith("Bearer ") ? token : "Bearer " + token);
+                    }
+                    org.springframework.http.HttpEntity<?> entity = new org.springframework.http.HttpEntity<>(headers);
+                    
+                    restTemplate.exchange(url, org.springframework.http.HttpMethod.PUT, entity, Void.class);
+                    success = true;
+                    break;
+                } catch (Exception e) {
+                    System.err.println("⚠️ Host " + host + " failed: " + e.getMessage());
+                }
+            }
             
-            // Lấy reservation đã cập nhật từ Admin Service (sẽ được sync từ bảng chính)
-            ReservationDTO reservation = service.getReservationById(id)
-                    .orElseThrow(() -> new RuntimeException("Reservation not found"));
-            
-            return ResponseEntity.ok(reservation);
+            if (!success) {
+                // Nếu tất cả host đều xịt, thử cập nhật DB cục bộ nếu ID tồn tại (Safety Fallback)
+                Optional<ReservationDTO> local = service.getReservationById(longId);
+                if (local.isPresent()) {
+                    ReservationDTO dto = local.get();
+                    dto.setStatus(normalizedStatus);
+                    service.updateReservation(longId, dto, true, token); // Pass token
+                    return ResponseEntity.ok(dto);
+                }
+                return ResponseEntity.badRequest().body(Map.of("error", "Could not connect to Reservation Service"));
+            }
+
+            // 4. Trả về kết quả sau đồng bộ
+            return service.getReservationById(longId)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.status(404).build());
+                    
         } catch (Exception e) {
-            System.err.println("❌ [PROXY ERROR] Lỗi khi cập nhật trạng thái: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.badRequest().build();
+            System.err.println("❌ [PROXY ERROR] " + e.getMessage());
+            String msg = e.getMessage() != null ? e.getMessage() : "Update status failed";
+            return ResponseEntity.badRequest().body(Map.of("error", msg));
         }
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
+    public ResponseEntity<?> deleteReservation(@PathVariable String id) {
         try {
-            service.deleteReservation(id);
+            long longId = Long.parseLong(id);
+            if (longId <= 0) return ResponseEntity.status(404).body(Map.of("error", "Not Found"));
+            service.deleteReservation(longId);
             return ResponseEntity.noContent().build();
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid ID"));
         } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(404).body(Map.of("error", "Not Found"));
         }
     }
 }

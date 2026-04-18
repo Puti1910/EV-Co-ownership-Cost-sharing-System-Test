@@ -37,20 +37,21 @@ public class FairnessEngineService {
     @Transactional(readOnly = true)
     public FairnessSummaryDTO buildSummary(Long vehicleId, Integer rangeDays, String token) {
         // Lấy thông tin group từ vehicleId
-        // Chuyển sang Integer vì service-to-service API vẫn dùng Integer internally hoặc ta để Long
-        Optional<Map<String, Object>> groupOpt = groupManagementApiService.getGroupByVehicleId(vehicleId.intValue(), token);
+        Optional<Map<String, Object>> groupOpt = groupManagementApiService.getGroupByVehicleId(vehicleId, token);
         if (groupOpt.isEmpty()) {
             throw new IllegalArgumentException("Vehicle not found or not associated with any group");
         }
         
         Map<String, Object> group = groupOpt.get();
-        Integer groupId = (Integer) group.get("groupId");
+        Long groupId = group.get("groupId") instanceof Number 
+            ? ((Number) group.get("groupId")).longValue() 
+            : Long.parseLong(group.get("groupId").toString());
         
         // Lấy danh sách members từ group-management-service
         List<Map<String, Object>> membersData = groupManagementApiService.getGroupMembers(groupId, token);
         
         // Lấy thông tin vehicle (tên xe) - có thể cần gọi vehicle-service
-        String vehicleName = getVehicleName(vehicleId.intValue());
+        String vehicleName = getVehicleName(vehicleId);
 
         int days = rangeDays != null && rangeDays > 0 ? rangeDays : 30;
         LocalDateTime now = LocalDateTime.now();
@@ -58,17 +59,17 @@ public class FairnessEngineService {
         LocalDateTime rangeEnd = now.plusDays(days);
 
         List<Reservation> reservations = reservationRepository
-                .findByVehicleAndRange(vehicleId.intValue(), rangeStart, rangeEnd);
+                .findByVehicleAndRange(vehicleId, rangeStart, rangeEnd);
 
-        Map<Integer, Double> usageHours = new HashMap<>();
-        Map<Integer, LocalDateTime> lastUsage = new HashMap<>();
-        Map<Integer, LocalDateTime> nextUsage = new HashMap<>();
+        Map<Long, Double> usageHours = new HashMap<>();
+        Map<Long, LocalDateTime> lastUsage = new HashMap<>();
+        Map<Long, LocalDateTime> nextUsage = new HashMap<>();
 
         reservations.stream()
                 .filter(r -> r.getStartDatetime() != null && r.getEndDatetime() != null)
                 .forEach(reservation -> {
                     double hours = calculateDurationHours(reservation.getStartDatetime(), reservation.getEndDatetime());
-                    Integer userId = reservation.getUserId();
+                    Long userId = reservation.getUserId();
                     usageHours.merge(userId, hours, Double::sum);
 
                     if (reservation.getEndDatetime().isBefore(now)) {
@@ -101,7 +102,7 @@ public class FairnessEngineService {
                 .sorted(Comparator.comparingDouble(FairnessMemberDTO::getDifference))
                 .collect(Collectors.toList());
 
-        List<Integer> priorityQueue = memberStats.stream()
+        List<Long> priorityQueue = memberStats.stream()
                 .sorted(Comparator
                         .comparing(FairnessMemberDTO::getPriority, this::priorityCompare)
                         .thenComparingDouble(FairnessMemberDTO::getDifference))
@@ -116,7 +117,7 @@ public class FairnessEngineService {
         List<FairnessAvailabilityDTO> availabilitySlots = buildAvailabilityWindows(rangeStart, rangeEnd, reservationDTOs);
 
         return FairnessSummaryDTO.builder()
-                .vehicleId(vehicleId.intValue())
+                .vehicleId(vehicleId)
                 .vehicleName(vehicleName)
                 .groupId(groupId)
                 .groupName("Group#" + groupId) // Hiển thị Group ID thay vì tên để tránh lỗi encoding
@@ -142,9 +143,9 @@ public class FairnessEngineService {
             throw new UnauthorizedException("Full authentication is required to access this resource");
         }
 
-        // FS_07: Chặn VehicleId vượt giới hạn Integer (BVA: max+1 -> 400)
-        if (vehicleId > Integer.MAX_VALUE) {
-            throw new IllegalArgumentException("Invalid vehicleId: value exceeds maximum allowed");
+        // FS_07: Chặn VehicleId vượt giới hạn (Bán lại: Không còn chặn Integer.MAX_VALUE vì đã dùng Long)
+        if (vehicleId != null && vehicleId <= 0) {
+            throw new IllegalArgumentException("Invalid vehicleId: ID must be positive");
         }
 
         if (request.getUserId() == null) {
@@ -217,7 +218,7 @@ public class FairnessEngineService {
                 : findReplacementSlots(summary.getAvailability(), desiredStart, desiredEnd);
 
         return FairnessSuggestionResponse.builder()
-                .vehicleId(vehicleId.intValue())
+                .vehicleId(vehicleId)
                 .userId(request.getUserId())
                 .approved(approved && conflicts.isEmpty())
                 .priority(applicant.getPriority())
@@ -230,7 +231,7 @@ public class FairnessEngineService {
                 .build();
     }
 
-    private String getVehicleName(Integer vehicleId) {
+    private String getVehicleName(Long vehicleId) {
         // Tạm thời trả về ID, có thể gọi vehicle-service sau
         try {
             // Có thể gọi API từ vehicle-service nếu có
@@ -243,7 +244,7 @@ public class FairnessEngineService {
         }
     }
     
-    private String getUserName(Integer userId) {
+    private String getUserName(Long userId) {
         // Hiển thị User#n để tránh lỗi encoding tiếng Việt
         return "User#" + userId;
     }
@@ -267,11 +268,11 @@ public class FairnessEngineService {
     }
 
     private FairnessMemberDTO buildMemberStats(Map<String, Object> memberData,
-                                               Map<Integer, Double> usageHours,
+                                               Map<Long, Double> usageHours,
                                                double totalUsageHours,
-                                               Map<Integer, LocalDateTime> lastUsage,
-                                               Map<Integer, LocalDateTime> nextUsage) {
-        Integer userId = ((Number) memberData.get("userId")).intValue();
+                                               Map<Long, LocalDateTime> lastUsage,
+                                               Map<Long, LocalDateTime> nextUsage) {
+        Long userId = ((Number) memberData.get("userId")).longValue();
         double hours = usageHours.getOrDefault(userId, 0.0);
         double usagePercentage = totalUsageHours > 0 ? (hours / totalUsageHours) * 100 : 0.0;
         

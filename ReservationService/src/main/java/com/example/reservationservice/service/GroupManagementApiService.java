@@ -42,11 +42,11 @@ public class GroupManagementApiService {
      * Lấy thông tin nhóm theo vehicleId
      * Từ group-management-service, Group có vehicleId
      */
-    public Optional<Map<String, Object>> getGroupByVehicleId(Integer vehicleId) {
+    public Optional<Map<String, Object>> getGroupByVehicleId(Long vehicleId) {
         return getGroupByVehicleId(vehicleId, null);
     }
     
-    public Optional<Map<String, Object>> getGroupByVehicleId(Integer vehicleId, String token) {
+    public Optional<Map<String, Object>> getGroupByVehicleId(Long vehicleId, String token) {
         try {
             // Lấy tất cả groups và tìm group có vehicleId phù hợp
             String url = groupManagementServiceUrl + "/api/groups";
@@ -63,9 +63,9 @@ public class GroupManagementApiService {
                     .filter(group -> {
                         Object vIdObj = group.get("vehicleId");
                         if (vIdObj == null) return false;
-                        Integer groupVehicleId = vIdObj instanceof Number 
-                            ? ((Number) vIdObj).intValue() 
-                            : Integer.parseInt(vIdObj.toString());
+                        Long groupVehicleId = vIdObj instanceof Number 
+                            ? ((Number) vIdObj).longValue() 
+                            : Long.parseLong(vIdObj.toString());
                         return groupVehicleId.equals(vehicleId);
                     })
                     .findFirst();
@@ -81,11 +81,11 @@ public class GroupManagementApiService {
     /**
      * Lấy danh sách thành viên trong nhóm
      */
-    public List<Map<String, Object>> getGroupMembers(Integer groupId) {
+    public List<Map<String, Object>> getGroupMembers(Long groupId) {
         return getGroupMembers(groupId, null);
     }
     
-    public List<Map<String, Object>> getGroupMembers(Integer groupId, String token) {
+    public List<Map<String, Object>> getGroupMembers(Long groupId, String token) {
         try {
             String url = groupManagementServiceUrl + "/api/groups/" + groupId + "/members/view";
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
@@ -110,11 +110,11 @@ public class GroupManagementApiService {
     /**
      * Lấy thông tin nhóm theo groupId
      */
-    public Optional<Map<String, Object>> getGroupById(Integer groupId) {
+    public Optional<Map<String, Object>> getGroupById(Long groupId) {
         return getGroupById(groupId, null);
     }
     
-    public Optional<Map<String, Object>> getGroupById(Integer groupId, String token) {
+    public Optional<Map<String, Object>> getGroupById(Long groupId, String token) {
         try {
             String url = groupManagementServiceUrl + "/api/groups/" + groupId;
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
@@ -137,11 +137,11 @@ public class GroupManagementApiService {
     /**
      * Lấy danh sách nhóm mà user tham gia
      */
-    public List<Map<String, Object>> getGroupsByUserId(Integer userId) {
+    public List<Map<String, Object>> getGroupsByUserId(Long userId) {
         return getGroupsByUserId(userId, null);
     }
     
-    public List<Map<String, Object>> getGroupsByUserId(Integer userId, String token) {
+    public List<Map<String, Object>> getGroupsByUserId(Long userId, String token) {
         try {
             String url = groupManagementServiceUrl + "/api/groups/user/" + userId;
             System.out.println("🔵 [GroupManagementApiService] Calling URL: " + url);
@@ -181,11 +181,11 @@ public class GroupManagementApiService {
     /**
      * Lấy thông tin membership của user trong nhóm
      */
-    public Optional<Map<String, Object>> getMembershipInfo(Integer groupId, Integer userId) {
+    public Optional<Map<String, Object>> getMembershipInfo(Long groupId, Long userId) {
         return getMembershipInfo(groupId, userId, null);
     }
     
-    public Optional<Map<String, Object>> getMembershipInfo(Integer groupId, Integer userId, String token) {
+    public Optional<Map<String, Object>> getMembershipInfo(Long groupId, Long userId, String token) {
         try {
             String url = groupManagementServiceUrl + "/api/groups/" + groupId + "/members/me/" + userId;
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(

@@ -57,16 +57,46 @@ public class AdminReservationController {
     }
 
     @PutMapping("/manage/{id}")
-    public Map<String, Object> updateReservationManage(@PathVariable Long id, @RequestBody ReservationDTO dto) {
-        service.updateReservation(id, dto, false);
-        return Map.of("message", "Cập nhật lịch thành công");
+    public ResponseEntity<?> updateReservationManage(
+            @PathVariable String id, 
+            @jakarta.validation.Valid @RequestBody ReservationDTO dto,
+            @RequestHeader(value = "Authorization", required = false) String token) {
+        try {
+            long longId = Long.parseLong(id);
+            if (longId <= 0) {
+                return ResponseEntity.status(404).body(Map.of("error", "Not Found", "message", "Reservation not found: " + id));
+            }
+            
+            // TC_10_08: Kiểm tra tính nhất quán của ID giữa path và body
+            if (dto.getReservationId() != null && !dto.getReservationId().equals(longId)) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Validation failed",
+                    "message", "ID in path (" + longId + ") does not match ID in body (" + dto.getReservationId() + ")"
+                ));
+            }
+            
+            service.updateReservation(longId, dto, false, token);
+            return ResponseEntity.ok(Map.of("message", "Cập nhật lịch thành công"));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid ID format"));
+        } catch (com.example.reservationadminservice.exception.ResourceNotFoundException e) {
+            return ResponseEntity.status(404).body(Map.of("error", "Not Found", "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage() != null ? e.getMessage() : "Update failed"));
+        }
     }
 
     @DeleteMapping("/manage/{id}")
-    public ResponseEntity<Map<String, Object>> deleteReservationManage(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deleteReservationManage(@PathVariable String id) {
         try {
-            service.deleteReservation(id);
+            long longId = Long.parseLong(id);
+            if (longId <= 0) {
+                return ResponseEntity.status(404).body(Map.of("error", "Reservation not found for ID: " + id));
+            }
+            service.deleteReservation(longId);
             return ResponseEntity.ok(Map.of("message", "Đã xóa lịch có ID " + id));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid ID format"));
         } catch (Exception e) {
             return ResponseEntity.status(404).body(Map.of("error", "Không tìm thấy lịch cần xóa"));
         }
@@ -76,11 +106,11 @@ public class AdminReservationController {
     public ResponseEntity<ReservationDTO> getReservation(@PathVariable String id) {
         try {
             Long longId = Long.parseLong(id);
+            if (longId <= 0) return ResponseEntity.status(404).build();
             return service.getReservationById(longId)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
         } catch (NumberFormatException e) {
-            // RS_BVA_3603: Return 400 for non-numeric ID
             return ResponseEntity.badRequest().build();
         }
     }
@@ -89,26 +119,56 @@ public class AdminReservationController {
     public ResponseEntity<?> getReservationManage(@PathVariable String id) {
         try {
             Long longId = Long.parseLong(id);
+            if (longId <= 0) return ResponseEntity.status(404).build();
             return service.getReservationById(longId)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
         } catch (NumberFormatException e) {
-            // FIX Iteration 12: Return 404 (or 400) for path errors
             return ResponseEntity.notFound().build();
         }
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<ReservationDTO> updateReservation(
-            @PathVariable Long id,
-            @RequestBody ReservationDTO dto,
-            @RequestHeader(value = "X-Sync-Origin", required = false) String syncOrigin) {
+    public ResponseEntity<?> updateReservation(
+            @PathVariable String id,
+            @jakarta.validation.Valid @RequestBody ReservationDTO dto,
+            @RequestHeader(value = "X-Sync-Origin", required = false) String syncOrigin,
+            @RequestHeader(value = "Authorization", required = false) String token) {
         try {
+            long longId = Long.parseLong(id);
+            if (longId <= 0) {
+                return ResponseEntity.status(404).body(Map.of("error", "Not Found", "message", "Reservation not found: " + id));
+            }
+            
+            // TC_11_38: Kiểm tra độ dài mục đích ngay tại Controller để chắc chắn trả về 400
+            if (dto.getPurpose() != null && dto.getPurpose().length() > 255) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Validation failed", "message", "Mục đích sử dụng không được quá 255 ký tự"));
+            }
+            
+            // TC_10_08: Kiểm tra tính nhất quán của ID giữa path và body
+            if (dto.getReservationId() != null && !dto.getReservationId().equals(longId)) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Validation failed", 
+                    "message", "ID in path (" + longId + ") does not match ID in body (" + dto.getReservationId() + ")"
+                ));
+            }
+
             boolean skipBookingSync = syncOrigin != null && syncOrigin.equalsIgnoreCase("reservation-service");
-            ReservationDTO updated = service.updateReservation(id, dto, skipBookingSync);
+            ReservationDTO updated = service.updateReservation(longId, dto, skipBookingSync, token);
             return ResponseEntity.ok(updated);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid ID format"));
+        } catch (com.example.reservationadminservice.exception.ResourceNotFoundException e) {
+            return ResponseEntity.status(404).body(Map.of("error", "Not Found", "message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            String msg = e.getMessage() != null ? e.getMessage() : "";
+            if (msg.contains("403 Forbidden") || msg.contains("403")) {
+                return ResponseEntity.status(403).body(Map.of("error", "Forbidden", "message", msg));
+            }
+            if (msg.contains("404 Not Found") || msg.toLowerCase().contains("not found") || msg.toLowerCase().contains("không tìm thấy")) {
+                return ResponseEntity.status(404).body(Map.of("error", "Not Found", "message", msg));
+            }
+            return ResponseEntity.badRequest().body(Map.of("error", "Validation failed", "message", msg));
         }
     }
     

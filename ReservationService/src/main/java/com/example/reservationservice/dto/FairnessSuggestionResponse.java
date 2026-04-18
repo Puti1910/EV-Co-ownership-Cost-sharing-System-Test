@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FairnessSuggestionResponse {
-    private Integer vehicleId;
-    private Integer userId;
+    private Long vehicleId;
+    private Long userId;
     private boolean approved;
     private String priority;
     private String reason;
@@ -18,7 +18,7 @@ public class FairnessSuggestionResponse {
 
     public FairnessSuggestionResponse() {}
 
-    public FairnessSuggestionResponse(Integer vehicleId, Integer userId, boolean approved, String priority, 
+    public FairnessSuggestionResponse(Long vehicleId, Long userId, boolean approved, String priority, 
                                       String reason, LocalDateTime requestedStart, LocalDateTime requestedEnd, 
                                       FairnessMemberDTO applicant, List<FairnessReservationDTO> conflicts, 
                                       List<FairnessAvailabilityDTO> recommendations) {
@@ -38,10 +38,10 @@ public class FairnessSuggestionResponse {
         return new FairnessSuggestionResponseBuilder();
     }
 
-    public Integer getVehicleId() { return vehicleId; }
-    public void setVehicleId(Integer v) { this.vehicleId = v; }
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer v) { this.userId = v; }
+    public Long getVehicleId() { return vehicleId; }
+    public void setVehicleId(Long v) { this.vehicleId = v; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long v) { this.userId = v; }
     public boolean isApproved() { return approved; }
     public void setApproved(boolean v) { this.approved = v; }
     public String getPriority() { return priority; }
@@ -61,8 +61,8 @@ public class FairnessSuggestionResponse {
 
     public static class FairnessSuggestionResponseBuilder {
         private FairnessSuggestionResponse instance = new FairnessSuggestionResponse();
-        public FairnessSuggestionResponseBuilder vehicleId(Integer v) { instance.setVehicleId(v); return this; }
-        public FairnessSuggestionResponseBuilder userId(Integer v) { instance.setUserId(v); return this; }
+        public FairnessSuggestionResponseBuilder vehicleId(Long v) { instance.setVehicleId(v); return this; }
+        public FairnessSuggestionResponseBuilder userId(Long v) { instance.setUserId(v); return this; }
         public FairnessSuggestionResponseBuilder approved(boolean v) { instance.setApproved(v); return this; }
         public FairnessSuggestionResponseBuilder priority(String v) { instance.setPriority(v); return this; }
         public FairnessSuggestionResponseBuilder reason(String v) { instance.setReason(v); return this; }

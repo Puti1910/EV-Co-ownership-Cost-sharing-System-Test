@@ -16,13 +16,24 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
           AND r.startDatetime < :end
           AND r.endDatetime > :start
     """)
-    long countOverlap(@Param("vehicleId") Integer vehicleId,
+    long countOverlap(@Param("vehicleId") Long vehicleId,
                       @Param("start") LocalDateTime start,
                       @Param("end") LocalDateTime end);
 
-    List<Reservation> findByVehicleIdOrderByStartDatetimeAsc(Integer vehicleId);
+    List<Reservation> findByVehicleIdOrderByStartDatetimeAsc(Long vehicleId);
 
-    List<Reservation> findByUserIdAndVehicleIdOrderByStartDatetimeAsc(Integer userId, Integer vehicleId);
+    List<Reservation> findByUserIdAndVehicleIdOrderByStartDatetimeAsc(Long userId, Long vehicleId);
+
+    @Query("""
+        SELECT r FROM Reservation r
+        WHERE r.vehicleId = :vehicleId
+          AND r.status IN ('BOOKED','IN_USE')
+          AND r.startDatetime < :end
+          AND r.endDatetime > :start
+    """)
+    List<Reservation> findOverlappingReservations(@Param("vehicleId") Long vehicleId,
+                                                  @Param("start") LocalDateTime start,
+                                                  @Param("end") LocalDateTime end);
 
     @Query("""
         SELECT r FROM Reservation r
@@ -31,7 +42,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
           AND r.endDatetime <= :rangeEnd
         ORDER BY r.startDatetime ASC
     """)
-    List<Reservation> findByVehicleAndRange(@Param("vehicleId") Integer vehicleId,
+    List<Reservation> findByVehicleAndRange(@Param("vehicleId") Long vehicleId,
                                             @Param("rangeStart") LocalDateTime rangeStart,
                                             @Param("rangeEnd") LocalDateTime rangeEnd);
 }

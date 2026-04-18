@@ -65,7 +65,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleUnauthorized(UnauthorizedException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                 "error", "Unauthorized",
-                "message", ex.getMessage()));
+                "message", ex.getMessage() != null ? ex.getMessage() : "Unauthorized access"));
     }
 
     /**
@@ -78,6 +78,14 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                 "error", "Validation Failed",
-                "message", msg));
+                "message", (msg != null && !msg.isEmpty()) ? msg : "Validation error"));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleAllOtherExceptions(Exception ex) {
+        System.err.println("🔥 [MAIN SERVICE] Catch-all handle: " + ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "error", "Bad Request",
+                "message", ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred"));
     }
 }

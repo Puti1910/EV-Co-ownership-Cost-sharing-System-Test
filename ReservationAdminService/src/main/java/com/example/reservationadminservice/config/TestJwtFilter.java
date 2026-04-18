@@ -1,4 +1,4 @@
-package com.example.reservationservice.config;
+package com.example.reservationadminservice.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,11 +23,10 @@ public class TestJwtFilter extends OncePerRequestFilter {
             response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Token expired\"}");
             return; // Stop here
         }
-
-        // In test environment, if Bearer token is present, we consider the request as authenticated.
+        
         if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    "testUser", null, Collections.emptyList());
+                    "testAdminUser", null, Collections.emptyList());
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
         

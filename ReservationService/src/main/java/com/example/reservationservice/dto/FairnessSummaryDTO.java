@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FairnessSummaryDTO {
-    private Integer vehicleId;
+    private Long vehicleId;
     private String vehicleName;
-    private Integer groupId;
+    private Long groupId;
     private String groupName;
     private Double fairnessIndex;
     private Double totalUsageHours;
@@ -17,15 +17,15 @@ public class FairnessSummaryDTO {
     private List<FairnessMemberDTO> members = new ArrayList<>();
     private List<FairnessReservationDTO> reservations = new ArrayList<>();
     private List<FairnessAvailabilityDTO> availability = new ArrayList<>();
-    private List<Integer> priorityQueue = new ArrayList<>();
+    private List<Long> priorityQueue = new ArrayList<>();
 
     public FairnessSummaryDTO() {}
 
-    public FairnessSummaryDTO(Integer vehicleId, String vehicleName, Integer groupId, String groupName, 
+    public FairnessSummaryDTO(Long vehicleId, String vehicleName, Long groupId, String groupName, 
                               Double fairnessIndex, Double totalUsageHours, LocalDateTime rangeStart, 
                               LocalDateTime rangeEnd, LocalDateTime generatedAt, List<FairnessMemberDTO> members, 
                               List<FairnessReservationDTO> reservations, List<FairnessAvailabilityDTO> availability, 
-                              List<Integer> priorityQueue) {
+                              List<Long> priorityQueue) {
         this.vehicleId = vehicleId;
         this.vehicleName = vehicleName;
         this.groupId = groupId;
@@ -45,12 +45,12 @@ public class FairnessSummaryDTO {
         return new FairnessSummaryDTOBuilder();
     }
 
-    public Integer getVehicleId() { return vehicleId; }
-    public void setVehicleId(Integer v) { this.vehicleId = v; }
+    public Long getVehicleId() { return vehicleId; }
+    public void setVehicleId(Long v) { this.vehicleId = v; }
     public String getVehicleName() { return vehicleName; }
     public void setVehicleName(String v) { this.vehicleName = v; }
-    public Integer getGroupId() { return groupId; }
-    public void setGroupId(Integer v) { this.groupId = v; }
+    public Long getGroupId() { return groupId; }
+    public void setGroupId(Long v) { this.groupId = v; }
     public String getGroupName() { return groupName; }
     public void setGroupName(String v) { this.groupName = v; }
     public Double getFairnessIndex() { return fairnessIndex; }
@@ -69,14 +69,14 @@ public class FairnessSummaryDTO {
     public void setReservations(List<FairnessReservationDTO> v) { this.reservations = v; }
     public List<FairnessAvailabilityDTO> getAvailability() { return availability; }
     public void setAvailability(List<FairnessAvailabilityDTO> v) { this.availability = v; }
-    public List<Integer> getPriorityQueue() { return priorityQueue; }
-    public void setPriorityQueue(List<Integer> v) { this.priorityQueue = v; }
+    public List<Long> getPriorityQueue() { return priorityQueue; }
+    public void setPriorityQueue(List<Long> v) { this.priorityQueue = v; }
 
     public static class FairnessSummaryDTOBuilder {
         private FairnessSummaryDTO instance = new FairnessSummaryDTO();
-        public FairnessSummaryDTOBuilder vehicleId(Integer v) { instance.setVehicleId(v); return this; }
+        public FairnessSummaryDTOBuilder vehicleId(Long v) { instance.setVehicleId(v); return this; }
         public FairnessSummaryDTOBuilder vehicleName(String v) { instance.setVehicleName(v); return this; }
-        public FairnessSummaryDTOBuilder groupId(Integer v) { instance.setGroupId(v); return this; }
+        public FairnessSummaryDTOBuilder groupId(Long v) { instance.setGroupId(v); return this; }
         public FairnessSummaryDTOBuilder groupName(String v) { instance.setGroupName(v); return this; }
         public FairnessSummaryDTOBuilder fairnessIndex(Double v) { instance.setFairnessIndex(v); return this; }
         public FairnessSummaryDTOBuilder totalUsageHours(Double v) { instance.setTotalUsageHours(v); return this; }
@@ -86,7 +86,7 @@ public class FairnessSummaryDTO {
         public FairnessSummaryDTOBuilder members(List<FairnessMemberDTO> v) { instance.setMembers(v); return this; }
         public FairnessSummaryDTOBuilder reservations(List<FairnessReservationDTO> v) { instance.setReservations(v); return this; }
         public FairnessSummaryDTOBuilder availability(List<FairnessAvailabilityDTO> v) { instance.setAvailability(v); return this; }
-        public FairnessSummaryDTOBuilder priorityQueue(List<Integer> v) { instance.setPriorityQueue(v); return this; }
+        public FairnessSummaryDTOBuilder priorityQueue(List<Long> v) { instance.setPriorityQueue(v); return this; }
         public FairnessSummaryDTO build() { return instance; }
     }
 }

@@ -15,10 +15,10 @@ public class Reservation {
     private Long reservationId;
 
     @Column(name = "vehicle_id", nullable = false)
-    private Integer vehicleId;
+    private Long vehicleId;
 
     @Column(name = "user_id", nullable = false)
-    private Integer userId;
+    private Long userId;
 
     @Column(name = "start_datetime")
     private LocalDateTime startDatetime;
@@ -34,10 +34,10 @@ public class Reservation {
 
     public Long getReservationId() { return reservationId; }
     public void setReservationId(Long id) { this.reservationId = id; }
-    public Integer getVehicleId() { return vehicleId; }
-    public void setVehicleId(Integer id) { this.vehicleId = id; }
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer id) { this.userId = id; }
+    public Long getVehicleId() { return vehicleId; }
+    public void setVehicleId(Long id) { this.vehicleId = id; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long id) { this.userId = id; }
     public LocalDateTime getStartDatetime() { return startDatetime; }
     public void setStartDatetime(LocalDateTime dt) { this.startDatetime = dt; }
     public LocalDateTime getEndDatetime() { return endDatetime; }

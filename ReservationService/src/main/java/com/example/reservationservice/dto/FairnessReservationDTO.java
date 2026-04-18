@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 
 public class FairnessReservationDTO {
     private Long reservationId;
-    private Integer vehicleId;
+    private Long vehicleId;
     private String vehicleName;
-    private Integer userId;
+    private Long userId;
     private String userName;
     private LocalDateTime start;
     private LocalDateTime end;
@@ -15,8 +15,8 @@ public class FairnessReservationDTO {
 
     public FairnessReservationDTO() {}
 
-    public FairnessReservationDTO(Long reservationId, Integer vehicleId, String vehicleName, 
-                                  Integer userId, String userName, LocalDateTime start, 
+    public FairnessReservationDTO(Long reservationId, Long vehicleId, String vehicleName, 
+                                  Long userId, String userName, LocalDateTime start, 
                                   LocalDateTime end, String status, String purpose) {
         this.reservationId = reservationId;
         this.vehicleId = vehicleId;
@@ -35,12 +35,12 @@ public class FairnessReservationDTO {
 
     public Long getReservationId() { return reservationId; }
     public void setReservationId(Long v) { this.reservationId = v; }
-    public Integer getVehicleId() { return vehicleId; }
-    public void setVehicleId(Integer v) { this.vehicleId = v; }
+    public Long getVehicleId() { return vehicleId; }
+    public void setVehicleId(Long v) { this.vehicleId = v; }
     public String getVehicleName() { return vehicleName; }
     public void setVehicleName(String v) { this.vehicleName = v; }
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer v) { this.userId = v; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long v) { this.userId = v; }
     public String getUserName() { return userName; }
     public void setUserName(String v) { this.userName = v; }
     public LocalDateTime getStart() { return start; }
@@ -55,9 +55,9 @@ public class FairnessReservationDTO {
     public static class FairnessReservationDTOBuilder {
         private FairnessReservationDTO instance = new FairnessReservationDTO();
         public FairnessReservationDTOBuilder reservationId(Long v) { instance.setReservationId(v); return this; }
-        public FairnessReservationDTOBuilder vehicleId(Integer v) { instance.setVehicleId(v); return this; }
+        public FairnessReservationDTOBuilder vehicleId(Long v) { instance.setVehicleId(v); return this; }
         public FairnessReservationDTOBuilder vehicleName(String v) { instance.setVehicleName(v); return this; }
-        public FairnessReservationDTOBuilder userId(Integer v) { instance.setUserId(v); return this; }
+        public FairnessReservationDTOBuilder userId(Long v) { instance.setUserId(v); return this; }
         public FairnessReservationDTOBuilder userName(String v) { instance.setUserName(v); return this; }
         public FairnessReservationDTOBuilder start(LocalDateTime v) { instance.setStart(v); return this; }
         public FairnessReservationDTOBuilder end(LocalDateTime v) { instance.setEnd(v); return this; }

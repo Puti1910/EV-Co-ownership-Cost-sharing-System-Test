@@ -109,10 +109,13 @@ public class DisputeController {
     }
     
     @PostMapping
-    public ResponseEntity<?> createDispute(@RequestBody Dispute dispute) {
+    public ResponseEntity<?> createDispute(@Valid @RequestBody Dispute dispute) {
         try {
             Dispute created = disputeService.createDispute(dispute);
             return ResponseEntity.ok(created);
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid dispute payload", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error creating dispute", e);
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));

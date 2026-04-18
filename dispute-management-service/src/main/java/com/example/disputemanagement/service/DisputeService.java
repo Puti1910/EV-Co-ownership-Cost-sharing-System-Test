@@ -76,6 +76,13 @@ public class DisputeService {
     
     @Transactional
     public Dispute createDispute(Dispute dispute) {
+        if (dispute.getTitle() == null || dispute.getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("Tiêu đề không được để trống");
+        }
+        if (dispute.getDescription() == null || dispute.getDescription().trim().isEmpty()) {
+            throw new IllegalArgumentException("Mô tả không được để trống");
+        }
+
         dispute.setStatus(Dispute.DisputeStatus.PENDING);
         dispute.setCreatedAt(LocalDateTime.now());
         dispute.setUpdatedAt(LocalDateTime.now());

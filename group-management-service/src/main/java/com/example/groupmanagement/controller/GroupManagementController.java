@@ -3,6 +3,8 @@ package com.example.groupmanagement.controller;
 import com.example.groupmanagement.dto.CreateGroupRequestDto;
 import com.example.groupmanagement.dto.GroupResponseDto;
 import jakarta.validation.Valid;
+import com.example.groupmanagement.exception.ValidationException;
+import com.example.groupmanagement.util.GroupValidationUtil;
 import com.example.groupmanagement.entity.ContractSignature;
 import com.example.groupmanagement.entity.Group;
 import com.example.groupmanagement.entity.GroupContract;
@@ -216,15 +218,26 @@ public class GroupManagementController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Group> updateGroup(@PathVariable Integer id, @RequestBody Map<String, Object> requestData) {
-        Optional<Group> groupOpt = groupRepository.findById(id);
-        if (groupOpt.isPresent()) {
+    public ResponseEntity<?> updateGroup(
+            @PathVariable Integer id, 
+            @RequestBody Map<String, Object> requestData) {
+        try {
+            Optional<Group> groupOpt = groupRepository.findById(id);
+            if (groupOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
             Group existingGroup = groupOpt.get();
             
-            // Update fields from request
+            // ✅ VALIDATION: Check and update groupName
             if (requestData.containsKey("groupName")) {
-                existingGroup.setGroupName((String) requestData.get("groupName"));
+                String newGroupName = (String) requestData.get("groupName");
+                // Validate before setting
+                GroupValidationUtil.validateGroupName(newGroupName);
+                existingGroup.setGroupName(newGroupName);
             }
+            
+            // Update other fields
             if (requestData.containsKey("adminId")) {
                 existingGroup.setAdminId(((Number) requestData.get("adminId")).intValue());
             }
@@ -249,12 +262,30 @@ public class GroupManagementController {
             }
             if (requestData.containsKey("status")) {
                 String statusStr = (String) requestData.get("status");
-                existingGroup.setStatus("Active".equalsIgnoreCase(statusStr) ? Group.GroupStatus.Active : Group.GroupStatus.Inactive);
+                existingGroup.setStatus("Active".equalsIgnoreCase(statusStr) ? 
+                    Group.GroupStatus.Active : Group.GroupStatus.Inactive);
             }
             
+            logger.info("✅ [GroupManagementController] Group {} updated successfully", id);
             return ResponseEntity.ok(groupRepository.save(existingGroup));
+            
+        } catch (ValidationException e) {
+            // ✅ HANDLE VALIDATION ERRORS
+            logger.warn("❌ [GroupManagementController] Validation error updating group {}: {}", 
+                id, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Validation error",
+                "message", e.getMessage(),
+                "field", e.getFieldName(),
+                "code", e.getErrorCode()
+            ));
+        } catch (Exception e) {
+            logger.error("❌ [GroupManagementController] Error updating group {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "error", "Internal server error",
+                "message", e.getMessage()
+            ));
         }
-        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")

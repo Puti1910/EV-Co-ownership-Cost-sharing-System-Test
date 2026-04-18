@@ -1,6 +1,7 @@
 package com.example.disputemanagement.controller;
 
 import com.example.disputemanagement.dto.DisputeAttachmentRequest;
+import com.example.disputemanagement.dto.CreateDisputeRequest;
 import com.example.disputemanagement.entity.*;
 import com.example.disputemanagement.service.DisputeService;
 import org.slf4j.Logger;
@@ -109,8 +110,22 @@ public class DisputeController {
     }
     
     @PostMapping
-    public ResponseEntity<?> createDispute(@Valid @RequestBody Dispute dispute) {
+    public ResponseEntity<?> createDispute(@Valid @RequestBody CreateDisputeRequest request) {
         try {
+            Dispute dispute = new Dispute();
+            dispute.setGroupId(request.getGroupId());
+            dispute.setVehicleId(request.getVehicleId());
+            dispute.setReservationId(request.getReservationId());
+            dispute.setCostId(request.getCostId());
+            dispute.setPaymentId(request.getPaymentId());
+            dispute.setCreatedBy(request.getCreatedBy());
+            dispute.setReportedUserId(request.getReportedUserId());
+            dispute.setTitle(request.getTitle());
+            dispute.setDescription(request.getDescription());
+            dispute.setCategory(request.getCategory());
+            dispute.setPriority(request.getPriority());
+            dispute.setResolutionNote(request.getResolutionNote());
+
             Dispute created = disputeService.createDispute(dispute);
             return ResponseEntity.ok(created);
         } catch (IllegalArgumentException e) {

@@ -109,13 +109,7 @@ CREATE TABLE IF NOT EXISTS admin_users (
     created_at DATETIME(6)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `groups` (
-                                        id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                                        name VARCHAR(255),
-    description TEXT,
-    created_at DATETIME(6)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
+DROP TABLE IF EXISTS vehicles;
 CREATE TABLE IF NOT EXISTS vehicles (
                                         id BIGINT AUTO_INCREMENT PRIMARY KEY,
                                         vehicle_name  VARCHAR(255),
@@ -269,9 +263,9 @@ INSERT INTO `groups` (name, description, created_at) VALUES
                                                          ('Nhóm Tesla', 'Nhóm sở hữu Tesla', NOW()),
                                                          ('Nhóm VinFast', 'Nhóm sở hữu VinFast', NOW());
 
-INSERT INTO vehicles (vehicle_name, vehicle_type, license_plate, group_id, status) VALUES
-                                                                                       ('Tesla Model 3', 'ELECTRIC', '30A-12345', 1, 'AVAILABLE'),
-                                                                                       ('VinFast VF8', 'ELECTRIC', '30B-67890', 2, 'AVAILABLE');
+INSERT INTO vehicles (id, vehicle_name, vehicle_type, license_plate, group_id, status) VALUES
+                                                                                       (1, 'Tesla Model 3', 'ELECTRIC', '30A-12345', 1, 'AVAILABLE'),
+                                                                                       (2, 'VinFast VF8', 'ELECTRIC', '30B-67890', 2, 'AVAILABLE');
 
 INSERT INTO users (username, email, full_name) VALUES
                                                    ('user101', 'user101@example.com', 'Nguyễn Văn A'),

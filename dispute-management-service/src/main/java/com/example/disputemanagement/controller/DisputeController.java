@@ -171,7 +171,7 @@ public class DisputeController {
     }
     
     @PostMapping("/{disputeId}/comments")
-    public ResponseEntity<?> addComment(@PathVariable Integer disputeId, @RequestBody DisputeComment comment) {
+    public ResponseEntity<?> addComment(@PathVariable Integer disputeId, @Valid @RequestBody DisputeComment comment) {
         try {
             DisputeComment created = disputeService.addComment(disputeId, comment);
             return ResponseEntity.ok(created);
@@ -210,7 +210,7 @@ public class DisputeController {
     }
     
     @PostMapping("/{disputeId}/resolution")
-    public ResponseEntity<?> createResolution(@PathVariable Integer disputeId, @RequestBody DisputeResolution resolution) {
+public ResponseEntity<?> createResolution(@PathVariable Integer disputeId, @Valid @RequestBody DisputeResolution resolution) {
         try {
             DisputeResolution created = disputeService.createResolution(disputeId, resolution);
             return ResponseEntity.ok(created);

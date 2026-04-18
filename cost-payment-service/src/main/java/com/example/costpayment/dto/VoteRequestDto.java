@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class VoteRequestDto {
 
-    @NotNull(message = "transactionId không được để trống")
     private Integer transactionId;
 
     @NotNull(message = "userId không được để trống")

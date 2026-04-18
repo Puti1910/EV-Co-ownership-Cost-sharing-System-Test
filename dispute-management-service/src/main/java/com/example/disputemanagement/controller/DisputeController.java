@@ -1,5 +1,6 @@
 package com.example.disputemanagement.controller;
 
+import com.example.disputemanagement.dto.DisputeAttachmentRequest;
 import com.example.disputemanagement.entity.*;
 import com.example.disputemanagement.service.DisputeService;
 import org.slf4j.Logger;
@@ -245,7 +246,7 @@ public class DisputeController {
     }
     
     @PostMapping("/attachments")
-    public ResponseEntity<?> addAttachment(@RequestBody DisputeAttachment attachment) {
+    public ResponseEntity<?> addAttachment(@RequestBody DisputeAttachmentRequest attachment) {
         try {
             DisputeAttachment created = disputeService.addAttachment(attachment);
             return ResponseEntity.ok(created);

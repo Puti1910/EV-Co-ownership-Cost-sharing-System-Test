@@ -1,5 +1,6 @@
 package com.example.disputemanagement.service;
 
+import com.example.disputemanagement.dto.DisputeAttachmentRequest;
 import com.example.disputemanagement.entity.*;
 import com.example.disputemanagement.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -250,10 +251,27 @@ public class DisputeService {
     }
     
     @Transactional
-    public DisputeAttachment addAttachment(DisputeAttachment attachment) {
-        attachment.setUploadedAt(LocalDateTime.now());
-        return attachmentRepository.save(attachment);
+    public DisputeAttachment addAttachment(DisputeAttachmentRequest request) {
+    Dispute dispute = disputeRepository.findById(request.getDisputeId())
+        .orElseThrow(() -> new RuntimeException("Dispute not found: " + request.getDisputeId()));
+
+    DisputeAttachment attachment = new DisputeAttachment();
+    attachment.setDispute(dispute);
+    attachment.setFileName(request.getFileName());
+    attachment.setFileUrl(request.getFileUrl());
+    attachment.setFileType(request.getFileType());
+    attachment.setFileSize(request.getFileSize());
+    attachment.setUploadedBy(request.getUploadedBy());
+    attachment.setUploadedAt(LocalDateTime.now());
+
+    if (request.getCommentId() != null) {
+        DisputeComment comment = commentRepository.findById(request.getCommentId())
+            .orElseThrow(() -> new RuntimeException("Comment not found: " + request.getCommentId()));
+        attachment.setComment(comment);
     }
+
+    return attachmentRepository.save(attachment);
+}
     
     // ========== STATISTICS METHODS ==========
     

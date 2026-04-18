@@ -114,7 +114,12 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
         // Parse split method từ String
         SplitMethod splitMethod;
         try {
-            splitMethod = SplitMethod.valueOf(splitMethodStr);
+            String upper = splitMethodStr.toUpperCase();
+            if (upper.equals("EQUALLY")) {
+                splitMethod = SplitMethod.EQUAL;
+            } else {
+                splitMethod = SplitMethod.valueOf(upper);
+            }
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Split method không hợp lệ: " + splitMethodStr);
         }

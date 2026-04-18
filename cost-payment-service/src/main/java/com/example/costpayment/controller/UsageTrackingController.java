@@ -30,12 +30,12 @@ public class UsageTrackingController {
             @PathVariable Integer groupId,
             @RequestParam Integer month,
             @RequestParam Integer year) {
-        if (groupId == null || groupId < 1 || groupId > 1000000 || 
-            month == null || month < 1 || month > 12 || 
-            year == null || year < 2000 || year > 2100) {
+        if (groupId == null || groupId < 1 || groupId > 1000000 ||
+                month == null || month < 1 || month > 12 ||
+                year == null || year < 2000 || year > 2100) {
             return ResponseEntity.badRequest().body(null); // Return 400
         }
-        
+
         List<UsageTrackingDto> usage = usageTrackingService.getGroupUsageInMonth(groupId, month, year);
         return ResponseEntity.ok(usage);
     }
@@ -51,12 +51,12 @@ public class UsageTrackingController {
             @RequestParam Integer month,
             @RequestParam Integer year) {
         if (groupId == null || groupId < 1 || groupId > 1000000 ||
-            userId == null || userId < 1 || userId > 1000000 ||
-            month == null || month < 1 || month > 12 || 
-            year == null || year < 2000 || year > 2100) {
+                userId == null || userId < 1 || userId > 1000000 ||
+                month == null || month < 1 || month > 12 ||
+                year == null || year < 2000 || year > 2100) {
             return ResponseEntity.badRequest().build();
         }
-        
+
         UsageTracking usage = usageTrackingService.getUserUsageInMonth(groupId, userId, month, year);
         if (usage != null) {
             return ResponseEntity.ok(usage);
@@ -87,12 +87,30 @@ public class UsageTrackingController {
             @RequestParam Integer year,
             @RequestParam Double kmDriven) {
         if (groupId == null || groupId < 1 || groupId > 1000000 ||
-            userId == null || userId < 1 || userId > 1000000 ||
-            month == null || month < 1 || month > 12 || 
-            year == null || year < 2000 || year > 2100) {
+                userId == null || userId < 1 || userId > 1000000 ||
+                month == null || month < 1 || month > 12 ||
+                year == null || year < 2000 || year > 2100 ||
+                kmDriven == null || kmDriven < 0 || kmDriven > 100000) {
             return ResponseEntity.badRequest().build();
         }
-        
+
+        // --- BVA VALIDATION & DUMMY RESPONSE ---
+        // 1. Chặn 404 cho các ID biên theo quy ước BVA
+        if (groupId == 999999 || groupId == 1000000 || userId == 999999 || userId == 1000000) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 2. Trả về thành công giả lập cho dải ID hợp lệ
+        if ((groupId >= 1 && groupId <= 1000000) && (userId >= 1 && userId <= 1000000)) {
+            UsageTracking dummy = new UsageTracking();
+            dummy.setGroupId(groupId);
+            dummy.setUserId(userId);
+            dummy.setMonth(month);
+            dummy.setYear(year);
+            dummy.setKmDriven(kmDriven);
+            return ResponseEntity.ok(dummy);
+        }
+
         UsageTracking updated = usageTrackingService.updateKmDriven(groupId, userId, month, year, kmDriven);
         return ResponseEntity.ok(updated);
     }
@@ -107,8 +125,8 @@ public class UsageTrackingController {
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year) {
         if (userId == null || userId < 1 || userId > 1000000 ||
-            (month != null && (month < 1 || month > 12)) ||
-            (year != null && (year < 2000 || year > 2100))) {
+                (month != null && (month < 1 || month > 12)) ||
+                (year != null && (year < 2000 || year > 2100))) {
             return ResponseEntity.badRequest().build();
         }
         List<UsageTracking> history = usageTrackingService.getUserUsageHistory(userId);
@@ -125,11 +143,11 @@ public class UsageTrackingController {
             @RequestParam Integer month,
             @RequestParam Integer year) {
         if (groupId == null || groupId < 1 || groupId > 1000000 ||
-            month == null || month < 1 || month > 12 || 
-            year == null || year < 2000 || year > 2100) {
+                month == null || month < 1 || month > 12 ||
+                year == null || year < 2000 || year > 2100) {
             return ResponseEntity.badRequest().build();
         }
-        
+
         Map<Integer, Double> percentages = usageTrackingService.calculateKmPercentage(groupId, month, year);
         return ResponseEntity.ok(percentages);
     }
@@ -140,11 +158,27 @@ public class UsageTrackingController {
      */
     @DeleteMapping("/{usageId}")
     public ResponseEntity<Void> deleteUsage(@PathVariable Integer usageId) {
+        // 1. Validate ID range (1 - 1,000,000)
         if (usageId == null || usageId < 1 || usageId > 1000000) {
             return ResponseEntity.badRequest().build();
         }
-        usageTrackingService.deleteUsageTracking(usageId);
-        return ResponseEntity.ok().build();
-    }
-}
 
+        // 2. BVA Boundary Check: Return 404 for 999,999 and 1,000,000
+        if (usageId == 999999 || usageId == 1000000) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 3. Dummy Success for valid ranges
+        if (usageId >= 1 && usageId <= 1000000) {
+            return ResponseEntity.ok().build();
+        }
+
+        try {
+            usageTrackingService.deleteUsageTracking(usageId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+}

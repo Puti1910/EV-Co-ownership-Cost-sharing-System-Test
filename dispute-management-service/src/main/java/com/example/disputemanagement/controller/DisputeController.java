@@ -216,6 +216,12 @@ public class DisputeController {
         try {
             disputeService.deleteComment(commentId);
             return ResponseEntity.ok(Map.of("success", true));
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid comment id for deleting comment", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            logger.error("Comment not found when deleting", e);
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error deleting comment", e);
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));

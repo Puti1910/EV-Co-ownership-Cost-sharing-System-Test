@@ -210,6 +210,14 @@ public class DisputeService {
     
     @Transactional
     public void deleteComment(Integer commentId) {
+        if (commentId == null || commentId <= 0) {
+            throw new IllegalArgumentException("Comment ID phải > 0");
+        }
+
+        if (!commentRepository.existsById(commentId)) {
+            throw new RuntimeException("Comment not found: " + commentId);
+        }
+
         commentRepository.deleteById(commentId);
     }
     

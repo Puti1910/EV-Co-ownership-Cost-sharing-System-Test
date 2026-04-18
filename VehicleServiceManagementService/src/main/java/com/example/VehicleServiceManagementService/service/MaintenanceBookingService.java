@@ -68,37 +68,53 @@ public class MaintenanceBookingService {
      * Get list of groups/vehicles a user can book maintenance for.
      */
     public List<Map<String, Object>> getUserMaintenanceOptions(Long userId) {
-        List<Map<String, Object>> options = groupClient.getMaintenanceOptions(userId);
-        if (options.isEmpty()) {
-            log.warn("Không lấy được maintenance-options qua endpoint mới, fallback sang danh sách nhóm cơ bản");
-            options = groupClient.getGroupsByUserId(userId);
-        }
-        if (options.isEmpty()) {
+        log.info("🔍 Fetching maintenance options for userId: {}", userId);
+        
+        // 1. Fetch groups the user belongs to
+        List<Map<String, Object>> userGroups = groupClient.getGroupsByUserId(userId);
+        if (userGroups == null || userGroups.isEmpty()) {
+            log.warn("No groups found for userId: {}", userId);
             return Collections.emptyList();
         }
+
         List<Map<String, Object>> results = new ArrayList<>();
-        for (Map<String, Object> option : options) {
-            Map<String, Object> view = new HashMap<>();
-            Long groupId = toLong(option.get("groupId"));
-            view.put("groupId", groupId);
-            view.put("groupName", option.getOrDefault("groupName", "Group #" + groupId));
-            view.put("role", option.getOrDefault("memberRole", option.get("role")));
-            Object vehicleIdObj = option.get("vehicleId");
-            if (vehicleIdObj != null) {
-                Long vehicleId = toLong(vehicleIdObj);
-                view.put("vehicleId", vehicleId);
-                Object label = option.get("vehicleLabel");
-                if (label != null) {
-                    view.put("vehicleName", label);
-                } else {
-                    view.put("vehicleName", "Xe #" + vehicleId);
+        
+        // 2. For each group, find its vehicles in the local database
+        for (Map<String, Object> groupInfo : userGroups) {
+            Long groupId = toLong(groupInfo.get("groupId"));
+            String groupName = (String) groupInfo.getOrDefault("groupName", "Nhóm #" + groupId);
+            String role = (String) groupInfo.getOrDefault("memberRole", groupInfo.get("role"));
+            
+            log.debug("Processing group: {} (id: {})", groupName, groupId);
+            
+            List<Vehicle> groupVehicles = vehicleRepository.findByGroupId(groupId);
+            
+            if (groupVehicles != null && !groupVehicles.isEmpty()) {
+                // If group has vehicles, create an option for each vehicle
+                for (Vehicle vehicle : groupVehicles) {
+                    Map<String, Object> option = new HashMap<>();
+                    option.put("groupId", groupId);
+                    option.put("groupName", groupName);
+                    option.put("role", role);
+                    option.put("vehicleId", vehicle.getVehicleId());
+                    option.put("vehicleName", vehicle.getDisplayName());
+                    option.put("vehicleNumber", vehicle.getVehicleNumber());
+                    option.put("vehicleType", vehicle.getVehicleType());
+                    results.add(option);
                 }
             } else {
-                view.put("vehicleId", null);
-                view.put("vehicleName", null);
+                // If group has NO vehicles, still add the group so user knows it exists
+                Map<String, Object> option = new HashMap<>();
+                option.put("groupId", groupId);
+                option.put("groupName", groupName);
+                option.put("role", role);
+                option.put("vehicleId", null);
+                option.put("vehicleName", "Chưa có xe");
+                results.add(option);
             }
-            results.add(view);
         }
+        
+        log.info("✅ Returning {} combined maintenance options for userId: {}", results.size(), userId);
         return results;
     }
 

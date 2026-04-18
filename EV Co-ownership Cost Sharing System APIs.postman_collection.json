@@ -1,0 +1,3614 @@
+{
+  "info": {
+    "_postman_id": "b94ffd4b-b7ea-47e2-84dd-b1092120aa30",
+    "name": "EV Nam",
+    "description": "Auto-generated collection from source code",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "53199812",
+    "_collection_link": "https://go.postman.co/collection/53199812-b94ffd4b-b7ea-47e2-84dd-b1092120aa30?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "user-account-service",
+      "item": [
+        {
+          "name": "New Folder",
+          "item": [
+            {
+              "name": "Up avt",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "disabledSystemHeaders": {}
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "uuid": "7502c2a0-1fdc-4d93-ba13-5612379e6c1c",
+                      "src": "max_plus_1.jpg"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/auth/users/profile/upload",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "users",
+                    "profile",
+                    "upload"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Up kyc",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "disabledSystemHeaders": {}
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "idCardFront",
+                      "type": "file",
+                      "value": null
+                    },
+                    {
+                      "key": "idCardBack",
+                      "type": "file",
+                      "uuid": "322ced63-748d-400c-a21b-eaea678d52b4",
+                      "src": "nominal.jpg"
+                    },
+                    {
+                      "key": "driverLicense",
+                      "type": "file",
+                      "uuid": "d1145389-5dac-4e30-b7a6-4cef39426b01",
+                      "src": "nominal.jpg"
+                    },
+                    {
+                      "key": "portrait",
+                      "type": "file",
+                      "uuid": "1679becc-ea0a-4ba6-8b8c-3d36ad6edd07",
+                      "src": "nominal.jpg"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/auth/users/profile/kyc",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "users",
+                    "profile",
+                    "kyc"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "New Request",
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "key": "token",
+                "value": "{{accessToken}}",
+                "type": "string"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {},
+                "exec": [
+                  ""
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {},
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lấy người dùng với trạng thái Pending",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// 1. Lấy dữ liệu từ file JSON\r",
+                  "const targetKey = pm.iterationData.get(\"target_key\");\r",
+                  "const tcId = pm.iterationData.get(\"tc_id\");\r",
+                  "\r",
+                  "// 2. Lấy URL hiện tại dưới dạng chuỗi (String) để so sánh\r",
+                  "// Cách này đảm bảo không bao giờ bị lỗi \"not a function\"\r",
+                  "const currentUrl = pm.request.url.toString().toLowerCase();\r",
+                  "\r",
+                  "// 3. Kiểm tra xem URL có chứa target_key không (ví dụ: \"admin/users\")\r",
+                  "if (targetKey && currentUrl.includes(targetKey.toLowerCase())) {\r",
+                  "    const type = pm.iterationData.get(\"token_type\") || \"VALID\";\r",
+                  "    let token = \"\";\r",
+                  "\r",
+                  "    // Lấy Token từ biến access_token của Duyên\r",
+                  "    if (type === \"VALID\") {\r",
+                  "        token = pm.collectionVariables.get(\"access_token\");\r",
+                  "    } else if (type === \"INVALID\") {\r",
+                  "        token = \"12345_token_rac_cua_Duyen\";\r",
+                  "    } else if (type === \"EXPIRED\") {\r",
+                  "        token = \"eyJhbGciOiJIUzI1NiJ9.expired.token\";\r",
+                  "    } else if (type === \"EMPTY\") {\r",
+                  "        token = \"\";\r",
+                  "    }\r",
+                  "\r",
+                  "    // Đẩy vào biến {{accessToken}} để dùng trong tab Authorization\r",
+                  "    pm.variables.set(\"accessToken\", token);\r",
+                  "    \r",
+                  "    // Nạp giá trị status vào biến {{status_val}} cho các case lọc (Query Params)\r",
+                  "    pm.variables.set(\"status_val\", pm.iterationData.get(\"query_status\") || \"\");\r",
+                  "\r",
+                  "    console.log(`🚀 [RUN] ${tcId} | URL: ${currentUrl} | Status: ${pm.variables.get(\"status_val\")}`);\r",
+                  "} else {\r",
+                  "    // Nếu không khớp thì bỏ qua, tránh chạy nhầm API\r",
+                  "    pm.execution.skipRequest();\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/admin/pending-users?status={{status_val}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "admin",
+                "pending-users"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "{{status_val}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy Người dùng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// 1. Lấy dữ liệu từ file JSON\r",
+                  "const targetKey = pm.iterationData.get(\"target_key\");\r",
+                  "const tcId = pm.iterationData.get(\"tc_id\");\r",
+                  "\r",
+                  "// 2. Lấy URL hiện tại dưới dạng chuỗi (String) để so sánh\r",
+                  "// Cách này đảm bảo không bao giờ bị lỗi \"not a function\"\r",
+                  "const currentUrl = pm.request.url.toString().toLowerCase();\r",
+                  "\r",
+                  "// 3. Kiểm tra xem URL có chứa target_key không (ví dụ: \"admin/users\")\r",
+                  "if (targetKey && currentUrl.includes(targetKey.toLowerCase())) {\r",
+                  "    const type = pm.iterationData.get(\"token_type\") || \"VALID\";\r",
+                  "    let token = \"\";\r",
+                  "\r",
+                  "    // Lấy Token từ biến access_token của Duyên\r",
+                  "    if (type === \"VALID\") {\r",
+                  "        token = pm.collectionVariables.get(\"access_token\");\r",
+                  "    } else if (type === \"INVALID\") {\r",
+                  "        token = \"12345_token_rac_cua_Duyen\";\r",
+                  "    } else if (type === \"EXPIRED\") {\r",
+                  "        token = \"eyJhbGciOiJIUzI1NiJ9.expired.token\";\r",
+                  "    } else if (type === \"EMPTY\") {\r",
+                  "        token = \"\";\r",
+                  "    }\r",
+                  "\r",
+                  "    // Đẩy vào biến {{accessToken}} để dùng trong tab Authorization\r",
+                  "    pm.variables.set(\"accessToken\", token);\r",
+                  "    \r",
+                  "    // Nạp giá trị status vào biến {{status_val}} cho các case lọc (Query Params)\r",
+                  "    pm.variables.set(\"status_val\", pm.iterationData.get(\"query_status\") || \"\");\r",
+                  "\r",
+                  "    console.log(`🚀 [RUN] ${tcId} | URL: ${currentUrl} | Status: ${pm.variables.get(\"status_val\")}`);\r",
+                  "} else {\r",
+                  "    // Nếu không khớp thì bỏ qua, tránh chạy nhầm API\r",
+                  "    pm.execution.skipRequest();\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/admin/users?status={{status_val}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "{{status_val}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Duyệt hồ sơ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const targetKey = pm.iterationData.get(\"target_key\");\r",
+                  "const requestName = pm.info.requestName;\r",
+                  "\r",
+                  "if (targetKey && requestName.includes(targetKey)) {\r",
+                  "    // 1. Nạp ID từ JSON vào URL\r",
+                  "    pm.variables.set(\"userId\", pm.iterationData.get(\"userId\"));\r",
+                  "\r",
+                  "    // 2. Xử lý Body Role (Sửa lỗi tự điền ROLE_USER khi muốn test Null)\r",
+                  "    let nRole = pm.iterationData.get(\"new_role\");\r",
+                  "    if (nRole === undefined) { nRole = \"ROLE_USER\"; }\r",
+                  "    pm.variables.set(\"new_role\", nRole);\r",
+                  "\r",
+                  "    // 3. Xử lý Token thông minh\r",
+                  "    const tokenType = pm.iterationData.get(\"token_type\") || \"VALID\";\r",
+                  "    const role = pm.iterationData.get(\"role\");\r",
+                  "    let token = \"\";\r",
+                  "\r",
+                  "    if (tokenType === \"VALID\") {\r",
+                  "        // Lấy Token từ biến access_token (phải đăng nhập trước khi run)\r",
+                  "        token = pm.collectionVariables.get(\"access_token\");\r",
+                  "    } else if (tokenType === \"EXPIRED\") {\r",
+                  "        // Gửi token rác để ép Server báo 401\r",
+                  "        token = \"eyJhbGciOiJIUzI1NiJ9.expired.token\"; \r",
+                  "    } else if (tokenType === \"INVALID\") {\r",
+                  "        token = \"token_rac_123\";\r",
+                  "    }\r",
+                  "\r",
+                  "    pm.variables.set(\"accessToken\", token);\r",
+                  "    console.log(`🚀 Đang test: ${pm.iterationData.get(\"tc_id\")} | Token: ${tokenType}`);\r",
+                  "} else {\r",
+                  "    pm.execution.skipRequest();\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/admin/approve/:userId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "admin",
+                "approve",
+                ":userId"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Từ Chối hồ sơ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const targetKey = pm.iterationData.get(\"target_key\");\r",
+                  "const requestName = pm.info.requestName;\r",
+                  "\r",
+                  "if (targetKey && requestName.includes(targetKey)) {\r",
+                  "    // 1. Nạp ID từ JSON vào URL\r",
+                  "    pm.variables.set(\"userId\", pm.iterationData.get(\"userId\"));\r",
+                  "\r",
+                  "    // 2. Xử lý Body Role (Sửa lỗi tự điền ROLE_USER khi muốn test Null)\r",
+                  "    let nRole = pm.iterationData.get(\"new_role\");\r",
+                  "    if (nRole === undefined) { nRole = \"ROLE_USER\"; }\r",
+                  "    pm.variables.set(\"new_role\", nRole);\r",
+                  "\r",
+                  "    // 3. Xử lý Token thông minh\r",
+                  "    const tokenType = pm.iterationData.get(\"token_type\") || \"VALID\";\r",
+                  "    const role = pm.iterationData.get(\"role\");\r",
+                  "    let token = \"\";\r",
+                  "\r",
+                  "    if (tokenType === \"VALID\") {\r",
+                  "        // Lấy Token từ biến access_token (phải đăng nhập trước khi run)\r",
+                  "        token = pm.collectionVariables.get(\"access_token\");\r",
+                  "    } else if (tokenType === \"EXPIRED\") {\r",
+                  "        // Gửi token rác để ép Server báo 401\r",
+                  "        token = \"eyJhbGciOiJIUzI1NiJ9.expired.token\"; \r",
+                  "    } else if (tokenType === \"INVALID\") {\r",
+                  "        token = \"token_rac_123\";\r",
+                  "    }\r",
+                  "\r",
+                  "    pm.variables.set(\"accessToken\", token);\r",
+                  "    console.log(`🚀 Đang test: ${pm.iterationData.get(\"tc_id\")} | Token: ${tokenType}`);\r",
+                  "} else {\r",
+                  "    pm.execution.skipRequest();\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/admin/reject/:userId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "admin",
+                "reject",
+                ":userId"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Role",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const targetKey = pm.iterationData.get(\"target_key\");\r",
+                  "const requestName = pm.info.requestName;\r",
+                  "\r",
+                  "if (targetKey && requestName.includes(targetKey)) {\r",
+                  "    // 1. Nạp ID từ JSON vào URL\r",
+                  "    pm.variables.set(\"userId\", pm.iterationData.get(\"userId\"));\r",
+                  "\r",
+                  "    // 2. Xử lý Body Role (Sửa lỗi tự điền ROLE_USER khi muốn test Null)\r",
+                  "    let nRole = pm.iterationData.get(\"new_role\");\r",
+                  "    if (nRole === undefined) { nRole = \"ROLE_USER\"; }\r",
+                  "    pm.variables.set(\"new_role\", nRole);\r",
+                  "\r",
+                  "    // 3. Xử lý Token thông minh\r",
+                  "    const tokenType = pm.iterationData.get(\"token_type\") || \"VALID\";\r",
+                  "    const role = pm.iterationData.get(\"role\");\r",
+                  "    let token = \"\";\r",
+                  "\r",
+                  "    if (tokenType === \"VALID\") {\r",
+                  "        // Lấy Token từ biến access_token (phải đăng nhập trước khi run)\r",
+                  "        token = pm.collectionVariables.get(\"access_token\");\r",
+                  "    } else if (tokenType === \"EXPIRED\") {\r",
+                  "        // Gửi token rác để ép Server báo 401\r",
+                  "        token = \"eyJhbGciOiJIUzI1NiJ9.expired.token\"; \r",
+                  "    } else if (tokenType === \"INVALID\") {\r",
+                  "        token = \"token_rac_123\";\r",
+                  "    }\r",
+                  "\r",
+                  "    pm.variables.set(\"accessToken\", token);\r",
+                  "    console.log(`🚀 Đang test: ${pm.iterationData.get(\"tc_id\")} | Token: ${tokenType}`);\r",
+                  "} else {\r",
+                  "    pm.execution.skipRequest();\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"{{new_role}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/admin/users/:userId/role",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "admin",
+                "users",
+                ":userId",
+                "role"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đăng ký",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 1. Lấy dữ liệu thực tế vừa gửi đi\r",
+                  "const regBody = JSON.parse(pm.request.body.raw);\r",
+                  "\r",
+                  "// 2. Cất Email và Password vào kho để Login lấy\r",
+                  "pm.collectionVariables.set(\"stored_email\", regBody.email);\r",
+                  "pm.collectionVariables.set(\"stored_pass\", regBody.password);\r",
+                  "\r",
+                  "// 3. Cất luôn mã trạng thái (200, 400,...) để Login kiểm tra\r",
+                  "pm.collectionVariables.set(\"last_reg_status\", pm.response.code);\r",
+                  "\r",
+                  "console.log(`📡 Register xong. Email: ${regBody.email} | Status: ${pm.response.code}`);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// --- HÀM SINH CHUỖI NGẪU NHIÊN ---\r",
+                  "function genStr(len) {\r",
+                  "    let res = '';\r",
+                  "    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';\r",
+                  "    for (let i = 0; i < len; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));\r",
+                  "    return res;\r",
+                  "}\r",
+                  "\r",
+                  "/** * HÀM SINH EMAIL THÔNG MINH\r",
+                  " */\r",
+                  "function generateEmailRobust(targetLen) {\r",
+                  "    if (targetLen < 5) return \"err\" + targetLen;\r",
+                  "if (targetLen === 5) return genStr(1) + \"@\" + \"a.c\";\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  "    if (targetLen < 10) {\r",
+                  "        const shortDomain = \"@a.io\"; // Độ dài = 5\r",
+                  "        return genStr(targetLen - shortDomain.length) + shortDomain;\r",
+                  "    }\r",
+                  "    const standardDomain = \"@gmail.com\";\r",
+                  "    if (targetLen <= 74) {\r",
+                  "        return genStr(targetLen - standardDomain.length) + standardDomain;\r",
+                  "    }\r",
+                  "\r",
+                  "    let localPart = genStr(64);\r",
+                  "    let remaining = targetLen - 64 - 1; \r",
+                  "    let subDomain = genStr(remaining - 4); \r",
+                  "    let domainPart = subDomain + \".com\";\r",
+                  "\r",
+                  "    return localPart + \"@\" + domainPart;\r",
+                  "}\r",
+                  "\r",
+                  "// --- ĐỌC DỮ LIỆU TỪ RUNNER ---\r",
+                  "const target = pm.iterationData.get(\"target_param\") || \"nominal\"; \r",
+                  "const val = pm.iterationData.get(\"test_val\") || 0;\r",
+                  "\r",
+                  "// --- CHUẨN BỊ DATA MẶC ĐỊNH ---\r",
+                  "let regData = {\r",
+                  "    fullName: \"Huynh Thi My Duyen\",\r",
+                  "    email: \"user\" + Date.now().toString().slice(-4) + \"@gmail.com\",\r",
+                  "    password: \"Password123\"\r",
+                  "};\r",
+                  "\r",
+                  "// --- GHI ĐÈ GIÁ TRỊ BIÊN THEO TARGET ---\r",
+                  "if (target === \"fullName\") regData.fullName = genStr(val);\r",
+                  "if (target === \"email\")    regData.email = generateEmailRobust(val);\r",
+                  "if (target === \"password\") regData.password = genStr(val);\r",
+                  "\r",
+                  "// --- THIẾT LẬP BIẾN CHO BODY JSON ---\r",
+                  "pm.variables.set(\"fullName_val\", regData.fullName);\r",
+                  "pm.variables.set(\"email_val\", regData.email);\r",
+                  "pm.variables.set(\"password_val\", regData.password);\r",
+                  "\r",
+                  "// --- LƯU Ý CHO DUYÊN ---\r",
+                  "// Không cần set expected_status và bug_case_name ở đây nữa \r",
+                  "// vì Script Tổng sẽ tự bốc từ file JSON của Duyên qua pm.iterationData.\r",
+                  "//hàm test case đăng kí\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"fullName\": \"{{fullName_val}}\",\r\n  \"email\": \"{{email_val}}\",\r\n  \"password\": \"{{password_val}}\"\r\n}\r\n\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "users",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đăng nhập",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// // 1. Kiểm tra kết quả của thằng Register vừa chạy trước đó\r",
+                  "// const lastStatus = pm.collectionVariables.get(\"last_reg_status\");\r",
+                  "\r",
+                  "// // 2. NẾU Register KHÔNG THÀNH CÔNG (không phải 200 cũng không phải 201)\r",
+                  "// if (lastStatus !== 200 && lastStatus !== 201) {\r",
+                  "//     console.log(\"🚫 Register thất bại. Dừng (Skip) Test Case Login này luôn!\");\r",
+                  "//     pm.execution.skipRequest(); // Lệnh dừng request này ngay lập tức\r",
+                  "// } \r",
+                  "// else {\r",
+                  "//     // 3. NẾU Register THÀNH CÔNG -> Lấy đúng Email và Pass từ kho ra dùng\r",
+                  "//     pm.variables.set(\"login_email_final\", pm.collectionVariables.get(\"stored_email\"));\r",
+                  "//     pm.variables.set(\"login_pass_final\", pm.collectionVariables.get(\"stored_pass\"));\r",
+                  "    \r",
+                  "//     console.log(\"✅ Register thành công. Đang tiến hành Login...\");\r",
+                  "// }"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "\r",
+                  "if (pm.response.code === 200) {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    \r",
+                  "    // Lấy đúng tên biến từ ảnh Duyên gửi\r",
+                  "    if (jsonData.accessToken && jsonData.refreshToken) {\r",
+                  "        pm.collectionVariables.set(\"access_token\", jsonData.accessToken);\r",
+                  "        pm.collectionVariables.set(\"refresh_token\", jsonData.refreshToken);\r",
+                  "        \r",
+                  "        console.log(\"✅ ĐÃ LƯU TOKEN: \" + jsonData.accessToken.substring(0, 15) + \"...\");\r",
+                  "    }\r",
+                  "}\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// {\r\n//   \"email\": \"{{login_email_final}}\",\r\n//   \"password\": \"{{login_pass_final}}\"\r\n// }\r\n{\r\n    \"email\": \"anhnguyenngoc15@gmail.com\",\r\n    \"password\": \"12345678\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "users",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// CHỈ LÀM NHIỆM VỤ: Lưu Refresh Token mới khi thành công (200 OK)\r",
+                  "if (pm.response.code === 200) {\r",
+                  "    const res = pm.response.json();\r",
+                  "    if (res.refreshToken) {\r",
+                  "        pm.collectionVariables.set(\"refresh_token\", res.refreshToken);\r",
+                  "        console.log(\"✅ [Local] Đã lưu Refresh Token mới vào kho.\");\r",
+                  "    }\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const testVal = pm.iterationData.get(\"test_val\");\r",
+                  "\r",
+                  "let tokenValue = \"\";\r",
+                  "\r",
+                  "if (testVal === 36) {\r",
+                  "    // Lấy Token thật Duyên vừa được cấp (từ Login hoặc lần Refresh trước)\r",
+                  "    tokenValue = pm.collectionVariables.get(\"refresh_token\");\r",
+                  "    console.log(\"💎 Đang dùng Token THẬT 36 ký tự để đổi mới\");\r",
+                  "} else {\r",
+                  "    // Sinh chuỗi giả 'r' để test xem Validator có làm việc không\r",
+                  "    tokenValue = \"r\".repeat(testVal);\r",
+                  "    console.log(`📏 Đang test biên sai: ${testVal} ký tự`);\r",
+                  "}\r",
+                  "\r",
+                  "pm.variables.set(\"token_to_send\", tokenValue);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"refreshToken\": \"{{token_to_send}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "users",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Chỉ giữ lại logic nghiệp vụ, không giữ logic chấm điểm (test) ở đây nữa\r",
+                  "if (pm.response.code === 200) {\r",
+                  "    console.log(\"🧹 Logout thành công thực tế.\");\r",
+                  "    // pm.collectionVariables.unset(\"refresh_token\"); // Tùy chọn xóa token\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const targetApiFromFile = pm.iterationData.get(\"target_api\");\r",
+                  "const testVal = pm.iterationData.get(\"test_val\");\r",
+                  "\r",
+                  "// 1. Chỉ chạy nếu đúng API Logout, còn lại skip để không lỗi\r",
+                  "if (targetApiFromFile !== \"logout\") {\r",
+                  "    pm.execution.skipRequest();\r",
+                  "} else {\r",
+                  "    // 2. Chuyền biến lên cho Script Tổng ở Collection đọc\r",
+                  "    pm.variables.set(\"expected_status\", pm.iterationData.get(\"expected_status\"));\r",
+                  "    pm.variables.set(\"bug_case_name\", pm.iterationData.get(\"bug_case_name\"));\r",
+                  "\r",
+                  "    // 3. Chuẩn bị Token gửi đi\r",
+                  "    let tokenValue = (testVal === 36) ? \r",
+                  "                     pm.collectionVariables.get(\"refresh_token\") : \"o\".repeat(testVal);\r",
+                  "\r",
+                  "    pm.variables.set(\"token_to_send\", tokenValue);\r",
+                  "    console.log(`🚀 [Logout] Đang test case: ${pm.iterationData.get(\"tc_id\")} (${testVal} ký tự)`);\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"refreshToken\": \"{{token_to_send}}\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "users",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy hồ sơ người dùng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// 1. Lấy dữ liệu từ file JSON\r",
+                  "const targetKey = pm.iterationData.get(\"target_key\");\r",
+                  "const tcId = pm.iterationData.get(\"tc_id\");\r",
+                  "\r",
+                  "// 2. Lấy URL hiện tại dưới dạng chuỗi (String) để so sánh\r",
+                  "// Cách này đảm bảo không bao giờ bị lỗi \"not a function\"\r",
+                  "const currentUrl = pm.request.url.toString().toLowerCase();\r",
+                  "\r",
+                  "// 3. Kiểm tra xem URL có chứa target_key không (ví dụ: \"admin/users\")\r",
+                  "if (targetKey && currentUrl.includes(targetKey.toLowerCase())) {\r",
+                  "    const type = pm.iterationData.get(\"token_type\") || \"VALID\";\r",
+                  "    let token = \"\";\r",
+                  "\r",
+                  "    // Lấy Token từ biến access_token của Duyên\r",
+                  "    if (type === \"VALID\") {\r",
+                  "        token = pm.collectionVariables.get(\"access_token\");\r",
+                  "    } else if (type === \"INVALID\") {\r",
+                  "        token = \"12345_token_rac_cua_Duyen\";\r",
+                  "    } else if (type === \"EXPIRED\") {\r",
+                  "        token = \"eyJhbGciOiJIUzI1NiJ9.expired.token\";\r",
+                  "    } else if (type === \"EMPTY\") {\r",
+                  "        token = \"\";\r",
+                  "    }\r",
+                  "\r",
+                  "    // Đẩy vào biến {{accessToken}} để dùng trong tab Authorization\r",
+                  "    pm.variables.set(\"accessToken\", token);\r",
+                  "    \r",
+                  "    // Nạp giá trị status vào biến {{status_val}} cho các case lọc (Query Params)\r",
+                  "    pm.variables.set(\"status_val\", pm.iterationData.get(\"query_status\") || \"\");\r",
+                  "\r",
+                  "    console.log(`🚀 [RUN] ${tcId} | URL: ${currentUrl} | Status: ${pm.variables.get(\"status_val\")}`);\r",
+                  "} else {\r",
+                  "    // Nếu không khớp thì bỏ qua, tránh chạy nhầm API\r",
+                  "    pm.execution.skipRequest();\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/profile?status={{status_val}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "users",
+                "profile"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "{{status_val}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// 1. Dữ liệu Nominal (Chuẩn 12 chữ số cho ID/License)\r",
+                  "let p = {\r",
+                  "    fullName: \"Nguyễn Văn B\",\r",
+                  "    phoneNumber: \"0912345678\",\r",
+                  "    dateOfBirth: \"1995-10-10\",\r",
+                  "    idCardNumber: \"123456789012\", // Đúng 12 số\r",
+                  "    idCardIssueDate: \"2020-01-01\",\r",
+                  "    idCardIssuePlace: \"Hồ Chí Minh\",\r",
+                  "    licenseNumber: \"987654321098\", // Đúng 12 số\r",
+                  "    licenseClass: \"A1\",\r",
+                  "    licenseIssueDate: \"2020-01-01\",\r",
+                  "    licenseExpiryDate: \"2030-01-01\"\r",
+                  "};\r",
+                  "\r",
+                  "const field = pm.iterationData.get(\"field\");\r",
+                  "const val = pm.iterationData.get(\"val\");\r",
+                  "\r",
+                  "// 2. Logic điều chỉnh theo Test Case (BVA quanh mốc 12)\r",
+                  "switch(field) {\r",
+                  "    case \"fullName\":\r",
+                  "        if(val === \"1_char\") p.fullName = \"A\";\r",
+                  "        if(val === \"3_chars\") p.fullName = \"Anh\";\r",
+                  "        if(val === \"49_chars\") p.fullName = \"A\".repeat(49);\r",
+                  "        if(val === \"51_chars\") p.fullName = \"A\".repeat(51);\r",
+                  "        break;\r",
+                  "    case \"phoneNumber\":\r",
+                  "        if(val === \"9_digits\") p.phoneNumber = \"012345678\";\r",
+                  "        if(val === \"11_digits\") p.phoneNumber = \"012345678901\";\r",
+                  "        break;\r",
+                  "    case \"dateOfBirth\":\r",
+                  "        if(val === \"17_yo\") p.dateOfBirth = \"2009-01-01\";\r",
+                  "        if(val === \"18_yo\") p.dateOfBirth = \"2008-01-01\";\r",
+                  "        if(val === \"100_yo\") p.dateOfBirth = \"1926-01-01\";\r",
+                  "        if(val === \"101_yo\") p.dateOfBirth = \"1925-01-01\";\r",
+                  "        break;\r",
+                  "    case \"idCardNumber\":\r",
+                  "        if (val === \"11_digits\") p.idCardNumber = \"1\".repeat(11);\r",
+                  "        else if (val === \"12_digits\") p.idCardNumber = \"1\".repeat(12);\r",
+                  "        else if (val === \"13_digits\") p.idCardNumber = \"1\".repeat(13);\r",
+                  "        break;\r",
+                  "        \r",
+                  "    case \"licenseNumber\":\r",
+                  "        if (val === \"11_digits\") p.licenseNumber = \"2\".repeat(11);\r",
+                  "        else if (val === \"12_digits\") p.licenseNumber = \"2\".repeat(12);\r",
+                  "        else if (val === \"13_digits\") p.licenseNumber = \"2\".repeat(13);\r",
+                  "        break;\r",
+                  "    case \"idCardIssueDate\":\r",
+                  "    case \"licenseIssueDate\":\r",
+                  "        if(val === \"tomorrow\") {\r",
+                  "            let d = new Date(); d.setDate(d.getDate() + 1);\r",
+                  "            if(field === \"idCardIssueDate\") p.idCardIssueDate = d.toISOString().split('T')[0];\r",
+                  "            else p.licenseIssueDate = d.toISOString().split('T')[0];\r",
+                  "        }\r",
+                  "        break;\r",
+                  "    case \"licenseExpiryDate\":\r",
+                  "        if(val === \"yesterday\") {\r",
+                  "            let d = new Date(); d.setDate(d.getDate() - 1);\r",
+                  "            p.licenseExpiryDate = d.toISOString().split('T')[0];\r",
+                  "        }\r",
+                  "        if(val === \"before_issue\") p.licenseExpiryDate = \"2019-01-01\";\r",
+                  "        break;\r",
+                  "    case \"idCardIssuePlace\":\r",
+                  "        if(val === \"empty\") p.idCardIssuePlace = \"\";\r",
+                  "        break;\r",
+                  "    case \"licenseClass\":\r",
+                  "        if(val === \"empty\") p.licenseClass = \"\";\r",
+                  "        break;\r",
+                  "}\r",
+                  "\r",
+                  "// 3. Đẩy biến ra cho Body\r",
+                  "Object.keys(p).forEach(k => pm.variables.set(\"p_\" + k, p[k]));\r",
+                  "\r",
+                  "// 4. Biến cho Script Tổng ECOCSS\r",
+                  "pm.variables.set(\"expected_status\", pm.iterationData.get(\"expected_status\"));\r",
+                  "pm.variables.set(\"bug_case_name\", pm.iterationData.get(\"desc\"));"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"fullName\": \"{{p_fullName}}\",\r\n  \"phoneNumber\": \"{{p_phoneNumber}}\",\r\n  \"dateOfBirth\": \"{{p_dateOfBirth}}\",\r\n  \"idCardNumber\": \"{{p_idCardNumber}}\",\r\n  \"idCardIssueDate\": \"{{p_idCardIssueDate}}\",\r\n  \"idCardIssuePlace\": \"{{p_idCardIssuePlace}}\",\r\n  \"licenseNumber\": \"{{p_licenseNumber}}\",\r\n  \"licenseClass\": \"{{p_licenseClass}}\",\r\n  \"licenseIssueDate\": \"{{p_licenseIssueDate}}\",\r\n  \"licenseExpiryDate\": \"{{p_licenseExpiryDate}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "users",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{access_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "VehicleServiceManagementService",
+      "item": [
+        {
+          "name": "Hàm Get",
+          "item": [
+            {
+              "name": "GET /api/services/count",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/services/count?{{dynamic_key}}={{dynamic_val}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "services",
+                    "count"
+                  ],
+                  "query": [
+                    {
+                      "key": "{{dynamic_key}}",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/vehicle-groups/filter",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-groups/filter?searchQuery={{dynamic_val_s}}&statusFilter={{dynamic_val_f}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-groups",
+                    "filter"
+                  ],
+                  "query": [
+                    {
+                      "key": "searchQuery",
+                      "value": "{{dynamic_val_s}}"
+                    },
+                    {
+                      "key": "statusFilter",
+                      "value": "{{dynamic_val_f}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/services/next-id",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "",
+                    "value": "",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/services/next-id?{{dynamic_key}}={{dynamic_val}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "services",
+                    "next-id"
+                  ],
+                  "query": [
+                    {
+                      "key": "{{dynamic_key}}",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/vehicle-services/service/{serviceId}/vehicle/{vehicleId}",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-services/service/:serviceId/vehicle/:vehicleId",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-services",
+                    "service",
+                    ":serviceId",
+                    "vehicle",
+                    ":vehicleId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "serviceId",
+                      "value": "{{dynamic_val_sid}}"
+                    },
+                    {
+                      "key": "vehicleId",
+                      "value": "{{dynamic_val_vid}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/vehicle-groups",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-groups?{{dynamic_key}}={{dynamic_val}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-groups"
+                  ],
+                  "query": [
+                    {
+                      "key": "{{dynamic_key}}",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/services/types",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/services/types?{{dynamic_key}}={{dynamic_val}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "services",
+                    "types"
+                  ],
+                  "query": [
+                    {
+                      "key": "{{dynamic_key}}",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/vehicle-services/test",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-services/test?{{dynamic_key}}={{dynamic_val}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-services",
+                    "test"
+                  ],
+                  "query": [
+                    {
+                      "key": "{{dynamic_key}}",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/vehicle-services",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-services?{{dynamic_key}}={{dynamic_val}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-services"
+                  ],
+                  "query": [
+                    {
+                      "key": "{{dynamic_key}}",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/services/templates",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/services/templates?{{dynamic_key}}={{dynamic_val}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "services",
+                    "templates"
+                  ],
+                  "query": [
+                    {
+                      "key": "{{dynamic_key}}",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/services/type/{serviceType}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/services/type/:serviceType",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "services",
+                    "type",
+                    ":serviceType"
+                  ],
+                  "variable": [
+                    {
+                      "key": "serviceType",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/vehicle-services/vehicle/{vehicleId}",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-services/vehicle/:vehicleId",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-services",
+                    "vehicle",
+                    ":vehicleId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "vehicleId",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/vehicle-groups/{groupId}/vehicles",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-groups/:groupId/vehicles",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-groups",
+                    ":groupId",
+                    "vehicles"
+                  ],
+                  "variable": [
+                    {
+                      "key": "groupId",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/vehicles",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicles?{{dynamic_key}}={{dynamic_val}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicles"
+                  ],
+                  "query": [
+                    {
+                      "key": "{{dynamic_key}}",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/vehicle-groups/{groupId}",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-groups/:groupId",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-groups",
+                    ":groupId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "groupId",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/vehicle-groups/available",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-groups/available?currentGroupId={{dynamic_val}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-groups",
+                    "available"
+                  ],
+                  "query": [
+                    {
+                      "key": "currentGroupId",
+                      "value": "{{dynamic_val}}",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/services",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "",
+                    "value": "",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/services?{{dynamic_key}}={{dynamic_val}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "services"
+                  ],
+                  "query": [
+                    {
+                      "key": "{{dynamic_key}}",
+                      "value": "{{dynamic_val}}",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/vehicles/{vehicleId}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicles/:vehicleId",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicles",
+                    ":vehicleId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "vehicleId",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/services/{serviceId}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/services/:serviceId",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "services",
+                    ":serviceId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "serviceId",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/vehicle-services/maintenance/options",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-services/maintenance/options?userId={{dynamic_val}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-services",
+                    "maintenance",
+                    "options"
+                  ],
+                  "query": [
+                    {
+                      "key": "userId",
+                      "value": "{{dynamic_val}}",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET /api/services/{serviceId}/exists",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/services/:serviceId/exists",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "services",
+                    ":serviceId",
+                    "exists"
+                  ],
+                  "variable": [
+                    {
+                      "key": "serviceId",
+                      "value": "{{dynamic_val}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "PUT /api/vehicle-groups/{groupId}",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"name\": \"{{b22_name}}\",\r\n  \"description\": \"{{b22_desc}}\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-groups/{{u22_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-groups",
+                    "{{u22_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "PUT /api/vehicle-services/service/{serviceId}/vehicle/{vehicleId}",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"serviceDescription\": \"{{b23_desc}}\",\r\n  \"serviceType\": \"{{b23_type}}\",\r\n  \"status\": \"{{b23_status}}\",\r\n  \"completionDate\": \"{{b23_date}}\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-services/service/{{u23_sid}}/vehicle/{{u23_vid}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-services",
+                    "service",
+                    "{{u23_sid}}",
+                    "vehicle",
+                    "{{u23_vid}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "PUT /api/vehicles/{vehicleId}",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"groupId\": {{b24_gid}},\r\n  \"vehicleType\": \"{{b24_type}}\",\r\n  \"vehicleNumber\": \"{{b24_num}}\",\r\n  \"vehicleName\": \"{{b24_name}}\",\r\n  \"status\": \"{{b24_status}}\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/vehicles/{{u24_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicles",
+                    "{{u24_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "PUT /api/services/{serviceId}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"serviceName\": \"{{b21_name}}\",\r\n  \"serviceType\": \"{{b21_type}}\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/services/{{u21_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "services",
+                    "{{u21_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST /api/services",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"serviceName\": \"{{s_name}}\",\r\n  \"serviceType\": \"{{s_type}}\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/services",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "services"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST /api/vehicle-services",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"serviceId\": {{u3_sid}},\r\n  \"vehicleId\": {{u3_vid}},\r\n  \"requestedByUserId\": {{u3_uid}},\r\n  \"status\": \"{{u3_status}}\",\r\n  \"requestedByName\": \"{{u3_uname}}\",\r\n  \"serviceDescription\": \"{{u3_desc}}\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-services",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-services"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST /api/vehicle-groups",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"name\": \"{{g_name}}\",\r\n  \"description\": \"{{g_desc}}\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-groups",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-groups"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST /api/vehicle-services/maintenance/book",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"userId\": {{u4_uid}},\r\n  \"groupId\": {{u4_gid}},\r\n  \"vehicleId\": {{u4_vid}},\r\n  \"serviceId\": {{u4_sid}},\r\n  \"preferredStartDatetime\": \"{{u4_start}}\",\r\n  \"preferredEndDatetime\": \"{{u4_end}}\",\r\n  \"contactPhone\": \"{{u4_phone}}\",\r\n  \"note\": \"{{u4_note}}\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-services/maintenance/book",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-services",
+                    "maintenance",
+                    "book"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST /api/vehicle-services/sync-all-vehicle-statuses",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-services/sync-all-vehicle-statuses",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-services",
+                    "sync-all-vehicle-statuses"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST /api/vehicle-services/sync-vehicle-status/{vehicleId}",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-services/sync-vehicle-status/:vehicleId",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-services",
+                    "sync-vehicle-status",
+                    ":vehicleId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "vehicleId",
+                      "value": "{{u6_vid}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST /api/vehicles/batch",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"groupId\": {{u7_gid}},\r\n  \"vehicles\": [\r\n    {\r\n      \"vehicleNumber\": \"{{u7_num}}\",\r\n      \"vehicleName\": \"{{u7_name}}\",\r\n      \"vehicleType\": \"{{u7_type}}\",\r\n      \"status\": \"{{u7_status}}\"\r\n    }\r\n  ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/vehicles/batch",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicles",
+                    "batch"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "key": "token",
+                "value": "{{accessToken}}",
+                "type": "string"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {},
+                "exec": [
+                  "// 1. Lấy dữ liệu từ dòng JSON hiện tại\r",
+                  "const targetJSON = (pm.iterationData.get(\"target_key\") || \"\").trim();\r",
+                  "const tcId = pm.iterationData.get(\"tc_id\");\r",
+                  "const pKey = pm.iterationData.get(\"param_key\"); // Có thể có hoặc không\r",
+                  "let pval = pm.iterationData.get(\"param_val\");\r",
+                  "// 2. Lấy tên chính xác của API đang chờ trong Runner\r",
+                  "const currentRequestName = pm.info.requestName.trim();\r",
+                  "// --- PHẦN THÊM MỚI: Tự động tạo chuỗi dài nếu thấy placeholder \"A...255\" ---\r",
+                  "if (typeof pval === \"string\" && pval.includes(\"...\")) {\r",
+                  "    let len = parseInt(pval.split(\"...\")[1]);\r",
+                  "    pval = \"A\".repeat(len);\r",
+                  "}\r",
+                  "\r",
+                  "// --- PHẦN THÊM MỚI: Tạo thời gian ISO cho API Booking ---\r",
+                  "const now = new Date();\r",
+                  "const future = new Date(now.getTime() + (2 * 60 * 60 * 1000));\r",
+                  "pm.variables.set(\"iso_now\", now.toISOString());\r",
+                  "pm.variables.set(\"iso_future\", future.toISOString());\r",
+                  "/**\r",
+                  " * 3. SO KHỚP TUYỆT ĐỐI\r",
+                  " * Chỉ cho phép chạy nếu Tên API khớp 100% với target_key trong JSON\r",
+                  " */\r",
+                  "if (currentRequestName === targetJSON) {\r",
+                  "    // Nạp biến cho Script Vạn Năng ở tab Tests\r",
+                  "    pm.variables.set(\"tc_id\", tcId);\r",
+                  "    pm.variables.set(\"expected_status\", pm.iterationData.get(\"expected_status\"));\r",
+                  "    pm.variables.set(\"bug_case_name\", pm.iterationData.get(\"desc\"));\r",
+                  "    \r",
+                  "    // Nạp giá trị BVA vào phễu {{dynamic_val}}\r",
+                  "    pm.variables.set(\"dynamic_key\", pKey ? pKey : \"\");\r",
+                  "    pm.variables.set(\"dynamic_val\", pval ? pval : \"\");\r",
+                  "    if (currentRequestName.includes(\"/filter\")) {\r",
+                  "        let sQuery = \"EV\";        // Nominal mặc định cho searchQuery\r",
+                  "        let sFilter = \"Tất cả\";   // Nominal mặc định cho statusFilter\r",
+                  "\r",
+                  "        if (pKey === \"searchQuery\") {\r",
+                  "            sQuery = pval; \r",
+                  "            // sFilter giữ nguyên \"Tất cả\"\r",
+                  "        } else if (pKey === \"statusFilter\") {\r",
+                  "            sFilter = pval;\r",
+                  "            sQuery = \"EV\"; // Giữ searchQuery ở mức Nominal\r",
+                  "        }\r",
+                  "\r",
+                  "        pm.variables.set(\"dynamic_val_s\", sQuery);\r",
+                  "        pm.variables.set(\"dynamic_val_f\", sFilter);\r",
+                  "    }\r",
+                  "\r",
+                  "    // --- LOGIC CHO API 20 (Service Registration - Ràng buộc khớp ID) ---\r",
+                  "    if (currentRequestName.includes(\"/service/\")) {\r",
+                  "        let sid = \"1\"; // Nominal mặc định 1\r",
+                  "        let vid = \"1\"; // Nominal mặc định 1\r",
+                  "\r",
+                  "        if (pKey === \"serviceId\") {\r",
+                  "            // Đang test biên cho serviceId -> Giữ vehicleId = 1 (Nominal)\r",
+                  "            sid = pval;\r",
+                  "            vid = \"1\"; \r",
+                  "        } else if (pKey === \"vehicleId\") {\r",
+                  "            // Đang test biên cho vehicleId -> Giữ serviceId = 5 (Nominal)\r",
+                  "            sid = \"5\"; \r",
+                  "            vid = pval;\r",
+                  "        } else if (pKey === \"Nominal\") {\r",
+                  "            // Case cuối cùng: Cả 2 cùng là Nominal 10\r",
+                  "            sid = \"10\";\r",
+                  "            vid = \"10\";\r",
+                  "        }\r",
+                  "\r",
+                  "        pm.variables.set(\"dynamic_val_sid\", sid);\r",
+                  "        pm.variables.set(\"dynamic_val_vid\", vid);\r",
+                  "    }\r",
+                  "    if (currentRequestName.includes(\"/api/services/\") && pm.request.method === \"PUT\") {\r",
+                  "        let u_id = \"10\", b_name = \"Sửa chữa\", b_type = \"Repair\";\r",
+                  "        if (pKey === \"u21_id\") u_id = pval; else if (pKey === \"b21_name\") b_name = pval; else if (pKey === \"b21_type\") b_type = pval;\r",
+                  "        pm.variables.set(\"u21_id\", u_id); pm.variables.set(\"b21_name\", b_name); pm.variables.set(\"b21_type\", b_type);\r",
+                  "    }\r",
+                  "\r",
+                  "    // --- API 22: PUT Vehicle Group ---\r",
+                  "    else if (currentRequestName.includes(\"/api/vehicle-groups/\") && pm.request.method === \"PUT\") {\r",
+                  "        let u_id = \"5\", b_name = \"Xe Điện Hoàn Cầu\", b_desc = \"Quản lý xe EV\";\r",
+                  "        if (pKey === \"u22_id\") u_id = pval; else if (pKey === \"b22_name\") b_name = pval; else if (pKey === \"b22_desc\") b_desc = pval;\r",
+                  "        pm.variables.set(\"u22_id\", u_id); pm.variables.set(\"b22_name\", b_name); pm.variables.set(\"b22_desc\", b_desc);\r",
+                  "    }\r",
+                  "\r",
+                  "    // --- API 23: PUT Vehicle Service (37 cases) ---\r",
+                  "    else if (currentRequestName.includes(\"/vehicle-services/service/\") && pm.request.method === \"PUT\") {\r",
+                  "        let sid = \"10\", vid = \"10\", b_desc = \"Bảo trì\", b_type = \"maintenance\", b_status = \"completed\", b_date = \"2026-04-13T14:30:00Z\";\r",
+                  "        if (pKey === \"u23_sid\") sid = pval; else if (pKey === \"u23_vid\") vid = pval; \r",
+                  "        else if (pKey === \"b23_desc\") b_desc = pval; else if (pKey === \"b23_type\") b_type = pval;\r",
+                  "        else if (pKey === \"b23_status\") b_status = pval; else if (pKey === \"b23_date\") b_date = pval;\r",
+                  "        pm.variables.set(\"u23_sid\", sid); pm.variables.set(\"u23_vid\", vid); pm.variables.set(\"b23_desc\", b_desc);\r",
+                  "        pm.variables.set(\"b23_type\", b_type); pm.variables.set(\"b23_status\", b_status); pm.variables.set(\"b23_date\", b_date);\r",
+                  "    }\r",
+                  "\r",
+                  "    // --- API 24: PUT Vehicles (37 cases) ---\r",
+                  "    else if (currentRequestName.includes(\"/api/vehicles/\") && pm.request.method === \"PUT\") {\r",
+                  "        let u_id = \"1\", b_gid = \"1\", b_type = \"Sedan\", b_num = \"51A-\"+ tcId, b_name = \"Xe xịn\", b_status = \"ready\";\r",
+                  "        if (pKey === \"u24_id\") u_id = pval; else if (pKey === \"b24_gid\") b_gid = pval;\r",
+                  "        else if (pKey === \"b24_type\") b_type = pval; else if (pKey === \"b24_num\") b_num = pval;\r",
+                  "        else if (pKey === \"b24_name\") b_name = pval; else if (pKey === \"b24_status\") b_status = pval;\r",
+                  "        pm.variables.set(\"u24_id\", u_id); pm.variables.set(\"b24_gid\", b_gid); pm.variables.set(\"b24_type\", b_type);\r",
+                  "        pm.variables.set(\"b24_num\", b_num); pm.variables.set(\"b24_name\", b_name); pm.variables.set(\"b24_status\", b_status);\r",
+                  "    }\r",
+                  "if (currentRequestName === \"POST /api/services\") {\r",
+                  "        let s_name = \"Bảo trì\", s_type = \"Repair\";\r",
+                  "        if (pKey === \"s_name\") s_name = pval; else if (pKey === \"s_type\") s_type = pval;\r",
+                  "        pm.variables.set(\"s_name\", s_name); pm.variables.set(\"s_type\", s_type);\r",
+                  "    }\r",
+                  "\r",
+                  "    // API 02: POST /api/vehicle-groups\r",
+                  "    // API 02: POST /api/vehicle-groups\r",
+                  "    if (currentRequestName === \"POST /api/vehicle-groups\") {\r",
+                  "        let g_name = \"Nhóm mới\", g_desc = \"Mô tả\";\r",
+                  "        \r",
+                  "        if (pKey === \"g_name\") {\r",
+                  "            // NẾU pval rỗng (\"\") hoặc null -> Giữ nguyên để test lỗi 400\r",
+                  "            // NẾU pval có giá trị -> Mới thêm tcId để không bị trùng tên (Unique)\r",
+                  "            g_name = (pval === \"\" || pval === null) ? pval : (pval + \"_\" + tcId);\r",
+                  "        } \r",
+                  "        else if (pKey === \"g_desc\") {\r",
+                  "            g_desc = (pval === \"null\" ? null : pval);\r",
+                  "        }\r",
+                  "        \r",
+                  "        pm.variables.set(\"g_name\", g_name); \r",
+                  "        pm.variables.set(\"g_desc\", g_desc);\r",
+                  "    }\r",
+                  "\r",
+                  "    // API 03: POST /api/vehicle-services\r",
+                  "// --- API 03: POST /api/vehicle-services (Registration) ---\r",
+                  "    if (currentRequestName === \"POST /api/vehicle-services\") {\r",
+                  "        let offset = pm.info.iteration;\r",
+                  "        // Mặc định: Mỗi case sẽ dùng 1 xe mới (ID xe = 1 + offset)\r",
+                  "        let sid = \"1\";\r",
+                  "        let vid = (1 + offset).toString(); \r",
+                  "        let uid = \"1\";\r",
+                  "        let st = \"pending\";\r",
+                  "        let un = \"Duyên\";\r",
+                  "        let ds = \"Note\";\r",
+                  "\r",
+                  "        if (pKey === \"sId\") sid = pval;\r",
+                  "        else if (pKey === \"vId\") vid = pval; // Nếu đang test biên vId thì dùng đúng pval\r",
+                  "        else if (pKey === \"uId\") uid = pval;\r",
+                  "        else if (pKey === \"status\") st = pval;\r",
+                  "        else if (pKey === \"uName\") un = pval;\r",
+                  "        else if (pKey === \"desc\") ds = (pval === \"null\" ? null : pval);\r",
+                  "\r",
+                  "        pm.variables.set(\"u3_sid\", sid);\r",
+                  "        pm.variables.set(\"u3_vid\", vid);\r",
+                  "        pm.variables.set(\"u3_uid\", uid);\r",
+                  "        pm.variables.set(\"u3_status\", st);\r",
+                  "        pm.variables.set(\"u3_uname\", un);\r",
+                  "        pm.variables.set(\"u3_desc\", ds);\r",
+                  "    }\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  "    // API 04: POST /api/vehicle-services/maintenance/book\r",
+                  "// --- API 04: POST /api/vehicle-services/maintenance/book ---\r",
+                  "    if (currentRequestName === \"POST /api/vehicle-services/maintenance/book\") {\r",
+                  "        // Mặc định ph là 10 số để khi test các trường khác không bị lỗi Validation\r",
+                  "        let uid=\"1\", gid=\"1\", vid=\"1\", sid=\"1\", ph=\"0901234567\", nt=\"Ghi chú\";\r",
+                  "        let start = pm.variables.get(\"iso_now\"); // Mặc định dùng giờ hiện tại\r",
+                  "        let end = pm.variables.get(\"iso_future\"); // Mặc định dùng +2 giờ\r",
+                  "        if (pKey === \"uId\") uid = pval; \r",
+                  "        else if (pKey === \"gId\") gid = pval; \r",
+                  "        else if (pKey === \"vId\") vid = pval;\r",
+                  "        else if (pKey === \"sId\") sid = pval; \r",
+                  "        else if (pKey === \"phone\") ph = pval; // Script sẽ tự bốc \"01235678\" hoặc \"01234567890\" từ JSON của Duyên\r",
+                  "        else if (pKey === \"note\") nt = (pval === \"null\" ? null : pval);\r",
+                  "        else if (pKey === \"start\" || pKey === \"preferredStartDatetime\") start = pval;\r",
+                  "        else if (pKey === \"end\" || pKey === \"preferredEndDatetime\") end = pval;\r",
+                  "        pm.variables.set(\"u4_uid\", uid); \r",
+                  "        pm.variables.set(\"u4_gid\", gid); \r",
+                  "        pm.variables.set(\"u4_vid\", vid);\r",
+                  "        pm.variables.set(\"u4_sid\", sid); \r",
+                  "        pm.variables.set(\"u4_phone\", ph); \r",
+                  "        pm.variables.set(\"u4_note\", nt);\r",
+                  "        pm.variables.set(\"u4_start\", start); // Biến mới cho Body\r",
+                  "        pm.variables.set(\"u4_end\", end);     // Biến mới cho Body\r",
+                  "    }\r",
+                  "\r",
+                  "    // API 06: Sync One\r",
+                  "    if (currentRequestName.includes(\"sync-vehicle-status\")) {\r",
+                  "        let vid = \"10\"; if (pKey === \"vId\") vid = pval;\r",
+                  "        pm.variables.set(\"u6_vid\", vid);\r",
+                  "    }\r",
+                  "\r",
+                  "    // API 07: Batch Vehicles\r",
+                  "    if (currentRequestName === \"POST /api/vehicles/batch\") {\r",
+                  "        let gid = \"50\", num = \"PLATE-\" + Math.floor(Math.random()*10000), name = \"VinFast\", type = \"SUV\", st = \"ready\";\r",
+                  "        if (pKey === \"batch_gid\") gid = pval; else if (pKey === \"v_num\") num = pval;\r",
+                  "        else if (pKey === \"v_name\") name = pval; else if (pKey === \"v_type\") type = pval; else if (pKey === \"status\") st = pval;\r",
+                  "        pm.variables.set(\"u7_gid\", gid); pm.variables.set(\"u7_num\", num); pm.variables.set(\"u7_name\", name);\r",
+                  "        pm.variables.set(\"u7_type\", type); pm.variables.set(\"u7_status\", st);\r",
+                  "    }\r",
+                  "    // Nạp Token (Duyên đảm bảo đã có biến access_token trong Collection nhé)\r",
+                  "    pm.variables.set(\"accessToken\", pm.collectionVariables.get(\"access_token\"));\r",
+                  "\r",
+                  "    console.log(`✅ [MATCH] Thực thi Case: ${tcId} | API: ${currentRequestName}`);\r",
+                  "} else {\r",
+                  "    // Không khớp -> Đuổi về, không cho chạy API này ở Iteration này\r",
+                  "    pm.execution.skipRequest();\r",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {},
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "New Folder",
+          "item": [
+            {
+              "name": "DELETE /api/vehicles/{vehicleId}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicles/{{vehicleId}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicles",
+                    "{{vehicleId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE /api/vehicle-groups/{groupId}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-groups/{{groupId}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-groups",
+                    "{{groupId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE /api/vehicle-services/service/{serviceId}/vehicle/{vehicleId}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/vehicle-services/service/{{serviceId}}/vehicle/{{vehicleId}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vehicle-services",
+                    "service",
+                    "{{serviceId}}",
+                    "vehicle",
+                    "{{vehicleId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE /api/services/{serviceId}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/services/{{serviceId}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "services",
+                    "{{serviceId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "key": "token",
+                "value": "{{accessToken}}",
+                "type": "string"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {},
+                "exec": [
+                  "// 1. Lấy dữ liệu từ dòng JSON hiện tại\r",
+                  "const targetJSON = (pm.iterationData.get(\"target_key\") || \"\").trim();\r",
+                  "const tcId = pm.iterationData.get(\"tc_id\");\r",
+                  "const pKey = pm.iterationData.get(\"param_key\"); // Có thể có hoặc không\r",
+                  "let pval = pm.iterationData.get(\"param_val\");\r",
+                  "let offset = pm.info.iteration; // Lấy số 0, 1, 2, 3... tăng dần theo lượt chạ\r",
+                  "// 2. Lấy tên chính xác của API đang chờ trong Runner\r",
+                  "const currentRequestName = pm.info.requestName.trim();\r",
+                  "// --- PHẦN THÊM MỚI: Tự động tạo chuỗi dài nếu thấy placeholder \"A...255\" ---\r",
+                  "if (typeof pval === \"string\" && pval.includes(\"...\")) {\r",
+                  "    let len = parseInt(pval.split(\"...\")[1]);\r",
+                  "    pval = \"A\".repeat(len);\r",
+                  "}\r",
+                  "\r",
+                  "// --- PHẦN THÊM MỚI: Tạo thời gian ISO cho API Booking ---\r",
+                  "const now = new Date();\r",
+                  "const future = new Date(now.getTime() + (2 * 60 * 60 * 1000));\r",
+                  "pm.variables.set(\"iso_now\", now.toISOString());\r",
+                  "pm.variables.set(\"iso_future\", future.toISOString());\r",
+                  "/**\r",
+                  " * 3. SO KHỚP TUYỆT ĐỐI\r",
+                  " * Chỉ cho phép chạy nếu Tên API khớp 100% với target_key trong JSON\r",
+                  " */\r",
+                  "if (currentRequestName === targetJSON) {\r",
+                  "    // Nạp biến cho Script Vạn Năng ở tab Tests\r",
+                  "    pm.variables.set(\"tc_id\", tcId);\r",
+                  "    pm.variables.set(\"expected_status\", pm.iterationData.get(\"expected_status\"));\r",
+                  "    pm.variables.set(\"bug_case_name\", pm.iterationData.get(\"desc\"));\r",
+                  "    \r",
+                  "    // Nạp giá trị BVA vào phễu {{dynamic_val}}\r",
+                  "    pm.variables.set(\"dynamic_key\", pKey ? pKey : \"\");\r",
+                  "    pm.variables.set(\"dynamic_val\", pval ? pval : \"\");\r",
+                  "    if (currentRequestName.includes(\"/filter\")) {\r",
+                  "        let sQuery = \"EV\";        // Nominal mặc định cho searchQuery\r",
+                  "        let sFilter = \"Tất cả\";   // Nominal mặc định cho statusFilter\r",
+                  "\r",
+                  "        if (pKey === \"searchQuery\") {\r",
+                  "            sQuery = pval; \r",
+                  "            // sFilter giữ nguyên \"Tất cả\"\r",
+                  "        } else if (pKey === \"statusFilter\") {\r",
+                  "            sFilter = pval;\r",
+                  "            sQuery = \"EV\"; // Giữ searchQuery ở mức Nominal\r",
+                  "        }\r",
+                  "\r",
+                  "        pm.variables.set(\"dynamic_val_s\", sQuery);\r",
+                  "        pm.variables.set(\"dynamic_val_f\", sFilter);\r",
+                  "    }\r",
+                  "\r",
+                  "    // --- LOGIC CHO API 20 (Service Registration - Ràng buộc khớp ID) ---\r",
+                  "    if (currentRequestName.includes(\"/service/\")) {\r",
+                  "        let sid = \"1\"; // Nominal mặc định 1\r",
+                  "        let vid = \"1\"; // Nominal mặc định 1\r",
+                  "\r",
+                  "        if (pKey === \"serviceId\") {\r",
+                  "            // Đang test biên cho serviceId -> Giữ vehicleId = 1 (Nominal)\r",
+                  "            sid = pval;\r",
+                  "            vid = \"1\"; \r",
+                  "        } else if (pKey === \"vehicleId\") {\r",
+                  "            // Đang test biên cho vehicleId -> Giữ serviceId = 5 (Nominal)\r",
+                  "            sid = \"5\"; \r",
+                  "            vid = pval;\r",
+                  "        } else if (pKey === \"Nominal\") {\r",
+                  "            // Case cuối cùng: Cả 2 cùng là Nominal 10\r",
+                  "            sid = \"10\";\r",
+                  "            vid = \"10\";\r",
+                  "        }\r",
+                  "\r",
+                  "        pm.variables.set(\"dynamic_val_sid\", sid);\r",
+                  "        pm.variables.set(\"dynamic_val_vid\", vid);\r",
+                  "    }\r",
+                  "    if (currentRequestName.includes(\"/api/services/\") && pm.request.method === \"PUT\") {\r",
+                  "        let u_id = \"10\", b_name = \"Sửa chữa\", b_type = \"Repair\";\r",
+                  "        if (pKey === \"u21_id\") u_id = pval; else if (pKey === \"b21_name\") b_name = pval; else if (pKey === \"b21_type\") b_type = pval;\r",
+                  "        pm.variables.set(\"u21_id\", u_id); pm.variables.set(\"b21_name\", b_name); pm.variables.set(\"b21_type\", b_type);\r",
+                  "    }\r",
+                  "\r",
+                  "    // --- API 22: PUT Vehicle Group ---\r",
+                  "    else if (currentRequestName.includes(\"/api/vehicle-groups/\") && pm.request.method === \"PUT\") {\r",
+                  "        let u_id = \"5\", b_name = \"Xe Điện Hoàn Cầu\", b_desc = \"Quản lý xe EV\";\r",
+                  "        if (pKey === \"u22_id\") u_id = pval; else if (pKey === \"b22_name\") b_name = pval; else if (pKey === \"b22_desc\") b_desc = pval;\r",
+                  "        pm.variables.set(\"u22_id\", u_id); pm.variables.set(\"b22_name\", b_name); pm.variables.set(\"b22_desc\", b_desc);\r",
+                  "    }\r",
+                  "\r",
+                  "    // --- API 23: PUT Vehicle Service (37 cases) ---\r",
+                  "    else if (currentRequestName.includes(\"/vehicle-services/service/\") && pm.request.method === \"PUT\") {\r",
+                  "        let sid = \"10\", vid = \"10\", b_desc = \"Bảo trì\", b_type = \"maintenance\", b_status = \"completed\", b_date = \"2026-04-13T14:30:00Z\";\r",
+                  "        if (pKey === \"u23_sid\") sid = pval; else if (pKey === \"u23_vid\") vid = pval; \r",
+                  "        else if (pKey === \"b23_desc\") b_desc = pval; else if (pKey === \"b23_type\") b_type = pval;\r",
+                  "        else if (pKey === \"b23_status\") b_status = pval; else if (pKey === \"b23_date\") b_date = pval;\r",
+                  "        pm.variables.set(\"u23_sid\", sid); pm.variables.set(\"u23_vid\", vid); pm.variables.set(\"b23_desc\", b_desc);\r",
+                  "        pm.variables.set(\"b23_type\", b_type); pm.variables.set(\"b23_status\", b_status); pm.variables.set(\"b23_date\", b_date);\r",
+                  "    }\r",
+                  "\r",
+                  "    // --- API 24: PUT Vehicles (37 cases) ---\r",
+                  "    else if (currentRequestName.includes(\"/api/vehicles/\") && pm.request.method === \"PUT\") {\r",
+                  "        let u_id = \"1\", b_gid = \"1\", b_type = \"Sedan\", b_num = \"51A-\"+ tcId, b_name = \"Xe xịn\", b_status = \"ready\";\r",
+                  "        if (pKey === \"u24_id\") u_id = pval; else if (pKey === \"b24_gid\") b_gid = pval;\r",
+                  "        else if (pKey === \"b24_type\") b_type = pval; else if (pKey === \"b24_num\") b_num = pval;\r",
+                  "        else if (pKey === \"b24_name\") b_name = pval; else if (pKey === \"b24_status\") b_status = pval;\r",
+                  "        pm.variables.set(\"u24_id\", u_id); pm.variables.set(\"b24_gid\", b_gid); pm.variables.set(\"b24_type\", b_type);\r",
+                  "        pm.variables.set(\"b24_num\", b_num); pm.variables.set(\"b24_name\", b_name); pm.variables.set(\"b24_status\", b_status);\r",
+                  "    }\r",
+                  "if (currentRequestName === \"POST /api/services\") {\r",
+                  "        let s_name = \"Bảo trì\", s_type = \"Repair\";\r",
+                  "        if (pKey === \"s_name\") s_name = pval; else if (pKey === \"s_type\") s_type = pval;\r",
+                  "        pm.variables.set(\"s_name\", s_name); pm.variables.set(\"s_type\", s_type);\r",
+                  "    }\r",
+                  "\r",
+                  "    // API 02: POST /api/vehicle-groups\r",
+                  "    // API 02: POST /api/vehicle-groups\r",
+                  "    if (currentRequestName === \"POST /api/vehicle-groups\") {\r",
+                  "        let g_name = \"Nhóm mới\", g_desc = \"Mô tả\";\r",
+                  "        \r",
+                  "        if (pKey === \"g_name\") {\r",
+                  "            // NẾU pval rỗng (\"\") hoặc null -> Giữ nguyên để test lỗi 400\r",
+                  "            // NẾU pval có giá trị -> Mới thêm tcId để không bị trùng tên (Unique)\r",
+                  "            g_name = (pval === \"\" || pval === null) ? pval : (pval + \"_\" + tcId);\r",
+                  "        } \r",
+                  "        else if (pKey === \"g_desc\") {\r",
+                  "            g_desc = (pval === \"null\" ? null : pval);\r",
+                  "        }\r",
+                  "        \r",
+                  "        pm.variables.set(\"g_name\", g_name); \r",
+                  "        pm.variables.set(\"g_desc\", g_desc);\r",
+                  "    }\r",
+                  "\r",
+                  "    // API 03: POST /api/vehicle-services\r",
+                  "// --- API 03: POST /api/vehicle-services (Registration) ---\r",
+                  "    if (currentRequestName === \"POST /api/vehicle-services\") {\r",
+                  "        \r",
+                  "        // Mặc định: Mỗi case sẽ dùng 1 xe mới (ID xe = 1 + offset)\r",
+                  "        let sid = \"1\";\r",
+                  "        let vid = (1 + offset).toString(); \r",
+                  "        let uid = \"1\";\r",
+                  "        let st = \"pending\";\r",
+                  "        let un = \"Duyên\";\r",
+                  "        let ds = \"Note\";\r",
+                  "\r",
+                  "        if (pKey === \"sId\") sid = pval;\r",
+                  "        else if (pKey === \"vId\") vid = pval; // Nếu đang test biên vId thì dùng đúng pval\r",
+                  "        else if (pKey === \"uId\") uid = pval;\r",
+                  "        else if (pKey === \"status\") st = pval;\r",
+                  "        else if (pKey === \"uName\") un = pval;\r",
+                  "        else if (pKey === \"desc\") ds = (pval === \"null\" ? null : pval);\r",
+                  "\r",
+                  "        pm.variables.set(\"u3_sid\", sid);\r",
+                  "        pm.variables.set(\"u3_vid\", vid);\r",
+                  "        pm.variables.set(\"u3_uid\", uid);\r",
+                  "        pm.variables.set(\"u3_status\", st);\r",
+                  "        pm.variables.set(\"u3_uname\", un);\r",
+                  "        pm.variables.set(\"u3_desc\", ds);\r",
+                  "    }\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  "    // API 04: POST /api/vehicle-services/maintenance/book\r",
+                  "// --- API 04: POST /api/vehicle-services/maintenance/book ---\r",
+                  "    if (currentRequestName === \"POST /api/vehicle-services/maintenance/book\") {\r",
+                  "        // Mặc định ph là 10 số để khi test các trường khác không bị lỗi Validation\r",
+                  "        let uid=\"1\", gid=\"1\", vid=\"1\", sid=\"1\", ph=\"0901234567\", nt=\"Ghi chú\";\r",
+                  "        let start = pm.variables.get(\"iso_now\"); // Mặc định dùng giờ hiện tại\r",
+                  "        let end = pm.variables.get(\"iso_future\"); // Mặc định dùng +2 giờ\r",
+                  "        if (pKey === \"uId\") uid = pval; \r",
+                  "        else if (pKey === \"gId\") gid = pval; \r",
+                  "        else if (pKey === \"vId\") vid = pval;\r",
+                  "        else if (pKey === \"sId\") sid = pval; \r",
+                  "        else if (pKey === \"phone\") ph = pval; // Script sẽ tự bốc \"01235678\" hoặc \"01234567890\" từ JSON của Duyên\r",
+                  "        else if (pKey === \"note\") nt = (pval === \"null\" ? null : pval);\r",
+                  "        else if (pKey === \"start\" || pKey === \"preferredStartDatetime\") start = pval;\r",
+                  "        else if (pKey === \"end\" || pKey === \"preferredEndDatetime\") end = pval;\r",
+                  "        pm.variables.set(\"u4_uid\", uid); \r",
+                  "        pm.variables.set(\"u4_gid\", gid); \r",
+                  "        pm.variables.set(\"u4_vid\", vid);\r",
+                  "        pm.variables.set(\"u4_sid\", sid); \r",
+                  "        pm.variables.set(\"u4_phone\", ph); \r",
+                  "        pm.variables.set(\"u4_note\", nt);\r",
+                  "        pm.variables.set(\"u4_start\", start); // Biến mới cho Body\r",
+                  "        pm.variables.set(\"u4_end\", end);     // Biến mới cho Body\r",
+                  "    }\r",
+                  "\r",
+                  "    // API 06: Sync One\r",
+                  "    if (currentRequestName.includes(\"sync-vehicle-status\")) {\r",
+                  "        let vid = \"10\"; if (pKey === \"vId\") vid = pval;\r",
+                  "        pm.variables.set(\"u6_vid\", vid);\r",
+                  "    }\r",
+                  "\r",
+                  "    // API 07: Batch Vehicles\r",
+                  "    if (currentRequestName === \"POST /api/vehicles/batch\") {\r",
+                  "        let gid = \"50\", num = \"PLATE-\" + Math.floor(Math.random()*10000), name = \"VinFast\", type = \"SUV\", st = \"ready\";\r",
+                  "        if (pKey === \"batch_gid\") gid = pval; else if (pKey === \"v_num\") num = pval;\r",
+                  "        else if (pKey === \"v_name\") name = pval; else if (pKey === \"v_type\") type = pval; else if (pKey === \"status\") st = pval;\r",
+                  "        pm.variables.set(\"u7_gid\", gid); pm.variables.set(\"u7_num\", num); pm.variables.set(\"u7_name\", name);\r",
+                  "        pm.variables.set(\"u7_type\", type); pm.variables.set(\"u7_status\", st);\r",
+                  "    }\r",
+                  "    if (pm.request.method === \"DELETE\") {\r",
+                  "        // 1. DELETE Vehicle Groups (n=1) - Xóa từ 100 trở xuống\r",
+                  "        if (currentRequestName.includes(\"/vehicle-groups/\")) {\r",
+                  "            let gid = (pval === \"NOMINAL\" || pKey === \"Nominal\") ? (100 - offset).toString() : pval;\r",
+                  "            pm.variables.set(\"groupId\", gid);\r",
+                  "        }\r",
+                  "        // 2. DELETE Vehicles (n=1) - Xóa từ 500 trở xuống\r",
+                  "        else if (currentRequestName.includes(\"/api/vehicles/\")) {\r",
+                  "            let vid = (pval === \"NOMINAL\" || pKey === \"Nominal\") ? (500 - offset).toString() : pval;\r",
+                  "            pm.variables.set(\"vehicleId\", vid);\r",
+                  "        }\r",
+                  "        // 3. DELETE Services (n=1) - Xóa từ 100 trở xuống\r",
+                  "        else if (currentRequestName.includes(\"/api/services/\")) {\r",
+                  "            let sid = (pval === \"NOMINAL\" || pKey === \"Nominal\") ? (100 - offset).toString() : pval;\r",
+                  "            pm.variables.set(\"serviceId\", sid);\r",
+                  "        }\r",
+                  "        // 4. DELETE Vehicle-Service (n=2) - 2 tham số\r",
+                  "        else if (currentRequestName.includes(\"/vehicle-services/service/\")) {\r",
+                  "            let sid = (50 - offset).toString(); // Mặc định Nominal\r",
+                  "            let vid = (50 - offset).toString(); // Mặc định Nominal\r",
+                  "            if (pKey.startsWith(\"sId\")) sid = pval;\r",
+                  "            else if (pKey.startsWith(\"vId\")) vid = pval;\r",
+                  "            pm.variables.set(\"serviceId\", sid);\r",
+                  "            pm.variables.set(\"vehicleId\", vid);\r",
+                  "        }\r",
+                  "    }\r",
+                  "    // Nạp Token (Duyên đảm bảo đã có biến access_token trong Collection nhé)\r",
+                  "    pm.variables.set(\"accessToken\", pm.collectionVariables.get(\"access_token\"));\r",
+                  "\r",
+                  "    console.log(`✅ [MATCH] Thực thi Case: ${tcId} | API: ${currentRequestName}`);\r",
+                  "} else {\r",
+                  "    // Không khớp -> Đuổi về, không cho chạy API này ở Iteration này\r",
+                  "    pm.execution.skipRequest();\r",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {},
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          "// /**\r",
+          "//  * SCRIPT TỔNG \"VẠN NĂNG\": TỰ ĐỘNG LẤY DATA TỪ FILE JSON & LOG JIRA\r",
+          "//  * Áp dụng cho: Toàn bộ API trong Collection ECOCSS\r",
+          "//  */\r",
+          "\r",
+          "// // 1. Lấy dữ liệu kỳ vọng (Ưu tiên Iteration Data từ file JSON)\r",
+          "// const tcId = pm.iterationData.get(\"tc_id\") || \"N/A\";\r",
+          "// let expectedStatus = pm.iterationData.get(\"expected_status\") || pm.variables.get(\"expected_status\"); \r",
+          "// let bugCaseName = pm.iterationData.get(\"desc\") || pm.variables.get(\"bug_case_name\") || \"\"; \r",
+          "\r",
+          "// // Xử lý danh sách status (ví dụ: \"200, 201\" -> [\"200\", \"201\"])\r",
+          "// let expectedList = expectedStatus ? expectedStatus.toString().split(',').map(s => s.trim()) : [\"200\", \"201\", \"202\", \"204\"];\r",
+          "\r",
+          "// const currentStatus = pm.response.code.toString();\r",
+          "// const requestName = pm.info.requestName.trim();\r",
+          "// const isTestFailed = !expectedList.includes(currentStatus);\r",
+          "\r",
+          "// // 2. Chấm điểm Test Case (Hiển thị 1 dòng duy nhất và cực kỳ chi tiết trong Runner)\r",
+          "// const testResultName = `[${tcId}] ${bugCaseName || requestName} (Đợi: ${expectedList.join('/')}, Thực tế: ${currentStatus})`;\r",
+          "\r",
+          "// pm.test(testResultName, function () {\r",
+          "//     pm.expect(currentStatus).to.be.oneOf(expectedList);\r",
+          "// });\r",
+          "\r",
+          "// // 3. Xử lý Log Jira nếu Test thất bại\r",
+          "// const displayErrorName = bugCaseName ? `${requestName}: ${bugCaseName}` : requestName;\r",
+          "// const localCacheKey = \"JIRA_DUPLICATE_\" + displayErrorName.replace(/\\s+/g, '_');\r",
+          "\r",
+          "// if (isTestFailed) {\r",
+          "//     const summaryText = `[Auto-Bug] Lỗi API: ${displayErrorName} (Đợi: ${expectedList.join('/')}, Thực tế: ${currentStatus})`;\r",
+          "\r",
+          "//     // Chống spam local\r",
+          "//     if (pm.collectionVariables.get(localCacheKey) === summaryText) {\r",
+          "//         console.log(\"⚠️ Bug này đã được log lên Jira trước đó. Bỏ qua.\");\r",
+          "//     } else {\r",
+          "//         const jiraDomain = pm.environment.get(\"jira_domain\");\r",
+          "//         const jiraEmail = pm.environment.get(\"jira_email\");\r",
+          "//         const jiraToken = pm.environment.get(\"jira_token\");\r",
+          "        \r",
+          "//         if (!jiraDomain || !jiraEmail || !jiraToken) {\r",
+          "//             console.log(\"❌ Thiếu biến môi trường Jira (domain, email, token).\");\r",
+          "//         } else {\r",
+          "//             const authHeader = 'Basic ' + btoa(jiraEmail + ':' + jiraToken);\r",
+          "//             let errorBody = pm.response.text();\r",
+          "//             try { errorBody = JSON.stringify(pm.response.json(), null, 2); } catch(e) {}\r",
+          "\r",
+          "//             console.log(\"🔍 Đang kiểm tra trùng lặp trên Jira...\");\r",
+          "            \r",
+          "//             pm.sendRequest({\r",
+          "//                 url: `https://${jiraDomain}/rest/api/3/search`,\r",
+          "//                 method: 'POST',\r",
+          "//                 header: { 'Content-Type': 'application/json', 'Authorization': authHeader },\r",
+          "//                 body: {\r",
+          "//                     mode: 'raw',\r",
+          "//                     raw: JSON.stringify({\r",
+          "//                         \"jql\": `project = ECOCSS AND summary ~ \"${displayErrorName}\" ORDER BY created DESC`,\r",
+          "//                         \"maxResults\": 10\r",
+          "//                     })\r",
+          "//                 }\r",
+          "//             }, function (err, res) {\r",
+          "//                 if (err) { console.log(\"❌ Lỗi check trùng Jira:\", err); return; }\r",
+          "\r",
+          "//                 let isDuplicate = false;\r",
+          "//                 const searchResult = res.json();\r",
+          "//                 if (searchResult && searchResult.issues) {\r",
+          "//                     for (let issue of searchResult.issues) {\r",
+          "//                         const status = (issue.fields.status.name || \"\").toLowerCase();\r",
+          "//                         const isClosed = [\"done\", \"closed\", \"resolved\", \"đã xong\"].includes(status);\r",
+          "//                         // Nếu tiêu đề giống hệt và vé chưa đóng thì coi là trùng\r",
+          "//                         if (!isClosed && issue.fields.summary === summaryText) {\r",
+          "//                             isDuplicate = true; break;\r",
+          "//                         }\r",
+          "//                     }\r",
+          "//                 }\r",
+          "\r",
+          "//                 if (isDuplicate) {\r",
+          "//                     console.log(\"⚠️ Bug đã tồn tại trên Jira. Không tạo thêm.\");\r",
+          "//                     pm.collectionVariables.set(localCacheKey, summaryText);\r",
+          "//                 } else {\r",
+          "//                     console.log(\"✅ Chưa có bug trùng. Đang tạo vé mới lên Jira...\");\r",
+          "                    \r",
+          "//                     const jiraPayload = {\r",
+          "//                         \"fields\": {\r",
+          "//                             \"project\": { \"key\": \"ECOCSS\" },\r",
+          "//                             \"summary\": summaryText,\r",
+          "//                             \"description\": {\r",
+          "//                                 \"type\": \"doc\", \"version\": 1,\r",
+          "//                                 \"content\": [{\r",
+          "//                                     \"type\": \"paragraph\",\r",
+          "//                                     \"content\": [{\r",
+          "//                                         \"type\": \"text\",\r",
+          "//                                         \"text\": `Phát hiện lỗi không khớp mã trạng thái kỳ vọng tại năm 2026.\\n\\n` +\r",
+          "//                                                 `- API: ${pm.request.url.toString()}\\n` +\r",
+          "//                                                 `- Mong đợi: ${expectedList.join('/')}\\n` +\r",
+          "//                                                 `- Thực tế trả về: ${currentStatus}\\n` +\r",
+          "//                                                 `- Body gửi đi: ${pm.request.body.raw}\\n` +\r",
+          "//                                                 `- Phản hồi lỗi: ${errorBody}`\r",
+          "//                                     }]\r",
+          "//                                 }]\r",
+          "//                             },\r",
+          "//                             \"issuetype\": { \"name\": \"Bug\" }\r",
+          "//                         }\r",
+          "//                     };\r",
+          "\r",
+          "//                     pm.sendRequest({\r",
+          "//                         url: `https://${jiraDomain}/rest/api/3/issue`,\r",
+          "//                         method: 'POST',\r",
+          "//                         header: { 'Content-Type': 'application/json', 'Authorization': authHeader },\r",
+          "//                         body: { mode: 'raw', raw: JSON.stringify(jiraPayload) }\r",
+          "//                     }, function (errC, resC) {\r",
+          "//                         if (errC) { console.log(\"❌ Không tạo được vé Jira:\", errC); }\r",
+          "//                         else { \r",
+          "//                             console.log(\"🎉 Đã tạo Bug thành công!\"); \r",
+          "//                             pm.collectionVariables.set(localCacheKey, summaryText);\r",
+          "//                         }\r",
+          "//                     });\r",
+          "//                 }\r",
+          "//             });\r",
+          "//         }\r",
+          "//     }\r",
+          "// } else {\r",
+          "//     // API Pass -> Xóa cache để lần sau nếu lỗi lại vẫn log được\r",
+          "//     pm.collectionVariables.unset(localCacheKey);\r",
+          "//     console.log(`✅ [PASS] ${tcId} hoạt động đúng.`);\r",
+          "// }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "service_id_target",
+      "value": ""
+    },
+    {
+      "key": "vehicle_id_target",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_ký:_Email_đã_trùng",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_ký:_Sai_định_dạng_Email/Password",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_ký:_Password_quá_ngắn",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_nhập:_Thiếu_trường_đăng_nhập_(email/pass)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_nhập:_Tài_khoản_chưa_xác_thực/Bị_khóa",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_ký:_Thiếu_trường_bắt_buộc",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_nhập:_Không_chặn_Brute-force/Rate_Limit",
+      "value": ""
+    },
+    {
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_ký:_[TC_REG_009]_email_min",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_ký:_[TC_REG_010]_email_min+1",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_ký:_[TC_REG_013]_email_max+1",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_ký:_[TC_REG_010]_email_min+1_(6_ký_tự)",
+      "value": ""
+    },
+    {
+      "key": "temp_email",
+      "value": ""
+    },
+    {
+      "key": "temp_pass",
+      "value": ""
+    },
+    {
+      "key": "login_attempts",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Profile:_idCard:_12_digits_(Min-1)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Profile:_idCard:_14_digits_(Max+1)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Profile:_license:_12_digits_(Min-1)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Profile:_license:_14_digits_(Max+1)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_ký:_Log_Email_min_(5_ký_tự)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_nhập:_Log_Pass_min-1_(7_ký_tự)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_nhập:_Log_Pass_max+1_(33_ký_tự)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_nhập:_Log_Email_max+1_(101_ký_tự)",
+      "value": ""
+    },
+    {
+      "key": "storage_email",
+      "value": ""
+    },
+    {
+      "key": "storage_pass",
+      "value": ""
+    },
+    {
+      "key": "stored_email",
+      "value": ""
+    },
+    {
+      "key": "stored_pass",
+      "value": ""
+    },
+    {
+      "key": "last_reg_status",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Duyệt_hồ_sơ:_Auth:_Token_Admin_hết_hạn",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Role:_Auth:_Token_rác_(12345)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_GET_/api/vehicle-services/service/{serviceId}/vehicle/{vehicleId}:_vID_Min_(1)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_GET_/api/vehicle-services/service/{serviceId}/vehicle/{vehicleId}:_vID_Max+1_(Overflow)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_GET_/api/vehicle-services/service/{serviceId}/vehicle/{vehicleId}:_sID_Min_(1)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Đăng_nhập",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Lấy_Người_dùng:_Security:_User_phá_API_Admin_Users",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Lấy_người_dùng_với_trạng_thái_Pending:_Security:_User_phá_API_Pending_Approval",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Profile:_Approve:_ID_sai_định_dạng_chữ_(abc)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Profile:_Approve:_Token_Admin_hết_hạn",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Từ_Chối_hồ_sơ:_Reject:_Từ_chối_hồ_sơ_PENDING_(ID_487)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Profile:_Reject:_Chặn_từ_chối_hồ_sơ_đã_APPROVED",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Profile:_Reject:_Từ_chối_hồ_sơ_đang_SUSPENDED",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Profile:_Reject:_ID_biên_thấp_(ID=0)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Profile:_Role:_Thiếu_tiền_tố_ROLE__(BVA)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Profile:_Role:_Role_không_tồn_tại_(Out_of_range)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Profile:_Role:_Body_thiếu_trường_role_(Null)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Update_Profile:_Role:_ID_người_dùng_không_tồn_tại",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_KYC_All_Nominal",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_Front_Min",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_Front_Min+1",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_Front_Max-1",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_Front_Max",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_Back_Min",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_Back_Min+1",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_Back_Max-1",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_Back_Max",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_License_Min",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_License_Min+1",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_License_Max-1",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_License_Max",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_Portrait_Min",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_Portrait_Min+1",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_Portrait_Max-1",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_kyc:_Portrait_Max",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_avt",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_avt:_Avatar_1B_(Min)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_avt:_Avatar_2B_(Min+1)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_avt:_Avatar_5MB_(Nominal)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_avt:_Avatar_9.99MB_(Max-1)",
+      "value": ""
+    },
+    {
+      "key": "JIRA_DUPLICATE_Up_avt:_Avatar_10MB_(Max)",
+      "value": ""
+    },
+    {
+      "key": "MANUAL_JIRA_TC_AVT_05",
+      "value": ""
+    },
+    {
+      "key": "MANUAL_JIRA_TC_AVT_06",
+      "value": ""
+    },
+    {
+      "key": "MANUAL_JIRA_TC_KYC_01",
+      "value": ""
+    },
+    {
+      "key": "JIRA_LOGGED_TC_KYC_02",
+      "value": ""
+    }
+  ]
+}

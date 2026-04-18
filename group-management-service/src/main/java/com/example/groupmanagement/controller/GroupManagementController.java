@@ -325,6 +325,39 @@ public class GroupManagementController {
         }
     }
 
+    /**
+     * Get list of groups/vehicles for maintenance booking.
+     * GET /api/groups/user/{userId}/maintenance-options
+     */
+    @GetMapping("/user/{userId}/maintenance-options")
+    public ResponseEntity<?> getMaintenanceOptions(@PathVariable Integer userId) {
+        try {
+            logger.info("🔵 [GroupManagementController] GET /api/groups/user/{}/maintenance-options", userId);
+            
+            List<GroupMember> memberships = groupMemberRepository.findByUserId(userId);
+            
+            List<Map<String, Object>> options = memberships.stream()
+                .map(m -> {
+                    Map<String, Object> option = new HashMap<>();
+                    option.put("groupId", m.getGroup().getGroupId());
+                    option.put("groupName", m.getGroup().getGroupName());
+                    option.put("memberRole", m.getRole() != null ? m.getRole().name() : "Member");
+                    // In 1-N model, vehicles are managed in vehicle-service.
+                    // We return empty vehicle info here and let vehicle-service fill it if needed.
+                    option.put("vehicleId", null);
+                    option.put("vehicleLabel", null);
+                    return option;
+                })
+                .collect(Collectors.toList());
+            
+            logger.info("✅ Returning {} maintenance options for userId={}", options.size(), userId);
+            return ResponseEntity.ok(options);
+        } catch (Exception e) {
+            logger.error("❌ [GroupManagementController] Error fetching maintenance options for userId={}: {}", userId, e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to fetch maintenance options", "message", e.getMessage()));
+        }
+    }
+
     // Helper methods for permission checking
     private boolean isAdminOfGroup(Integer userId, Integer groupId) {
         List<GroupMember> members = groupMemberRepository.findByGroup_GroupId(groupId);

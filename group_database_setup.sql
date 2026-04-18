@@ -309,7 +309,9 @@ INSERT INTO GroupMember (groupId, userId, role, ownershipPercent) VALUES
 (97, 580, 'Admin', 100.0),
 (98, 581, 'Admin', 100.0),
 (99, 582, 'Admin', 100.0),
-(100, 583, 'Admin', 100.0);
+(100, 583, 'Admin', 100.0),
+(1, 1, 'Member', 0.0),
+(2, 1, 'Member', 0.0);
 
 (1, 484, 'Admin', 100.0),
 (2, 485, 'Admin', 100.0),

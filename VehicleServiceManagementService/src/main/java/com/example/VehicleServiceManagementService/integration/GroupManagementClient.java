@@ -40,7 +40,8 @@ public class GroupManagementClient {
         String path = "/api/groups/user/" + userId;
         List<Map<String, Object>> result = exchangeForList(path);
         if (result == null) {
-            throw new IllegalArgumentException("Không tìm thấy người dùng với ID: " + userId);
+            log.warn("Không tìm thấy dữ liệu nhóm cho userId: {}. Trả về danh sách trống.", userId);
+            return Collections.emptyList();
         }
         return result;
     }
@@ -52,7 +53,8 @@ public class GroupManagementClient {
         String path = "/api/groups/user/" + userId + "/maintenance-options";
         List<Map<String, Object>> result = exchangeForList(path);
         if (result == null) {
-            throw new IllegalArgumentException("Không tìm thấy người dùng với ID: " + userId);
+            log.warn("Không tìm thấy tùy chọn bảo dưỡng cho userId: {}. Trả về danh sách trống.", userId);
+            return Collections.emptyList();
         }
         return result;
     }

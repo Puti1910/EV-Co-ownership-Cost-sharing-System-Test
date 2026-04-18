@@ -51,9 +51,21 @@ public class AdminReservationController {
     }
 
     @PostMapping("/manage")
-    public Map<String, Object> createReservationManage(@jakarta.validation.Valid @RequestBody ReservationDTO dto) {
-        ReservationDTO saved = service.createReservation(dto);
-        return Map.of("message", "Tạo lịch thành công", "id", saved.getReservationId());
+    public ResponseEntity<?> createReservationManage(@jakarta.validation.Valid @RequestBody ReservationDTO dto) {
+        try {
+            // RS_BVA: Fix mã trạng thái 201 Created cho Nominal cases (TC_12_01, 12_03, 12_04, v.v.)
+            ReservationDTO saved = service.createReservation(dto);
+            return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                    .body(Map.of("message", "Tạo lịch thành công", "id", saved.getReservationId()));
+        } catch (IllegalArgumentException e) {
+            // TC_12_14, 12_19, 12_20, 12_25: Trả về 400 Bad Request
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (com.example.reservationadminservice.exception.ResourceNotFoundException e) {
+            // TC_12_05, 12_06, 12_11, 12_12: Trả về 404 Not Found
+            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", "Internal Server Error: " + e.getMessage()));
+        }
     }
 
     @PutMapping("/manage/{id}")

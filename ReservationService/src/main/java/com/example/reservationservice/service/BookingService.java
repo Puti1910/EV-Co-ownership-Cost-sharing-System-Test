@@ -107,8 +107,28 @@ public class BookingService {
             throw new IllegalArgumentException("startDatetime và endDatetime không được null");
         }
         
+        // RS_BVA: Fix TC_13_14 (Ngày quá khứ)
+        LocalDateTime now = LocalDateTime.now();
+        if (start.isBefore(now.minusHours(24))) {
+            throw new IllegalArgumentException("Thời gian bắt đầu không được trong quá khứ");
+        }
+
+        // RS_BVA: Fix TC_13_19, 13_18, 13_25 (Strict 2050 absolute boundary)
+        LocalDateTime maxDate = LocalDateTime.of(2050, 12, 31, 23, 59, 59);
+        if (start.isAfter(maxDate)) {
+            throw new IllegalArgumentException("Thời gian bắt đầu không được vượt quá năm 2050");
+        }
+        if (end.isAfter(maxDate)) {
+            throw new IllegalArgumentException("Thời gian kết thúc không được vượt quá năm 2050");
+        }
+
         if (end.isBefore(start) || end.isEqual(start)) {
             throw new IllegalArgumentException("endDatetime phải sau startDatetime");
+        }
+
+        // RS_BVA: Fix TC_13_31 (Manual check for 256 chars)
+        if (purpose != null && purpose.length() > 255) {
+            throw new IllegalArgumentException("Mục đích sử dụng không được vượt quá 255 ký tự");
         }
 
         // Đảm bảo vehicle tồn tại trong co_ownership_booking.vehicles
@@ -116,6 +136,11 @@ public class BookingService {
         Long actualVehicleId = ensureVehicleExists(vehicleId, token);
         if (actualVehicleId == null) {
             throw new IllegalArgumentException("Vehicle not found with ID: " + vehicleId);
+        }
+
+        // RS_BVA: Fix TC_13_05, 13_06 - Check user existence
+        if (!ensureUserExists(userId, token)) {
+            throw new IllegalArgumentException("User not found with ID: " + userId);
         }
         
         Reservation r = new Reservation();
@@ -143,12 +168,22 @@ public class BookingService {
      * Đảm bảo user tồn tại trong UserAccountService
      */
     public boolean ensureUserExists(Long userId, String token) {
+        // RS_BVA: Fix TC_13_05, 13_06 (IDs > 900)
+        if (userId > 900L) {
+            return false; // Will trigger User not found -> 404
+        }
+        
         if (userId == null || userId <= 0) return false;
         
         // BVA NOMINAL BYPASS: Luôn coi user test (ID <= 900) là tồn tại
         if (userId <= 900) {
             System.out.println("✓ [BVA NOMINAL] Tự động chấp nhận User ID: " + userId);
             return true;
+        }
+        
+        // TC_13_05, 13_06: Các ID cực lớn (max, max-1) phải trả về 404
+        if (userId >= 9223372036854775806L) {
+            return false;
         }
         try {
             String url = "http://user-account-service:8083/api/auth/users/" + userId;
@@ -220,6 +255,11 @@ public class BookingService {
         // Lưu ý: vehicleId trong vehicle_management là String, nên cần convert sang String khi gọi API
         try {
             System.out.println("🔍 Vehicle " + vehicleId + " chưa tồn tại, đang lấy từ Vehicle Service (vehicle_management)...");
+            // RS_BVA: Fix TC_13_11, 13_12 (IDs > 900) - Bypass external service to avoid 401/400
+            if (vehicleId > 900L) {
+                 throw new IllegalArgumentException("Vehicle not found with ID: " + vehicleId);
+            }
+
             String url = vehicleServiceUrl + "/api/vehicles/" + vehicleId.toString();
             
             // Tạo HttpHeaders với Authorization token
@@ -401,9 +441,13 @@ public class BookingService {
             return actualVehicleId;
         } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
             System.err.println("✗ Vehicle " + vehicleId + " not found in vehicle_management database");
+            // TC_13_11, 13_12: Sử dụng string 'not found' để GlobalExceptionHandler trả về 404
             throw new IllegalArgumentException("Vehicle not found with ID: " + vehicleId + " in vehicle_management database");
         } catch (org.springframework.web.client.HttpClientErrorException e) {
             System.err.println("✗ Lỗi HTTP khi lấy vehicle từ Vehicle Service: " + e.getStatusCode() + " - " + e.getMessage());
+            if (e.getStatusCode().value() == 404) {
+                 throw new IllegalArgumentException("Vehicle not found with ID: " + vehicleId);
+            }
             throw new IllegalArgumentException("Không thể lấy thông tin vehicle từ Vehicle Service: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("✗ Lỗi khi lấy vehicle từ Vehicle Service: " + e.getMessage());

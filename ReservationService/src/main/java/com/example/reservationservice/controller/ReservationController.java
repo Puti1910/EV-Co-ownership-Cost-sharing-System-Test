@@ -75,7 +75,12 @@ public class ReservationController {
             }
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Cannot create", "message", e.getMessage()));
+            String msg = e.getMessage() != null ? e.getMessage() : "";
+            // TC_13_05, 13_06, 13_11, 13_12: Chuyển sang 404 nếu không tìm thấy User/Vehicle
+            if (msg.toLowerCase().contains("not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Not Found", "message", msg));
+            }
+            return ResponseEntity.badRequest().body(Map.of("error", "Cannot create", "message", msg));
         }
     }
 

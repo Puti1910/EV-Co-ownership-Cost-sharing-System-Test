@@ -155,6 +155,16 @@ VALUES
         'ROLE_USER',
         'ROLE_USER',
         'PENDING'
+    ),
+    (
+        'namvohoai23@gmail.com',
+        '$2a$10$m6pZ7tV1tD.K.F8bYkY/eue6lS.S5Xp5Oq5O7u1O3o4v/U9K8h/0.', -- Password: a
+        'Hoai Nam Admin',
+        '0922222222',
+        1,
+        'ROLE_ADMIN',
+        'ROLE_ADMIN',
+        'APPROVED'
     );
 
 SELECT '✅ CoOwnershipDB đã được khởi tạo (ROLE_USER/ROLE_ADMIN)' AS status_message;

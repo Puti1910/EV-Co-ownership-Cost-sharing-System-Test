@@ -9,8 +9,6 @@ services:
   payment-mysql:
     image: mysql:8.0
     container_name: payment-mysql
-    mem_limit: 256m
-    mem_reservation: 128m
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: Cost_Payment_DB
@@ -31,8 +29,6 @@ services:
   group-mysql:
     image: mysql:8.0
     container_name: group-mysql
-    mem_limit: 256m
-    mem_reservation: 128m
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: Group_Management_DB
@@ -53,8 +49,6 @@ services:
   user-mysql:
     image: mysql:8.0
     container_name: user-mysql
-    mem_limit: 256m
-    mem_reservation: 128m
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: CoOwnershipDB
@@ -75,8 +69,6 @@ services:
   vehicle-mysql:
     image: mysql:8.0
     container_name: vehicle-mysql
-    mem_limit: 256m
-    mem_reservation: 128m
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: vehicle_management
@@ -97,8 +89,6 @@ services:
   reservation-mysql:
     image: mysql:8.0
     container_name: reservation-mysql
-    mem_limit: 256m
-    mem_reservation: 128m
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: co_ownership_booking
@@ -119,8 +109,6 @@ services:
   reservation-admin-mysql:
     image: mysql:8.0
     container_name: reservation-admin-mysql
-    mem_limit: 256m
-    mem_reservation: 128m
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: co_ownership_booking_admin
@@ -140,8 +128,6 @@ services:
   legal-mysql:
     image: mysql:8.0
     container_name: legal-mysql
-    mem_limit: 256m
-    mem_reservation: 128m
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: legal_contract
@@ -162,8 +148,6 @@ services:
   dispute-mysql:
     image: mysql:8.0
     container_name: dispute-mysql
-    mem_limit: 256m
-    mem_reservation: 128m
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: Dispute_Management_DB
@@ -188,15 +172,12 @@ services:
   cost-payment-service:
     build: ./cost-payment-service
     container_name: cost-payment-service
-    mem_limit: 320m
-    mem_reservation: 192m
     ports:
       - "8081:8081"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://payment-mysql:3306/Cost_Payment_DB?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=password
-      - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=55 -XX:InitialRAMPercentage=15
     depends_on:
       payment-mysql:
         condition: service_healthy
@@ -208,15 +189,12 @@ services:
   group-management-service:
     build: ./group-management-service
     container_name: group-management-service
-    mem_limit: 320m
-    mem_reservation: 192m
     ports:
       - "8082:8082"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://group-mysql:3306/Group_Management_DB?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=password
-      - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=55 -XX:InitialRAMPercentage=15
     depends_on:
       group-mysql:
         condition: service_healthy
@@ -228,15 +206,12 @@ services:
   user-account-service:
     build: ./user-account-service
     container_name: user-account-service
-    mem_limit: 320m
-    mem_reservation: 192m
     ports:
       - "8083:8083"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://user-mysql:3306/CoOwnershipDB?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=password
-      - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=55 -XX:InitialRAMPercentage=15
     depends_on:
       user-mysql:
         condition: service_healthy
@@ -248,8 +223,6 @@ services:
   vehicle-service:
     build: ./VehicleServiceManagementService
     container_name: vehicle-service
-    mem_limit: 320m
-    mem_reservation: 192m
     ports:
       - "8085:8085"
     environment:
@@ -272,8 +245,6 @@ services:
   reservation-service:
     build: ./ReservationService
     container_name: reservation-service
-    mem_limit: 320m
-    mem_reservation: 192m
     ports:
       - "8086:8086"
     environment:
@@ -281,7 +252,6 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=password
       - ADMIN_SERVICE_URL=http://reservation-admin-service:8087
-      - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=55 -XX:InitialRAMPercentage=15
     depends_on:
       reservation-mysql:
         condition: service_healthy
@@ -293,8 +263,6 @@ services:
   reservation-admin-service:
     build: ./ReservationAdminService
     container_name: reservation-admin-service
-    mem_limit: 384m
-    mem_reservation: 224m
     ports:
       - "8087:8087"
     environment:
@@ -308,7 +276,6 @@ services:
       - SPRING_DATASOURCE_BOOKING_USERNAME=root
       - SPRING_DATASOURCE_BOOKING_PASSWORD=password
       - RESERVATION_SERVICE_URL=http://reservation-service:8086
-      - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=55 -XX:InitialRAMPercentage=15
     depends_on:
       reservation-admin-mysql:
         condition: service_healthy
@@ -322,15 +289,12 @@ services:
   legal-contract-service:
     build: ./LegalContractService
     container_name: legal-contract-service
-    mem_limit: 320m
-    mem_reservation: 192m
     ports:
       - "8089:8089"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://legal-mysql:3306/legal_contract?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=password
-      - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=55 -XX:InitialRAMPercentage=15
     depends_on:
       legal-mysql:
         condition: service_healthy
@@ -342,18 +306,16 @@ services:
   dispute-management-service:
     build: ./dispute-management-service
     container_name: dispute-management-service
-    mem_limit: 320m
-    mem_reservation: 192m
     ports:
       - "8090:8090"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://dispute-mysql:3306/Dispute_Management_DB?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=password
-      - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=55 -XX:InitialRAMPercentage=15
     depends_on:
       dispute-mysql:
         condition: service_healthy
+       
     networks:
       - ev-network
     restart: unless-stopped
@@ -362,8 +324,6 @@ services:
   api-gateway:
     build: ./api-gateway
     container_name: api-gateway
-    mem_limit: 256m
-    mem_reservation: 160m
     ports:
       - "8084:8084"
     environment:
@@ -376,7 +336,6 @@ services:
       - RESERVATION_ADMIN_SERVICE_URL=http://reservation-admin-service:8087
       - LEGAL_CONTRACT_SERVICE_URL=http://legal-contract-service:8089
       - DISPUTE_MANAGEMENT_SERVICE_URL=http://dispute-management-service:8090
-      - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=55 -XX:InitialRAMPercentage=15
     depends_on:
       - cost-payment-service
       - group-management-service
@@ -394,8 +353,6 @@ services:
   ui-service:
     build: ./ui-service
     container_name: ui-service
-    mem_limit: 256m
-    mem_reservation: 160m
     ports:
       - "8080:8080"
     environment:
@@ -415,7 +372,6 @@ services:
       - RESERVATION_ADMIN_SERVICE_URL=http://api-gateway:8084
       - EXTERNAL_LEGAL_CONTRACTS_BASE_URL=http://api-gateway:8084/api/legalcontracts
       - EXTERNAL_DISPUTES_BASE_URL=http://api-gateway:8084/api/disputes
-      - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=55 -XX:InitialRAMPercentage=15
     depends_on:
       - api-gateway
     networks:

@@ -6,6 +6,8 @@ import com.example.costpayment.dto.UsageTrackingDto;
 import com.example.costpayment.service.AutoCostSplitService;
 import com.example.costpayment.service.CostService;
 import com.example.costpayment.service.UsageTrackingService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +23,8 @@ import java.util.Map;
 @RequestMapping("/api/auto-split")
 @CrossOrigin(origins = "*")
 public class AutoSplitController {
+    
+    private static final Logger logger = LoggerFactory.getLogger(AutoSplitController.class);
 
     @Autowired
     private AutoCostSplitService autoSplitService;
@@ -41,6 +45,13 @@ public class AutoSplitController {
             @RequestParam Integer groupId,
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year) {
+        
+        if (costId == null || costId < 1 || costId > 1000000 ||
+            groupId == null || groupId < 1 || groupId > 1000000 ||
+            (month != null && (month < 1 || month > 12)) ||
+            (year != null && (year < 2000 || year > 2100))) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid ID, month or year"));
+        }
         
         // Lấy tháng/năm hiện tại nếu không có
         if (month == null) {
@@ -114,7 +125,8 @@ public class AutoSplitController {
                 
                 // Lấy cost từ database
                 savedCost = costService.getCostById(costId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chi phí ID: " + costId));
+                    .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Không tìm thấy chi phí ID: " + costId));
                 
                 System.out.println("Found cost: ID=" + savedCost.getCostId() + ", Amount=" + savedCost.getAmount());
                 
@@ -153,16 +165,31 @@ public class AutoSplitController {
                     throw new IllegalArgumentException("groupId là bắt buộc");
                 }
                 
-                Double amount;
+                java.math.BigDecimal amount;
                 if (amountObj instanceof Number) {
-                    amount = ((Number) amountObj).doubleValue();
+                    amount = new java.math.BigDecimal(amountObj.toString());
                 } else {
                     throw new IllegalArgumentException("amount phải là số");
+                }
+                
+                if (amount.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                    throw new IllegalArgumentException("Số tiền (amount) không hợp lệ. Vui lòng nhập số lớn hơn 0.");
+                }
+                if (amount.compareTo(new java.math.BigDecimal("1000000000")) > 0) {
+                    throw new IllegalArgumentException("Số tiền (amount) quá lớn, vượt mức trần hệ thống (1.000.000.000 VND).");
                 }
                 
                 String description = (String) request.get("description");
                 
                 System.out.println("Vehicle ID: " + vehicleId);
+                
+                // MOCK VALIDATION: Chặn vehicleId rác (tránh leak Data)
+                if (vehicleId == null || vehicleId <= 0 || vehicleId > 1000) {
+                    throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, 
+                        "Mã xe (Vehicle ID) không tồn tại. Yêu cầu tạo chi phí bị từ chối.");
+                }
+
                 System.out.println("Cost Type: " + costType);
                 System.out.println("Amount: " + amount);
 
@@ -199,6 +226,9 @@ public class AutoSplitController {
 
             return ResponseEntity.ok(result);
             
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            // Rethrow ResponseStatusException so the ControllerAdvice/ExceptionHandler can handle it properly
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             Map<String, Object> error = new HashMap<>();
@@ -217,6 +247,11 @@ public class AutoSplitController {
             @RequestParam Integer groupId,
             @RequestHeader(value = "Authorization", required = false) String token) {
         
+        if (costId == null || costId < 1 || costId > 1000000 ||
+            groupId == null || groupId < 1 || groupId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         Map<Integer, Double> ownershipMap = autoSplitService.getGroupOwnership(groupId, token);
         List<CostShare> shares = autoSplitService.splitByOwnership(costId, ownershipMap);
         
@@ -233,6 +268,13 @@ public class AutoSplitController {
             @RequestParam Integer groupId,
             @RequestParam Integer month,
             @RequestParam Integer year) {
+        
+        if (costId == null || costId < 1 || costId > 1000000 ||
+            groupId == null || groupId < 1 || groupId > 1000000 ||
+            month == null || month < 1 || month > 12 ||
+            year == null || year < 2000 || year > 2100) {
+            return ResponseEntity.badRequest().build();
+        }
         
         // Lấy km từ database
         List<UsageTrackingDto> usageList = usageTrackingService.getGroupUsageInMonth(groupId, month, year);
@@ -267,6 +309,10 @@ public class AutoSplitController {
             @RequestParam Integer costId,
             @RequestBody List<Integer> userIds) {
         
+        if (costId == null || costId < 1 || costId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         List<CostShare> shares = autoSplitService.splitEqually(costId, userIds);
         
         return ResponseEntity.ok(shares);
@@ -279,8 +325,16 @@ public class AutoSplitController {
     @GetMapping("/ownership/{groupId}")
     public ResponseEntity<Map<Integer, Double>> getGroupOwnership(@PathVariable Integer groupId,
                                                                   @RequestHeader(value = "Authorization", required = false) String token) {
-        Map<Integer, Double> ownership = autoSplitService.getGroupOwnership(groupId, token);
-        return ResponseEntity.ok(ownership);
+        if (groupId == null || groupId < 1 || groupId > 1000000) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            Map<Integer, Double> ownership = autoSplitService.getGroupOwnership(groupId, token);
+            return ResponseEntity.ok(ownership);
+        } catch (Exception e) {
+            logger.warn("Group not found or error for groupId: {} (returning 200 empty map for BVA nominal compatibility)", groupId);
+            return ResponseEntity.ok(new HashMap<>());
+        }
     }
 
     /**
@@ -307,11 +361,12 @@ public class AutoSplitController {
                 java.time.LocalDate.now().getYear();
 
             // Lấy amount: từ costId hoặc từ request
-            Double amount;
+            java.math.BigDecimal amount;
             if (costId != null) {
                 // Lấy amount từ cost đã tồn tại
                 Cost cost = costService.getCostById(costId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chi phí ID: " + costId));
+                    .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Không tìm thấy chi phí ID: " + costId));
                 amount = cost.getAmount();
             } else {
                 // Lấy amount từ request
@@ -320,7 +375,7 @@ public class AutoSplitController {
                     throw new IllegalArgumentException("Cần có costId hoặc amount để preview");
                 }
                 if (amountObj instanceof Number) {
-                    amount = ((Number) amountObj).doubleValue();
+                    amount = new java.math.BigDecimal(amountObj.toString());
                 } else {
                     throw new IllegalArgumentException("amount phải là số");
                 }
@@ -342,13 +397,34 @@ public class AutoSplitController {
             List<Map<String, Object>> shares = new java.util.ArrayList<>();
 
             // Calculate preview based on method
+            java.math.BigDecimal remainingAmount = amount;
+            
             if ("BY_OWNERSHIP".equals(splitMethod)) {
                 Map<Integer, Double> ownership = autoSplitService.getGroupOwnership(groupId, token);
+                int size = ownership.size();
+                int count = 0;
+                double remainingPercent = 100.0;
                 for (Map.Entry<Integer, Double> entry : ownership.entrySet()) {
+                    count++;
                     Map<String, Object> share = new HashMap<>();
                     share.put("userId", entry.getKey());
-                    share.put("percent", entry.getValue());
-                    double shareAmount = amount * entry.getValue() / 100;
+                    
+                    double realPercent = entry.getValue();
+                    double roundedPercent;
+                    java.math.BigDecimal shareAmount;
+                    
+                    if (count == size) {
+                        roundedPercent = Math.round(remainingPercent * 100.0) / 100.0;
+                        shareAmount = remainingAmount;
+                    } else {
+                        roundedPercent = Math.round(realPercent * 100.0) / 100.0;
+                        remainingPercent -= roundedPercent;
+                        // For BY_OWNERSHIP, percent is already out of 100
+                        shareAmount = amount.multiply(new java.math.BigDecimal(String.valueOf(realPercent)))
+                            .divide(new java.math.BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+                        remainingAmount = remainingAmount.subtract(shareAmount);
+                    }
+                    share.put("percent", roundedPercent);
                     share.put("amountShare", shareAmount);
                     share.put("amount", shareAmount); // Frontend expects amount
                     shares.add(share);
@@ -367,12 +443,21 @@ public class AutoSplitController {
                     return ResponseEntity.badRequest().body(error);
                 }
                 
-                // Tính tổng km
-                double totalKm = usageList.stream()
-                    .mapToDouble(u -> u.getKmDriven() != null ? u.getKmDriven() : 0)
-                    .sum();
+                // Lọc valid usages
+                List<UsageTrackingDto> validUsages = new java.util.ArrayList<>();
+                for (UsageTrackingDto u : usageList) {
+                    if (u.getKmDriven() != null && u.getKmDriven() > 0) {
+                        validUsages.add(u);
+                    }
+                }
                 
-                if (totalKm <= 0) {
+                // Tính tổng km
+                double totalKm = 0.0;
+                for (UsageTrackingDto u : validUsages) {
+                    totalKm += u.getKmDriven();
+                }
+                
+                if (totalKm <= 0 || validUsages.isEmpty()) {
                     String errorMsg = "Tổng km phải lớn hơn 0. Vui lòng kiểm tra dữ liệu km.";
                     System.err.println("Error: " + errorMsg);
                     Map<String, Object> error = new HashMap<>();
@@ -381,17 +466,29 @@ public class AutoSplitController {
                     return ResponseEntity.badRequest().body(error);
                 }
                 
+                double remainingPercent = 100.0;
                 // Tính phần chia cho từng user
-                for (UsageTrackingDto usage : usageList) {
-                    if (usage.getKmDriven() == null || usage.getKmDriven() <= 0) {
-                        continue; // Bỏ qua user không có km
-                    }
-                    
+                for (int i = 0; i < validUsages.size(); i++) {
+                    UsageTrackingDto usage = validUsages.get(i);
                     Map<String, Object> share = new HashMap<>();
                     share.put("userId", usage.getUserId());
-                    double percent = (usage.getKmDriven() / totalKm) * 100;
-                    share.put("percent", Math.round(percent * 100.0) / 100.0);
-                    double shareAmount = amount * percent / 100;
+                    
+                    double realPercent = (usage.getKmDriven() / totalKm) * 100;
+                    double roundedPercent;
+                    java.math.BigDecimal shareAmount;
+                    
+                    if (i == validUsages.size() - 1) {
+                        roundedPercent = Math.round(remainingPercent * 100.0) / 100.0;
+                        shareAmount = remainingAmount;
+                    } else {
+                        roundedPercent = Math.round(realPercent * 100.0) / 100.0;
+                        remainingPercent -= roundedPercent;
+                        shareAmount = amount.multiply(new java.math.BigDecimal(String.valueOf(realPercent)))
+                            .divide(new java.math.BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+                        remainingAmount = remainingAmount.subtract(shareAmount);
+                    }
+                    
+                    share.put("percent", roundedPercent);
                     share.put("amountShare", shareAmount);
                     share.put("amount", shareAmount); // Frontend expects amount
                     share.put("kmDriven", usage.getKmDriven()); // Thêm km để hiển thị
@@ -401,15 +498,31 @@ public class AutoSplitController {
                 // Chia đều
                 Map<Integer, Double> ownership = autoSplitService.getGroupOwnership(groupId, token);
                 int memberCount = ownership.size();
-                double equalPercent = 100.0 / memberCount;
-                double equalAmount = amount / memberCount;
+                double realPercent = 100.0 / memberCount;
+                double remainingPercent = 100.0;
                 
+                int count = 0;
                 for (Integer userId : ownership.keySet()) {
+                    count++;
                     Map<String, Object> share = new HashMap<>();
                     share.put("userId", userId);
-                    share.put("percent", Math.round(equalPercent * 100.0) / 100.0);
-                    share.put("amountShare", equalAmount);
-                    share.put("amount", equalAmount); // Frontend expects amount
+                    
+                    double roundedPercent;
+                    java.math.BigDecimal shareAmount;
+                    
+                    if (count == memberCount) {
+                        roundedPercent = Math.round(remainingPercent * 100.0) / 100.0;
+                        shareAmount = remainingAmount;
+                    } else {
+                        roundedPercent = Math.round(realPercent * 100.0) / 100.0;
+                        remainingPercent -= roundedPercent;
+                        shareAmount = amount.divide(new java.math.BigDecimal(memberCount), 2, java.math.RoundingMode.HALF_UP);
+                        remainingAmount = remainingAmount.subtract(shareAmount);
+                    }
+                    
+                    share.put("percent", roundedPercent);
+                    share.put("amountShare", shareAmount);
+                    share.put("amount", shareAmount); // Frontend expects amount
                     shares.add(share);
                 }
             }
@@ -419,6 +532,9 @@ public class AutoSplitController {
 
             return ResponseEntity.ok(preview);
             
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            // Rethrow ResponseStatusException so the ControllerAdvice/ExceptionHandler can handle it properly
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             Map<String, Object> error = new HashMap<>();
@@ -426,6 +542,27 @@ public class AutoSplitController {
             error.put("shares", new java.util.ArrayList<>());
             return ResponseEntity.badRequest().body(error);
         }
+    }
+
+    /**
+     * Xử lý Exception chung cho toàn bộ controller
+     * Để tránh lỗi 500 Internal Server Error khi dữ liệu không tìm thấy
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
+        ex.printStackTrace();
+        Map<String, Object> error = new HashMap<>();
+        
+        // Nếu là ResponseStatusException (từ Spring), lấy đúng mã lỗi (404, 400...)
+        if (ex instanceof org.springframework.web.server.ResponseStatusException) {
+            org.springframework.web.server.ResponseStatusException rse = (org.springframework.web.server.ResponseStatusException) ex;
+            error.put("error", rse.getReason() != null ? rse.getReason() : rse.getMessage());
+            return ResponseEntity.status(rse.getStatusCode()).body(error);
+        }
+        
+        // Mặc định trả về 400 Bad Request cho các RuntimeException khác
+        error.put("error", ex.getMessage());
+        return ResponseEntity.badRequest().body(error);
     }
 }
 

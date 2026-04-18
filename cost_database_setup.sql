@@ -16,7 +16,7 @@ CREATE TABLE cost (
     `costId` INT AUTO_INCREMENT PRIMARY KEY,
     `vehicleId` INT NOT NULL,
     `costType` ENUM('ElectricCharge','Maintenance','Insurance','Inspection','Cleaning','Other') DEFAULT 'Other',
-    `amount` DOUBLE NOT NULL,
+    `amount` DECIMAL(15, 2) NOT NULL,
     `description` TEXT,
     `status` ENUM('PENDING','SHARED') DEFAULT 'PENDING',
     `createdAt` DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -27,8 +27,8 @@ CREATE TABLE costshare (
     `shareId` INT AUTO_INCREMENT PRIMARY KEY,
     `costId` INT NOT NULL,
     `userId` INT NOT NULL,
-    `percent` DOUBLE DEFAULT 0,
-    `amountShare` DOUBLE DEFAULT 0,
+    `percent` DECIMAL(5, 2) DEFAULT 0,
+    `amountShare` DECIMAL(15, 2) DEFAULT 0,
     `calculatedAt` DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`costId`) REFERENCES cost(`costId`) ON DELETE CASCADE
 );
@@ -39,7 +39,7 @@ CREATE TABLE payment (
     `userId` INT NOT NULL,
     `costId` INT,
     `method` ENUM('EWALLET','BANKING','CASH') DEFAULT 'EWALLET',
-    `amount` DOUBLE NOT NULL,
+    `amount` DECIMAL(15, 2) NOT NULL,
     `transactionCode` VARCHAR(100),
     `paymentDate` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `status` ENUM('PENDING','PAID','OVERDUE','CANCELLED') DEFAULT 'PENDING',
@@ -50,8 +50,8 @@ CREATE TABLE payment (
 CREATE TABLE groupfund (
     `fundId` INT AUTO_INCREMENT PRIMARY KEY,
     `groupId` INT NOT NULL,
-    `totalContributed` DOUBLE DEFAULT 0,
-    `currentBalance` DOUBLE DEFAULT 0,
+    `totalContributed` DECIMAL(15, 2) DEFAULT 0,
+    `currentBalance` DECIMAL(15, 2) DEFAULT 0,
     `updatedAt` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `note` TEXT
 );
@@ -62,7 +62,7 @@ CREATE TABLE fundtransaction (
     `fundId` INT NOT NULL,
     `userId` INT,
     `transactionType` ENUM('Deposit','Withdraw') DEFAULT 'Deposit',
-    `amount` DOUBLE NOT NULL,
+    `amount` DECIMAL(15, 2) NOT NULL,
     `purpose` VARCHAR(255),
     `date` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `status` ENUM('Pending','Approved','Rejected','Completed') DEFAULT 'Completed',
@@ -104,8 +104,8 @@ CREATE TABLE costsplitdetail (
     `splitDetailId` INT AUTO_INCREMENT PRIMARY KEY,
     `costId` INT NOT NULL,
     `memberId` INT NOT NULL,
-    `amount` DOUBLE NOT NULL,
-    `percentage` DOUBLE NOT NULL,
+    `amount` DECIMAL(15, 2) NOT NULL,
+    `percentage` DECIMAL(5, 2) NOT NULL,
     `createdAt` DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`costId`) REFERENCES cost(`costId`) ON DELETE CASCADE,
     INDEX idx_cost (`costId`),
@@ -120,7 +120,16 @@ CREATE TABLE costsplitdetail (
 INSERT INTO usagetracking (`groupId`, `userId`, `month`, `year`, `kmDriven`) VALUES 
 (1, 1, 10, 2024, 600),  -- User 1: 600km (60%)
 (1, 2, 10, 2024, 300),  -- User 2: 300km (30%)
-(1, 3, 10, 2024, 100);  -- User 3: 100km (10%)
+(1, 3, 10, 2024, 100),  -- User 3: 100km (10%)
+-- Data test cho Group 5 (các tháng 1, 2, 6, 11, 12 năm 2024, 2020, 2021, 2099, 2100)
+(5, 7, 1, 2024, 500), (5, 8, 1, 2024, 300), (5, 9, 1, 2024, 200),
+(5, 7, 2, 2024, 500), (5, 8, 2, 2024, 300), (5, 9, 2, 2024, 200),
+(5, 7, 11, 2024, 500), (5, 8, 11, 2024, 300), (5, 9, 11, 2024, 200),
+(5, 7, 12, 2024, 500), (5, 8, 12, 2024, 300), (5, 9, 12, 2024, 200),
+(5, 7, 6, 2020, 500), (5, 8, 6, 2020, 300), (5, 9, 6, 2020, 200),
+(5, 7, 6, 2021, 500), (5, 8, 6, 2021, 300), (5, 9, 6, 2021, 200),
+(5, 7, 6, 2099, 500), (5, 8, 6, 2099, 300), (5, 9, 6, 2099, 200),
+(5, 7, 6, 2100, 500), (5, 8, 6, 2100, 300), (5, 9, 6, 2100, 200);
 
 -- Chi phí mẫu
 INSERT INTO cost (`vehicleId`, `costType`, `amount`, `description`) VALUES 
@@ -133,6 +142,10 @@ INSERT INTO cost (`vehicleId`, `costType`, `amount`, `description`) VALUES
 
 -- Chia ĐỀU (33.33% mỗi người)
 (1, 'Cleaning', 150000, 'Rửa xe');
+
+-- Test data cho API AutoSplit boundary values
+INSERT INTO cost (`costId`, `vehicleId`, `costType`, `amount`, `description`) VALUES
+(10, 5, 'ElectricCharge', 1500000, 'Sạc điện xe 5 (Test Group 5 boundary values)');
 
 -- Chia chi phí TỰ ĐỘNG
 -- Cost 1: Bảo hiểm (theo ownership 50%, 30%, 20%)

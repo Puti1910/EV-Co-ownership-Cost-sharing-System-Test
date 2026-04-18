@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.math.BigDecimal;
 
 /**
  * Repository: Quản lý giao dịch quỹ
@@ -63,7 +64,7 @@ public interface FundTransactionRepository extends JpaRepository<FundTransaction
            "WHERE ft.fundId = :fundId " +
            "AND ft.transactionType = 'Deposit' " +
            "AND ft.status = 'Completed'")
-    Double getTotalDeposit(@Param("fundId") Integer fundId);
+    BigDecimal getTotalDeposit(@Param("fundId") Integer fundId);
 
     /**
      * Tổng tiền rút từ quỹ
@@ -72,7 +73,7 @@ public interface FundTransactionRepository extends JpaRepository<FundTransaction
            "WHERE ft.fundId = :fundId " +
            "AND ft.transactionType = 'Withdraw' " +
            "AND ft.status = 'Completed'")
-    Double getTotalWithdraw(@Param("fundId") Integer fundId);
+    BigDecimal getTotalWithdraw(@Param("fundId") Integer fundId);
 
     /**
      * Lịch sử giao dịch theo khoảng thời gian

@@ -1,6 +1,17 @@
+<<<<<<< HEAD
 target/
 *.class
 .idea/
 .vscode/
 *.log
 bin/
+=======
+# Java/Maven build outputs
+**/target/
+**/*.class
+**/build/
+
+# IDE
+**/.idea/
+**/.vscode/
+>>>>>>> c9d73fa0df4700adac4e9031fa0361a98fcc04ef

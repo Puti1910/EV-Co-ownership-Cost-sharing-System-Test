@@ -1,6 +1,13 @@
 package com.example.groupmanagement.controller;
 
+import com.example.groupmanagement.dto.CreateGroupRequestDto;
 import com.example.groupmanagement.dto.GroupResponseDto;
+import com.example.groupmanagement.dto.AddGroupMemberRequestDto;
+import jakarta.validation.Valid;
+import com.example.groupmanagement.exception.ValidationException;
+import com.example.groupmanagement.util.GroupValidationUtil;
+import com.example.groupmanagement.until.MemberValidationUtil;
+import com.example.groupmanagement.service.UserValidationService;
 import com.example.groupmanagement.entity.ContractSignature;
 import com.example.groupmanagement.entity.Group;
 import com.example.groupmanagement.entity.GroupContract;
@@ -20,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -67,6 +75,9 @@ public class GroupManagementController {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private UserValidationService userValidationService;
 
     @Value("${cost-payment.service.url:${API_GATEWAY_URL:http://localhost:8084}}")
     private String costPaymentServiceUrl;
@@ -118,59 +129,40 @@ public class GroupManagementController {
         return group.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<?> createGroup(@RequestBody Map<String, Object> requestData) {
+@PostMapping
+    public ResponseEntity<?> createGroup(@Valid @RequestBody CreateGroupRequestDto requestDto) {
         try {
-            logger.info("🔵 [CREATE GROUP] Received request: {}", requestData);
+            logger.info("🔵 [CREATE GROUP] Received request: {}", requestDto);
             
-            // Extract Group data from request
+            // Extract Group data from request DTO
             Group group = new Group();
-            if (requestData.containsKey("groupName")) {
-                group.setGroupName((String) requestData.get("groupName"));
-            } else {
-                logger.error("❌ [CREATE GROUP] groupName is required but not provided");
-                return ResponseEntity.badRequest().body(Map.of("error", "groupName is required"));
-            }
+            group.setGroupName(requestDto.getGroupName());
             
             // Admin ID is now optional, if not provided, it will be null
-            if (requestData.containsKey("adminId")) {
-                Object adminIdObj = requestData.get("adminId");
-                if (adminIdObj != null) {
-                    if (adminIdObj instanceof Number) {
-                        group.setAdminId(((Number) adminIdObj).intValue());
-                    } else if (adminIdObj instanceof String && !((String) adminIdObj).isEmpty()) {
-                        try {
-                            group.setAdminId(Integer.parseInt((String) adminIdObj));
-                        } catch (NumberFormatException e) {
-                            logger.warn("Invalid adminId format: {}", adminIdObj);
-                            group.setAdminId(null); // Set to null if invalid format
-                        }
-                    }
-                } else {
-                    group.setAdminId(null);
-                }
-            } else {
-                group.setAdminId(null); // Default to null if not present
-            }
-            
-            logger.info("🔵 [CREATE GROUP] Group data prepared: groupName={}, adminId={}", group.getGroupName(), group.getAdminId());
+            group.setAdminId(requestDto.getAdminId());
             
             // vehicleId logic removed for 1-N support
 
-            if (requestData.containsKey("status")) {
-                String statusStr = (String) requestData.get("status");
-                group.setStatus("Active".equalsIgnoreCase(statusStr) ? Group.GroupStatus.Active : Group.GroupStatus.Inactive);
+            if (requestDto.getStatus() != null) {
+                group.setStatus("Active".equalsIgnoreCase(requestDto.getStatus()) ? Group.GroupStatus.Active : Group.GroupStatus.Inactive);
             } else {
-                // Default to Active if status is not provided
                 group.setStatus(Group.GroupStatus.Active);
             }
             
-            // Extract ownershipPercent for admin (optional)
-            Double adminOwnershipPercent = null;
-            if (requestData.containsKey("ownershipPercent")) {
-                Object ownershipObj = requestData.get("ownershipPercent");
-                if (ownershipObj != null) {
-                    adminOwnershipPercent = ((Number) ownershipObj).doubleValue();
+            Double adminOwnershipPercent = requestDto.getOwnershipPercent();
+            
+            logger.info("🔵 [CREATE GROUP] Group data prepared: groupName={}, adminId={}", group.getGroupName(), group.getAdminId());
+            
+
+
+            if (group.getAdminId() != null) {
+                String validationError = validateOwnershipPercent(adminOwnershipPercent);
+                if (validationError != null) {
+                    logger.error("❌ [CREATE GROUP] Invalid admin ownershipPercent: {}", adminOwnershipPercent);
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Invalid ownershipPercent",
+                        "message", validationError
+                    ));
                 }
             }
             
@@ -233,15 +225,26 @@ public class GroupManagementController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Group> updateGroup(@PathVariable Integer id, @RequestBody Map<String, Object> requestData) {
-        Optional<Group> groupOpt = groupRepository.findById(id);
-        if (groupOpt.isPresent()) {
+    public ResponseEntity<?> updateGroup(
+            @PathVariable Integer id, 
+            @RequestBody Map<String, Object> requestData) {
+        try {
+            Optional<Group> groupOpt = groupRepository.findById(id);
+            if (groupOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
             Group existingGroup = groupOpt.get();
             
-            // Update fields from request
+            // ✅ VALIDATION: Check and update groupName
             if (requestData.containsKey("groupName")) {
-                existingGroup.setGroupName((String) requestData.get("groupName"));
+                String newGroupName = (String) requestData.get("groupName");
+                // Validate before setting
+                GroupValidationUtil.validateGroupName(newGroupName);
+                existingGroup.setGroupName(newGroupName);
             }
+            
+            // Update other fields
             if (requestData.containsKey("adminId")) {
                 existingGroup.setAdminId(((Number) requestData.get("adminId")).intValue());
             }
@@ -249,12 +252,30 @@ public class GroupManagementController {
 
             if (requestData.containsKey("status")) {
                 String statusStr = (String) requestData.get("status");
-                existingGroup.setStatus("Active".equalsIgnoreCase(statusStr) ? Group.GroupStatus.Active : Group.GroupStatus.Inactive);
+                existingGroup.setStatus("Active".equalsIgnoreCase(statusStr) ? 
+                    Group.GroupStatus.Active : Group.GroupStatus.Inactive);
             }
             
+            logger.info("✅ [GroupManagementController] Group {} updated successfully", id);
             return ResponseEntity.ok(groupRepository.save(existingGroup));
+            
+        } catch (ValidationException e) {
+            // ✅ HANDLE VALIDATION ERRORS
+            logger.warn("❌ [GroupManagementController] Validation error updating group {}: {}", 
+                id, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Validation error",
+                "message", e.getMessage(),
+                "field", e.getFieldName(),
+                "code", e.getErrorCode()
+            ));
+        } catch (Exception e) {
+            logger.error("❌ [GroupManagementController] Error updating group {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "error", "Internal server error",
+                "message", e.getMessage()
+            ));
         }
-        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
@@ -380,6 +401,19 @@ public class GroupManagementController {
             .findFirst();
     }
 
+    private String validateOwnershipPercent(Double ownershipPercent) {
+        if (ownershipPercent == null) {
+            return "ownershipPercent is required and must be a number";
+        }
+        if (ownershipPercent <= 0.0) {
+            return "ownershipPercent must be greater than 0";
+        }
+        if (ownershipPercent > 100.0) {
+            return "ownershipPercent must be less than or equal to 100";
+        }
+        return null;
+    }
+
     // GroupMember endpoints
     @GetMapping("/{groupId}/members")
     public List<GroupMember> getGroupMembers(@PathVariable Integer groupId) {
@@ -390,180 +424,211 @@ public class GroupManagementController {
     public ResponseEntity<?> addGroupMember(
             @PathVariable Integer groupId, 
             @RequestBody Map<String, Object> requestData) {
+        
         try {
-            // Extract data from request
+            logger.info("🔵 [GroupManagementController] POST /api/groups/{}/members", groupId);
+            
+            // ============ STEP 1: EXTRACT DATA ============
             Integer currentUserId = requestData.containsKey("currentUserId") ? 
                 ((Number) requestData.get("currentUserId")).intValue() : null;
-            GroupMember groupMember = new GroupMember();
+            Integer userId = requestData.containsKey("userId") ? 
+                ((Number) requestData.get("userId")).intValue() : null;
+            Double ownershipPercent = requestData.containsKey("ownershipPercent") ? 
+                ((Number) requestData.get("ownershipPercent")).doubleValue() : null;
+            String role = requestData.containsKey("role") ? 
+                (String) requestData.get("role") : "Member";
             
-            if (requestData.containsKey("userId")) {
-                groupMember.setUserId(((Number) requestData.get("userId")).intValue());
-            }
-            if (requestData.containsKey("role")) {
-                String roleStr = (String) requestData.get("role");
-                groupMember.setRole("Admin".equalsIgnoreCase(roleStr) ? 
-                    GroupMember.MemberRole.Admin : GroupMember.MemberRole.Member);
-            }
-            if (requestData.containsKey("ownershipPercent")) {
-                groupMember.setOwnershipPercent(((Number) requestData.get("ownershipPercent")).doubleValue());
-            }
+            logger.info("Request: currentUserId={}, userId={}, ownershipPercent={}, role={}", 
+                currentUserId, userId, ownershipPercent, role);
             
-            logger.info("🔵 [GroupManagementController] POST /api/groups/{}/members", groupId);
-            logger.info("Request: currentUserId={}, userId={}, role={}, ownershipPercent={}", 
-                currentUserId, groupMember.getUserId(), groupMember.getRole(), groupMember.getOwnershipPercent());
+            // ============ STEP 2: VALIDATE INPUTS ============
             
-            // Validation: Check if currentUserId is provided
-            if (currentUserId == null) {
-                logger.error("❌ [GroupManagementController] currentUserId is required for authorization");
-                return ResponseEntity.status(400).body(Map.of(
-                    "error", "currentUserId is required",
-                    "message", "Vui lòng cung cấp ID của người thực hiện thao tác"
+            // Validate currentUserId
+            if (currentUserId == null || currentUserId <= 0) {
+                logger.error("❌ [GroupManagementController] Invalid currentUserId: {}", currentUserId);
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Invalid currentUserId",
+                    "message", "Vui lòng cung cấp ID của người thực hiện thao tác",
+                    "field", "currentUserId",
+                    "code", "INVALID_CURRENT_USER_ID"
                 ));
             }
             
-            boolean isSelfJoin = groupMember.getUserId() != null && currentUserId.equals(groupMember.getUserId());
+            // Validate userId
+            try {
+                MemberValidationUtil.validateUserId(userId);
+            } catch (ValidationException e) {
+                logger.error("❌ [GroupManagementController] Invalid userId: {}", e.getMessage());
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Invalid userId",
+                    "message", e.getMessage(),
+                    "field", e.getFieldName(),
+                    "code", e.getErrorCode()
+                ));
+            }
             
-            // Rule 1: Kiểm tra quyền Admin (trừ trường hợp tự tham gia)
+            // ✅ FIX BUG 1: Check if user exists in User Account Service
+            boolean userExists = userValidationService.isUserExists(userId);
+            if (!userExists) {
+                logger.error("❌ [GroupManagementController] User ID {} không tồn tại trong hệ thống", userId);
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "User not found",
+                    "message", String.format("User ID %d không tồn tại trong hệ thống", userId),
+                    "field", "userId",
+                    "code", "USER_NOT_FOUND"
+                ));
+            }
+            
+            // Validate ownershipPercent
+            try {
+                MemberValidationUtil.validateOwnershipPercent(ownershipPercent);
+            } catch (ValidationException e) {
+                logger.error("❌ [GroupManagementController] Invalid ownershipPercent: {}", e.getMessage());
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Invalid ownershipPercent",
+                    "message", e.getMessage(),
+                    "field", e.getFieldName(),
+                    "code", e.getErrorCode()
+                ));
+            }
+            
+            // ============ STEP 3: AUTHORIZATION (FIX BUG 5) ============
+            
+            boolean isSelfJoin = currentUserId.equals(userId);
             if (!isSelfJoin && !isAdminOfGroup(currentUserId, groupId)) {
-                logger.warn("⚠️ [GroupManagementController] User {} is not Admin of group {}", currentUserId, groupId);
+                logger.warn("❌ [GroupManagementController] User {} is not Admin of group {}", currentUserId, groupId);
                 return ResponseEntity.status(403).body(Map.of(
                     "error", "Forbidden",
-                    "message", "Chỉ Admin mới có quyền thêm thành viên vào nhóm"
+                    "message", "Chỉ Admin mới có quyền thêm thành viên vào nhóm",
+                    "field", "currentUserId",
+                    "code", "NOT_GROUP_ADMIN"
                 ));
             }
             
-            // Validation: Check if userId is provided
-            if (groupMember.getUserId() == null) {
-                logger.error("❌ [GroupManagementController] userId is null");
-                return ResponseEntity.status(400).body(Map.of("error", "userId is required"));
+            // ============ STEP 4: CHECK GROUP EXISTS ============
+            
+            Optional<Group> groupOpt = groupRepository.findById(groupId);
+            if (groupOpt.isEmpty()) {
+                logger.error("❌ [GroupManagementController] Group {} not found", groupId);
+                return ResponseEntity.status(404).body(Map.of(
+                    "error", "Group not found",
+                    "message", String.format("Nhóm ID %d không tồn tại", groupId),
+                    "field", "groupId",
+                    "code", "GROUP_NOT_FOUND"
+                ));
             }
             
-            // Validation: Check if ownershipPercent is valid
-            if (groupMember.getOwnershipPercent() == null) {
-                logger.warn("⚠️ [GroupManagementController] ownershipPercent is null, setting to 0.0");
-                groupMember.setOwnershipPercent(0.0);
-            }
+            Group targetGroup = groupOpt.get();
             
-            // Check if group exists
-            Optional<Group> group = groupRepository.findById(groupId);
-            if (!group.isPresent()) {
-                logger.error("❌ [GroupManagementController] Group not found: {}", groupId);
-                return ResponseEntity.status(404).body(Map.of("error", "Group not found"));
-            }
-            Group targetGroup = group.get();
+            // ============ STEP 5: CHECK DUPLICATE MEMBER (FIX BUG 2) ============
             
-            // Rule 6: Check if user is already a member
             List<GroupMember> existingMembers = groupMemberRepository.findByGroup_GroupId(groupId);
-            Optional<GroupMember> existingMemberOpt = existingMembers.stream()
-                    .filter(m -> m.getUserId().equals(groupMember.getUserId()))
-                    .findFirst();
+            boolean isDuplicate = existingMembers.stream()
+                .anyMatch(m -> m.getUserId().equals(userId));
             
-            if (existingMemberOpt.isPresent()) {
-                GroupMember existingMember = existingMemberOpt.get();
-                logger.warn("⚠️ [GroupManagementController] User {} is already a member of group {} (memberId: {})", 
-                    groupMember.getUserId(), groupId, existingMember.getMemberId());
-                
-                // If ownership percent is different, update it (still need Admin permission)
-                if (groupMember.getOwnershipPercent() != null && 
-                    !groupMember.getOwnershipPercent().equals(existingMember.getOwnershipPercent())) {
-                    
-                    // Rule 3: Validate total ownership won't exceed 100%
-                    double currentTotal = existingMembers.stream()
-                        .filter(m -> !m.getUserId().equals(groupMember.getUserId())) // Exclude current user
-                        .mapToDouble(m -> m.getOwnershipPercent() != null ? m.getOwnershipPercent() : 0.0)
-                        .sum();
-                    
-                    double newTotal = currentTotal + groupMember.getOwnershipPercent();
-                    if (newTotal > 100.0) {
-                        logger.error("❌ [GroupManagementController] Total ownership would exceed 100%: {}%", newTotal);
-                        return ResponseEntity.status(400).body(Map.of(
-                            "error", "Total ownership exceeds 100%",
-                            "message", String.format("Tổng tỷ lệ sở hữu không được vượt quá 100%%. Hiện tại: %.2f%%", currentTotal)
-                        ));
-                    }
-                    
-                    logger.info("🔄 [GroupManagementController] Updating ownership from {} to {}", 
-                        existingMember.getOwnershipPercent(), groupMember.getOwnershipPercent());
-                    existingMember.setOwnershipPercent(groupMember.getOwnershipPercent());
-                    GroupMember updated = groupMemberRepository.save(existingMember);
-                    logger.info("✅ [GroupManagementController] Ownership updated successfully");
-                    return ResponseEntity.status(200).body(updated);
-                }
-                
-                // If same ownership, just return existing member info
-                logger.info("ℹ️ [GroupManagementController] User already has same ownership, returning existing member");
-                return ResponseEntity.status(200).body(existingMember);
+            if (isDuplicate) {
+                logger.warn("❌ [GroupManagementController] User {} already is a member of group {}", userId, groupId);
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Duplicate member",
+                    "message", String.format("User ID %d đã là thành viên của nhóm này", userId),
+                    "field", "userId",
+                    "code", "USER_ALREADY_MEMBER"
+                ));
             }
-
-            // Đảm bảo nhóm luôn có hợp đồng trước khi xử lý thêm thành viên
+            
+            // ============ STEP 6: VALIDATE TOTAL OWNERSHIP (FIX BUG 4 - logic correction) ============
+            
+            double currentTotal = existingMembers.stream()
+                .mapToDouble(m -> m.getOwnershipPercent() != null ? m.getOwnershipPercent() : 0.0)
+                .sum();
+            
+            try {
+                MemberValidationUtil.validateTotalOwnership(currentTotal, ownershipPercent);
+            } catch (ValidationException e) {
+                logger.error("❌ [GroupManagementController] Total ownership validation failed: {}", e.getMessage());
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Total ownership exceeds limit",
+                    "message", e.getMessage(),
+                    "field", e.getFieldName(),
+                    "code", e.getErrorCode(),
+                    "currentTotal", currentTotal,
+                    "requestedOwnership", ownershipPercent,
+                    "wouldBeTotal", currentTotal + ownershipPercent
+                ));
+            }
+            
+            // ============ STEP 7: CONTRACT SIGNATURE VERIFICATION ============
+            
             GroupContract activeContract = ensureGroupContractExists(targetGroup, currentUserId);
 
-            // New member: enforce contract signature requirement (skip cho self-join)
             if (!isSelfJoin) {
-                boolean hasSigned = contractSignatureRepository.existsByGroupContractAndUserId(activeContract, groupMember.getUserId());
+                boolean hasSigned = contractSignatureRepository.existsByGroupContractAndUserId(activeContract, userId);
                 if (!hasSigned) {
-                    hasSigned = tryReusePreviousSignature(groupId, groupMember.getUserId(), activeContract);
+                    hasSigned = tryReusePreviousSignature(groupId, userId, activeContract);
                 }
                 if (!hasSigned) {
-                    hasSigned = autoSignContractForMember(activeContract, groupMember.getUserId(), currentUserId);
+                    hasSigned = autoSignContractForMember(activeContract, userId, currentUserId);
                 }
                 if (!hasSigned) {
                     logger.warn("⚠️ [GroupManagementController] User {} must sign contract {} before joining group {}", 
-                            groupMember.getUserId(), activeContract.getContractId(), groupId);
+                            userId, activeContract.getContractId(), groupId);
                     return ResponseEntity.status(409).body(Map.of(
                             "error", "contract_not_signed",
                             "message", "Thành viên phải ký hợp đồng nhóm trước khi gia nhập."
                     ));
                 }
             } else {
-                logger.info("ℹ️ [GroupManagementController] Self-join detected. Skipping contract signature verification (đã kiểm tra ở LegalContractService).");
+                logger.info("ℹ️ [GroupManagementController] Self-join detected. Skipping contract signature verification.");
             }
             
-            // Rule 3: Validate total ownership for new member
-            double currentTotal = existingMembers.stream()
-                .mapToDouble(m -> m.getOwnershipPercent() != null ? m.getOwnershipPercent() : 0.0)
-                .sum();
+            // ============ STEP 8: CREATE AND SAVE MEMBER ============
             
-            double newTotal = currentTotal + (groupMember.getOwnershipPercent() != null ? groupMember.getOwnershipPercent() : 0.0);
-            if (newTotal > 100.0) {
-                logger.error("❌ [GroupManagementController] Total ownership would exceed 100%: {}%", newTotal);
-                return ResponseEntity.status(400).body(Map.of(
-                    "error", "Total ownership exceeds 100%",
-                    "message", String.format("Tổng tỷ lệ sở hữu không được vượt quá 100%%. Hiện tại: %.2f%%", currentTotal)
-                ));
-            }
-            
-            // Set group reference
+            GroupMember groupMember = new GroupMember();
             groupMember.setGroup(targetGroup);
+            groupMember.setUserId(userId);
+            groupMember.setRole("Admin".equalsIgnoreCase(role) ? 
+                GroupMember.MemberRole.Admin : GroupMember.MemberRole.Member);
+            groupMember.setOwnershipPercent(ownershipPercent);
             
-            // Set default role if not provided
-            if (groupMember.getRole() == null) {
-                groupMember.setRole(GroupMember.MemberRole.Member);
-                logger.info("Setting default role: Member");
-            }
-            
-            // Save to database
             logger.info("💾 [GroupManagementController] Attempting to save member to database...");
             GroupMember saved = groupMemberRepository.save(groupMember);
-            logger.info("✅ [GroupManagementController] Member added successfully: memberId={}, userId={}, groupId={}, ownershipPercent={}", 
+            
+            logger.info("✅ [GroupManagementController] Member added successfully: memberId={}, userId={}, groupId={}, ownershipPercent={}%", 
                 saved.getMemberId(), saved.getUserId(), saved.getGroup().getGroupId(), saved.getOwnershipPercent());
             
             updateGroupAdminByOwnership(groupId);
             
             return ResponseEntity.ok(saved);
             
+        } catch (ValidationException e) {
+            logger.error("❌ [GroupManagementController] Validation error: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Validation error",
+                "message", e.getMessage(),
+                "field", e.getFieldName(),
+                "code", e.getErrorCode()
+            ));
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             logger.error("❌ [GroupManagementController] Database constraint violation: {}", e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(400).body(Map.of("error", "Database constraint violation", "message", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Database constraint violation",
+                "message", "Có lỗi ràng buộc dữ liệu, vui lòng kiểm tra lại thông tin",
+                "code", "DATABASE_CONSTRAINT_ERROR"
+            ));
         } catch (jakarta.persistence.PersistenceException e) {
             logger.error("❌ [GroupManagementController] Persistence error: {}", e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", "Database error", "message", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of(
+                "error", "Database error", 
+                "message", e.getMessage()
+            ));
         } catch (Exception e) {
-            logger.error("❌ [GroupManagementController] Unexpected error adding group member: {}", e.getMessage());
+            logger.error("❌ [GroupManagementController] Unexpected error adding group member: {}", e.getMessage(), e);
             e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", "Failed to add member", "message", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of(
+                "error", "Failed to add member", 
+                "message", e.getMessage()
+            ));
         }
     }
 
@@ -656,18 +721,38 @@ public class GroupManagementController {
             if (requestData.containsKey("ownershipPercent")) {
                 Double newOwnership = ((Number) requestData.get("ownershipPercent")).doubleValue();
                 
-                // Rule 3: Validate total ownership
+                // Use MemberValidationUtil for consistent validation (ensures > 0.01 and <= 100)
+                try {
+                    MemberValidationUtil.validateOwnershipPercent(newOwnership);
+                } catch (ValidationException e) {
+                    logger.error("❌ [GroupManagementController] Invalid ownershipPercent for update: {}", e.getMessage());
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Invalid ownershipPercent",
+                        "message", e.getMessage(),
+                        "field", e.getFieldName(),
+                        "code", e.getErrorCode()
+                    ));
+                }
+                
+                // Rule 3: Validate total ownership using MemberValidationUtil (allows <= 100%)
                 List<GroupMember> allMembers = groupMemberRepository.findByGroup_GroupId(groupId);
                 double currentTotal = allMembers.stream()
-                    .filter(m -> !m.getMemberId().equals(memberId)) // Exclude member being updated
+                    .filter(m -> !m.getMemberId().equals(memberId)) // Exclude member being updated (subtract old ownership)
                     .mapToDouble(m -> m.getOwnershipPercent() != null ? m.getOwnershipPercent() : 0.0)
                     .sum();
                 
-                double newTotal = currentTotal + newOwnership;
-                if (newTotal > 100.0) {
-                    return ResponseEntity.status(400).body(Map.of(
-                        "error", "Total ownership exceeds 100%",
-                        "message", String.format("Tổng tỷ lệ sở hữu không được vượt quá 100%%. Hiện tại: %.2f%%", currentTotal)
+                try {
+                    MemberValidationUtil.validateTotalOwnership(currentTotal, newOwnership);
+                } catch (ValidationException e) {
+                    logger.error("❌ [GroupManagementController] Total ownership validation failed: {}", e.getMessage());
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Total ownership exceeds limit",
+                        "message", e.getMessage(),
+                        "field", e.getFieldName(),
+                        "code", e.getErrorCode(),
+                        "currentTotal", currentTotal,
+                        "requestedOwnership", newOwnership,
+                        "wouldBeTotal", currentTotal + newOwnership
                     ));
                 }
                 

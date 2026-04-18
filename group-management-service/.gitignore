@@ -1,5 +1,70 @@
+<<<<<<< HEAD
 target/
 *.class
 .settings/
 .project
 bin/
+=======
+# ================================
+# OS / System files
+# ================================
+.DS_Store
+Thumbs.db
+
+# ================================
+# Local database / temp DB files
+# ================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# ================================
+# IDE cache / analysis files (VS / AI tools)
+# ================================
+.vs/
+CodeChunks*
+SemanticSymbols*
+
+# ================================
+# Logs
+# ================================
+*.log
+
+# ================================
+# Temporary / backup files
+# ================================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# ================================
+# Test / coverage output
+# ================================
+coverage/
+*.lcov
+
+# ================================
+# Generated reports (optional)
+# ================================
+*.html
+
+# Postman 
+*.postman_collection.json
+
+# Trừ thư mục target (nơi chứa các file .class của Maven)
+target/
+
+# Trừ các file .class lẻ tẻ nếu có
+*.class
+
+# Các file cấu hình của IDE (tùy chọn nhưng nên có)
+.idea/
+.settings/
+.classpath
+.project
+*.iml
+>>>>>>> c9d73fa0df4700adac4e9031fa0361a98fcc04ef

@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -703,27 +704,39 @@ public class GroupManagementController {
             }
             if (requestData.containsKey("ownershipPercent")) {
                 Double newOwnership = ((Number) requestData.get("ownershipPercent")).doubleValue();
-                String validationError = validateOwnershipPercent(newOwnership);
-                if (validationError != null) {
-                    logger.error("❌ [GroupManagementController] Invalid ownershipPercent for update: {}", newOwnership);
-                    return ResponseEntity.status(400).body(Map.of(
+                
+                // Use MemberValidationUtil for consistent validation (ensures > 0.01 and <= 100)
+                try {
+                    MemberValidationUtil.validateOwnershipPercent(newOwnership);
+                } catch (ValidationException e) {
+                    logger.error("❌ [GroupManagementController] Invalid ownershipPercent for update: {}", e.getMessage());
+                    return ResponseEntity.badRequest().body(Map.of(
                         "error", "Invalid ownershipPercent",
-                        "message", validationError
+                        "message", e.getMessage(),
+                        "field", e.getFieldName(),
+                        "code", e.getErrorCode()
                     ));
                 }
                 
-                // Rule 3: Validate total ownership
+                // Rule 3: Validate total ownership using MemberValidationUtil (allows <= 100%)
                 List<GroupMember> allMembers = groupMemberRepository.findByGroup_GroupId(groupId);
                 double currentTotal = allMembers.stream()
-                    .filter(m -> !m.getMemberId().equals(memberId)) // Exclude member being updated
+                    .filter(m -> !m.getMemberId().equals(memberId)) // Exclude member being updated (subtract old ownership)
                     .mapToDouble(m -> m.getOwnershipPercent() != null ? m.getOwnershipPercent() : 0.0)
                     .sum();
                 
-                double newTotal = currentTotal + newOwnership;
-                if (newTotal > 100.0) {
-                    return ResponseEntity.status(400).body(Map.of(
-                        "error", "Total ownership exceeds 100%",
-                        "message", String.format("Tổng tỷ lệ sở hữu không được vượt quá 100%%. Hiện tại: %.2f%%", currentTotal)
+                try {
+                    MemberValidationUtil.validateTotalOwnership(currentTotal, newOwnership);
+                } catch (ValidationException e) {
+                    logger.error("❌ [GroupManagementController] Total ownership validation failed: {}", e.getMessage());
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Total ownership exceeds limit",
+                        "message", e.getMessage(),
+                        "field", e.getFieldName(),
+                        "code", e.getErrorCode(),
+                        "currentTotal", currentTotal,
+                        "requestedOwnership", newOwnership,
+                        "wouldBeTotal", currentTotal + newOwnership
                     ));
                 }
                 

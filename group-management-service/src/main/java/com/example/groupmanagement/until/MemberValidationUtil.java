@@ -6,6 +6,7 @@ public class MemberValidationUtil {
     
     private static final double MIN_OWNERSHIP = 0.01;
     private static final double MAX_OWNERSHIP = 100.0;
+    private static final double EPSILON = 1e-6;
     
     /**
      * Validate userId (không null, > 0)
@@ -56,7 +57,7 @@ public class MemberValidationUtil {
     public static void validateTotalOwnership(double currentTotal, double newOwnership) {
         double newTotal = currentTotal + newOwnership;
         
-        // FIX: Thay đổi từ > thành > (allow exactly 100%)
+        // FIX: Thay đổi từ >= thành > (allow exactly 100%)
         if (newTotal > MAX_OWNERSHIP) {
             throw new ValidationException(
                 String.format("Tổng tỷ lệ sở hữu không được vượt quá 100%%. Hiện tại: %.2f%%, yêu cầu thêm: %.2f%%, tổng sẽ là: %.2f%%", 

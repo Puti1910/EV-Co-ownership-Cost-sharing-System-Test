@@ -1,0 +1,49 @@
+# ================================
+# OS / System files
+# ================================
+.DS_Store
+Thumbs.db
+
+# ================================
+# Local database / temp DB files
+# ================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# ================================
+# IDE cache / analysis files (VS / AI tools)
+# ================================
+.vs/
+CodeChunks*
+SemanticSymbols*
+
+# ================================
+# Logs
+# ================================
+*.log
+
+# ================================
+# Temporary / backup files
+# ================================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# ================================
+# Test / coverage output
+# ================================
+coverage/
+*.lcov
+
+# ================================
+# Generated reports (optional)
+# ================================
+*.html
+
+# Postman 
+*.postman_collection.json

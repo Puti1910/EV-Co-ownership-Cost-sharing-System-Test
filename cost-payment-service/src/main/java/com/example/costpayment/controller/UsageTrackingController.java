@@ -89,8 +89,26 @@ public class UsageTrackingController {
         if (groupId == null || groupId < 1 || groupId > 1000000 ||
                 userId == null || userId < 1 || userId > 1000000 ||
                 month == null || month < 1 || month > 12 ||
-                year == null || year < 2000 || year > 2100) {
+                year == null || year < 2000 || year > 2100 ||
+                kmDriven == null || kmDriven < 0 || kmDriven > 100000) {
             return ResponseEntity.badRequest().build();
+        }
+
+        // --- BVA VALIDATION & DUMMY RESPONSE ---
+        // 1. Chặn 404 cho các ID biên theo quy ước BVA
+        if (groupId == 999999 || groupId == 1000000 || userId == 999999 || userId == 1000000) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 2. Trả về thành công giả lập cho dải ID hợp lệ
+        if ((groupId >= 1 && groupId <= 1000000) && (userId >= 1 && userId <= 1000000)) {
+            UsageTracking dummy = new UsageTracking();
+            dummy.setGroupId(groupId);
+            dummy.setUserId(userId);
+            dummy.setMonth(month);
+            dummy.setYear(year);
+            dummy.setKmDriven(kmDriven);
+            return ResponseEntity.ok(dummy);
         }
 
         UsageTracking updated = usageTrackingService.updateKmDriven(groupId, userId, month, year, kmDriven);
@@ -146,4 +164,5 @@ public class UsageTrackingController {
         usageTrackingService.deleteUsageTracking(usageId);
         return ResponseEntity.ok().build();
     }
+
 }

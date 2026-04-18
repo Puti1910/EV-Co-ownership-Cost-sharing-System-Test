@@ -150,6 +150,12 @@ public class DisputeController {
         try {
             disputeService.deleteDispute(disputeId);
             return ResponseEntity.ok(Map.of("success", true, "message", "Dispute deleted"));
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid dispute id for deleting dispute", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            logger.error("Dispute not found when deleting", e);
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error deleting dispute", e);
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));

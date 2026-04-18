@@ -150,6 +150,14 @@ public class DisputeService {
     
     @Transactional
     public void deleteDispute(Integer disputeId) {
+        if (disputeId == null || disputeId <= 0) {
+            throw new IllegalArgumentException("Dispute ID phải > 0");
+        }
+
+        if (!disputeRepository.existsById(disputeId)) {
+            throw new RuntimeException("Dispute not found: " + disputeId);
+        }
+
         disputeRepository.deleteById(disputeId);
     }
     

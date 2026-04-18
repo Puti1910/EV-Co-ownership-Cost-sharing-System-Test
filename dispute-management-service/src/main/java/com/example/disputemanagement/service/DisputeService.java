@@ -164,6 +164,19 @@ public class DisputeService {
     
     @Transactional
     public DisputeComment addComment(Integer disputeId, DisputeComment comment) {
+        if (comment.getUserId() == null || comment.getUserId() <= 0) {
+            throw new IllegalArgumentException("User ID phải > 0");
+        }
+        if (comment.getUserRole() == null) {
+            throw new IllegalArgumentException("User role không được để trống");
+        }
+        if (comment.getContent() == null || comment.getContent().trim().isEmpty()) {
+            throw new IllegalArgumentException("Nội dung bình luận không được để trống");
+        }
+        if (comment.getIsInternal() == null) {
+            throw new IllegalArgumentException("Cờ internal không được để trống");
+        }
+
         Dispute dispute = disputeRepository.findById(disputeId)
             .orElseThrow(() -> new RuntimeException("Dispute not found: " + disputeId));
         
@@ -185,6 +198,17 @@ public class DisputeService {
         Dispute dispute = disputeRepository.findById(disputeId)
             .orElseThrow(() -> new RuntimeException("Dispute not found: " + disputeId));
         
+            // Validate required fields
+    if (resolution.getResolvedBy() == null || resolution.getResolvedBy() <= 0) {
+        throw new IllegalArgumentException("Người giải quyết không được để trống");
+    }
+    if (resolution.getResolutionType() == null) {
+        throw new IllegalArgumentException("Loại giải pháp không được để trống");
+    }
+    if (resolution.getResolutionDetails() == null || resolution.getResolutionDetails().isEmpty()) {
+        throw new IllegalArgumentException("Chi tiết giải pháp không được để trống");
+    }
+    
         // Kiểm tra xem đã có resolution chưa
         Optional<DisputeResolution> existing = resolutionRepository.findByDispute_DisputeId(disputeId);
         if (existing.isPresent()) {
@@ -252,6 +276,11 @@ public class DisputeService {
     
     @Transactional
     public DisputeAttachment addAttachment(DisputeAttachmentRequest request) {
+    // Validate fileSize
+    if (request.getFileSize() == null || request.getFileSize() <= 0) {
+        throw new IllegalArgumentException("Kích thước tệp phải > 0");
+    }
+    
     Dispute dispute = disputeRepository.findById(request.getDisputeId())
         .orElseThrow(() -> new RuntimeException("Dispute not found: " + request.getDisputeId()));
 

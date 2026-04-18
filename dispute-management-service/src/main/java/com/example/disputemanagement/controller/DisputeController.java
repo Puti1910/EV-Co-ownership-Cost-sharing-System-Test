@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Map;
@@ -170,7 +171,7 @@ public class DisputeController {
     }
     
     @PostMapping("/{disputeId}/comments")
-    public ResponseEntity<?> addComment(@PathVariable Integer disputeId, @RequestBody DisputeComment comment) {
+    public ResponseEntity<?> addComment(@PathVariable Integer disputeId, @Valid @RequestBody DisputeComment comment) {
         try {
             DisputeComment created = disputeService.addComment(disputeId, comment);
             return ResponseEntity.ok(created);
@@ -209,7 +210,7 @@ public class DisputeController {
     }
     
     @PostMapping("/{disputeId}/resolution")
-    public ResponseEntity<?> createResolution(@PathVariable Integer disputeId, @RequestBody DisputeResolution resolution) {
+public ResponseEntity<?> createResolution(@PathVariable Integer disputeId, @Valid @RequestBody DisputeResolution resolution) {
         try {
             DisputeResolution created = disputeService.createResolution(disputeId, resolution);
             return ResponseEntity.ok(created);
@@ -246,7 +247,7 @@ public class DisputeController {
     }
     
     @PostMapping("/attachments")
-    public ResponseEntity<?> addAttachment(@RequestBody DisputeAttachmentRequest attachment) {
+    public ResponseEntity<?> addAttachment(@Valid @RequestBody DisputeAttachmentRequest attachment) {
         try {
             DisputeAttachment created = disputeService.addAttachment(attachment);
             return ResponseEntity.ok(created);

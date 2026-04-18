@@ -1,0 +1,8 @@
+# Java/Maven build outputs
+**/target/
+**/*.class
+**/build/
+
+# IDE
+**/.idea/
+**/.vscode/

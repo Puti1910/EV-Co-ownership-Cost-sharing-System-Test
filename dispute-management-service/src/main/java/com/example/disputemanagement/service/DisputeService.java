@@ -252,6 +252,11 @@ public class DisputeService {
     
     @Transactional
     public DisputeAttachment addAttachment(DisputeAttachmentRequest request) {
+    // Validate fileSize
+    if (request.getFileSize() == null || request.getFileSize() <= 0) {
+        throw new IllegalArgumentException("Kích thước tệp phải > 0");
+    }
+    
     Dispute dispute = disputeRepository.findById(request.getDisputeId())
         .orElseThrow(() -> new RuntimeException("Dispute not found: " + request.getDisputeId()));
 

@@ -1,9 +1,6 @@
 package com.example.disputemanagement.service;
 
-<<<<<<< HEAD
-=======
 import com.example.disputemanagement.dto.DisputeAttachmentRequest;
->>>>>>> origin/main
 import com.example.disputemanagement.entity.*;
 import com.example.disputemanagement.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -189,8 +186,6 @@ public class DisputeService {
     
     @Transactional
     public DisputeComment addComment(Integer disputeId, DisputeComment comment) {
-<<<<<<< HEAD
-=======
         if (comment.getUserId() == null || comment.getUserId() <= 0) {
             throw new IllegalArgumentException("User ID phải > 0");
         }
@@ -204,7 +199,6 @@ public class DisputeService {
             throw new IllegalArgumentException("Cờ internal không được để trống");
         }
 
->>>>>>> origin/main
         Dispute dispute = disputeRepository.findById(disputeId)
             .orElseThrow(() -> new RuntimeException("Dispute not found: " + disputeId));
         
@@ -234,8 +228,6 @@ public class DisputeService {
         Dispute dispute = disputeRepository.findById(disputeId)
             .orElseThrow(() -> new RuntimeException("Dispute not found: " + disputeId));
         
-<<<<<<< HEAD
-=======
             // Validate required fields
     if (resolution.getResolvedBy() == null || resolution.getResolvedBy() <= 0) {
         throw new IllegalArgumentException("Người giải quyết không được để trống");
@@ -247,7 +239,6 @@ public class DisputeService {
         throw new IllegalArgumentException("Chi tiết giải pháp không được để trống");
     }
     
->>>>>>> origin/main
         // Kiểm tra xem đã có resolution chưa
         Optional<DisputeResolution> existing = resolutionRepository.findByDispute_DisputeId(disputeId);
         if (existing.isPresent()) {
@@ -314,13 +305,6 @@ public class DisputeService {
     }
     
     @Transactional
-<<<<<<< HEAD
-    public DisputeAttachment addAttachment(DisputeAttachment attachment) {
-        attachment.setUploadedAt(LocalDateTime.now());
-        return attachmentRepository.save(attachment);
-    }
-    
-=======
     public DisputeAttachment addAttachment(DisputeAttachmentRequest request) {
     // Validate fileSize
     if (request.getFileSize() == null || request.getFileSize() <= 0) {
@@ -348,7 +332,6 @@ public class DisputeService {
     return attachmentRepository.save(attachment);
 }
     
->>>>>>> origin/main
     // ========== STATISTICS METHODS ==========
     
     public long countByStatus(Dispute.DisputeStatus status) {

@@ -41,6 +41,6 @@ public class VotingResult {
     private LocalDateTime votedAt = LocalDateTime.now();
     
     public enum VoteChoice {
-        A, B
+        A, D
     }
 }

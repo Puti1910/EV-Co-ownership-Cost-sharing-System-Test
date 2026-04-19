@@ -1002,7 +1002,7 @@ public class GroupManagementController {
                 voting.setFinalResult("Đã chấp nhận");
             } else if (agreePercentageOfMembers <= 50 && voting.getFinalResult() == null) {
                 // Check if all members have voted
-                if (totalMembers > 0 && allVotes.size() >= totalMembers) {
+                if (totalMembers > 0 && allVotes.size() == totalMembers) {
                     // All members voted but condition not met
                     voting.setFinalResult("Đã từ chối");
                 }
@@ -1017,7 +1017,7 @@ public class GroupManagementController {
             response.put("agreePercentage", agreePercentage);
             response.put("agreePercentageOfMembers", agreePercentageOfMembers);
             response.put("adminAgreed", adminAgreed);
-            response.put("finalResult", voting.getFinalResult() != null ? voting.getFinalResult() : "");
+            response.put("finalResult", voting.getFinalResult() != null ? voting.getFinalResult() : "Voting chưa kết thúc");
             
             return ResponseEntity.ok(response);
             

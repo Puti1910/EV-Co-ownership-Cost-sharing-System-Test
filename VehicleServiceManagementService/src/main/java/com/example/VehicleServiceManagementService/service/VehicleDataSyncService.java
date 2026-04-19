@@ -5,7 +5,8 @@ import com.example.VehicleServiceManagementService.model.Vehicle;
 import com.example.VehicleServiceManagementService.repository.VehicleGroupRepository;
 import com.example.VehicleServiceManagementService.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,20 +14,23 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class VehicleDataSyncService {
+    private static final Logger log = LoggerFactory.getLogger(VehicleDataSyncService.class);
 
     private final VehicleRepository vehicleRepository;
     private final VehicleGroupRepository vehicleGroupRepository;
 
+    public VehicleDataSyncService(VehicleRepository vehicleRepository, VehicleGroupRepository vehicleGroupRepository) {
+        this.vehicleRepository = vehicleRepository;
+        this.vehicleGroupRepository = vehicleGroupRepository;
+    }
+
     @Transactional
-    public Vehiclegroup ensureGroupSynced(Integer groupId, Map<String, Object> groupPayload) {
+    public Vehiclegroup ensureGroupSynced(Long groupId, Map<String, Object> groupPayload) {
         if (groupId == null) {
             return null;
         }
-        String groupKey = String.valueOf(groupId);
-        Optional<Vehiclegroup> existing = vehicleGroupRepository.findById(groupKey);
+        Optional<Vehiclegroup> existing = vehicleGroupRepository.findById(groupId);
         if (existing.isPresent()) {
             Vehiclegroup group = existing.get();
             if (groupPayload != null) {
@@ -40,26 +44,26 @@ public class VehicleDataSyncService {
         }
 
         Vehiclegroup group = new Vehiclegroup();
-        group.setGroupId(groupKey);
+        group.setGroupId(groupId);
         if (groupPayload != null) {
             Object name = groupPayload.get("groupName");
-            group.setName(name instanceof String && !((String) name).isBlank() ? (String) name : "Group #" + groupKey);
+            group.setName(name instanceof String && !((String) name).isBlank() ? (String) name : "Group #" + groupId);
             Object description = groupPayload.get("description");
             if (description instanceof String) {
                 group.setDescription((String) description);
             }
         } else {
-            group.setName("Group #" + groupKey);
+            group.setName("Group #" + groupId);
         }
         return vehicleGroupRepository.save(group);
     }
 
     @Transactional
-    public Vehicle ensureVehicleSynced(String vehicleId,
+    public Vehicle ensureVehicleSynced(Long vehicleId,
                                        Vehiclegroup group,
                                        Map<String, Object> vehiclePayload,
                                        String fallbackName) {
-        if (vehicleId == null || vehicleId.isBlank()) {
+        if (vehicleId == null) {
             throw new IllegalArgumentException("vehicleId is required");
         }
         Vehicle vehicle = vehicleRepository.findById(vehicleId).orElseGet(() -> {

@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+target/
+*.class
+.settings/
+.project
+bin/
+=======
 # ================================
 # OS / System files
 # ================================
@@ -60,3 +67,4 @@ target/
 .classpath
 .project
 *.iml
+>>>>>>> c9d73fa0df4700adac4e9031fa0361a98fcc04ef

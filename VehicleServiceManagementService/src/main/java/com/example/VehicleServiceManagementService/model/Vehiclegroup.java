@@ -2,6 +2,8 @@ package com.example.VehicleServiceManagementService.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 
 @Entity
@@ -10,21 +12,25 @@ import jakarta.persistence.*;
 public class Vehiclegroup {
 
     @Id
-    @Column(name = "group_id", length = 20)
-    private String groupId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "group_id")
+    private Long groupId;
 
     @Column(name = "group_name", length = 100)
+    @NotBlank(message = "Tên nhóm xe không được để trống")
+    @Size(max = 100, message = "Tên nhóm xe không được vượt quá 100 ký tự")
     private String name;
 
     @Column(name = "description", length = 255)
+    @Size(max = 255, message = "Mô tả không được vượt quá 255 ký tự")
     private String description;
 
     // Getter và Setter cho groupId
-    public String getGroupId() {
+    public Long getGroupId() {
         return groupId;
     }
 
-    public void setGroupId(String groupId) {
+    public void setGroupId(Long groupId) {
         this.groupId = groupId;
     }
 

@@ -143,8 +143,8 @@ public class GroupManagementController {
             // Admin ID is now optional, if not provided, it will be null
             group.setAdminId(requestDto.getAdminId());
             
-            group.setVehicleId(requestDto.getVehicleId());
-            
+            // vehicleId logic removed for 1-N support
+
             if (requestDto.getStatus() != null) {
                 group.setStatus("Active".equalsIgnoreCase(requestDto.getStatus()) ? Group.GroupStatus.Active : Group.GroupStatus.Inactive);
             } else {
@@ -250,25 +250,8 @@ public class GroupManagementController {
             if (requestData.containsKey("adminId")) {
                 existingGroup.setAdminId(((Number) requestData.get("adminId")).intValue());
             }
-            if (requestData.containsKey("vehicleId")) {
-                Object vehicleIdObj = requestData.get("vehicleId");
-                if (vehicleIdObj != null) {
-                    Integer vehicleIdInt = null;
-                    if (vehicleIdObj instanceof Number) {
-                        vehicleIdInt = ((Number) vehicleIdObj).intValue();
-                    } else if (vehicleIdObj instanceof String) {
-                        try {
-                            vehicleIdInt = Integer.parseInt((String) vehicleIdObj);
-                        } catch (NumberFormatException e) {
-                            logger.warn("Invalid vehicleId format: {}", vehicleIdObj);
-                            vehicleIdInt = null;
-                        }
-                    }
-                    existingGroup.setVehicleId(vehicleIdInt);
-                } else {
-                    existingGroup.setVehicleId(null);
-                }
-            }
+            // vehicleId logic removed for 1-N support
+
             if (requestData.containsKey("status")) {
                 String statusStr = (String) requestData.get("status");
                 existingGroup.setStatus("Active".equalsIgnoreCase(statusStr) ? 
@@ -362,6 +345,39 @@ public class GroupManagementController {
             logger.error("Error fetching groups for userId={}", userId, e);
             return ResponseEntity.status(500)
                 .body(Map.of("error", "Failed to fetch groups: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get list of groups/vehicles for maintenance booking.
+     * GET /api/groups/user/{userId}/maintenance-options
+     */
+    @GetMapping("/user/{userId}/maintenance-options")
+    public ResponseEntity<?> getMaintenanceOptions(@PathVariable Integer userId) {
+        try {
+            logger.info("🔵 [GroupManagementController] GET /api/groups/user/{}/maintenance-options", userId);
+            
+            List<GroupMember> memberships = groupMemberRepository.findByUserId(userId);
+            
+            List<Map<String, Object>> options = memberships.stream()
+                .map(m -> {
+                    Map<String, Object> option = new HashMap<>();
+                    option.put("groupId", m.getGroup().getGroupId());
+                    option.put("groupName", m.getGroup().getGroupName());
+                    option.put("memberRole", m.getRole() != null ? m.getRole().name() : "Member");
+                    // In 1-N model, vehicles are managed in vehicle-service.
+                    // We return empty vehicle info here and let vehicle-service fill it if needed.
+                    option.put("vehicleId", null);
+                    option.put("vehicleLabel", null);
+                    return option;
+                })
+                .collect(Collectors.toList());
+            
+            logger.info("✅ Returning {} maintenance options for userId={}", options.size(), userId);
+            return ResponseEntity.ok(options);
+        } catch (Exception e) {
+            logger.error("❌ [GroupManagementController] Error fetching maintenance options for userId={}: {}", userId, e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to fetch maintenance options", "message", e.getMessage()));
         }
     }
 
@@ -1741,7 +1757,7 @@ public class GroupManagementController {
         map.put("groupId", contract.getGroup().getGroupId());
         map.put("groupName", contract.getGroup().getGroupName());
         map.put("groupAdminId", contract.getGroup().getAdminId());
-        map.put("vehicleId", contract.getGroup().getVehicleId());
+        // map.put("vehicleId", contract.getGroup().getVehicleId()); // Removed for 1-N support
         map.put("contractCode", contract.getContractCode());
         map.put("contractStatus", normalizeContractStatus(contract.getContractStatus()));
         map.put("status", normalizeContractStatus(contract.getContractStatus()));

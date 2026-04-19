@@ -3,16 +3,23 @@ package com.example.VehicleServiceManagementService.controller;
 import com.example.VehicleServiceManagementService.model.Vehiclegroup;
 import com.example.VehicleServiceManagementService.model.Vehicle;
 import com.example.VehicleServiceManagementService.service.VehicleGroupService;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/vehicle-groups")
 @CrossOrigin(origins = "*")
+@Validated
 public class VehicleGroupAPI {
 
     @Autowired
@@ -20,7 +27,8 @@ public class VehicleGroupAPI {
 
     // Lấy danh sách tất cả nhóm xe
     @GetMapping
-    public List<Vehiclegroup> getAllVehicleGroups() {
+    public List<Vehiclegroup> getAllVehicleGroups(
+            @RequestParam(required = false, defaultValue = "10") @Min(1) @Max(30) Integer size) {
         // Gọi phương thức getAllVehicleGroups() trong service
         return vehicleGroupService.getAllVehicleGroups();
     }
@@ -30,14 +38,18 @@ public class VehicleGroupAPI {
      * @return Danh sách nhóm xe chưa có xe
      */
     @GetMapping("/available")
-    public List<Vehiclegroup> getAvailableVehicleGroups(
-            @RequestParam(value = "currentGroupId", required = false) String currentGroupId) {
-        if (currentGroupId != null && !currentGroupId.trim().isEmpty()) {
-            // Nếu có currentGroupId, trả về nhóm chưa có xe + nhóm hiện tại
-            return vehicleGroupService.getAvailableVehicleGroups(currentGroupId);
+    public ResponseEntity<?> getAvailableVehicleGroups(
+            @RequestParam(value = "currentGroupId", required = false) @Min(1) Long currentGroupId) {
+        if (currentGroupId != null) {
+            if (currentGroupId < 1) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("currentGroupId phải lớn hơn hoặc bằng 1");
+            }
+            if (vehicleGroupService.getVehicleGroupById(currentGroupId) == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy nhóm xe với ID: " + currentGroupId);
+            }
+            return ResponseEntity.ok(vehicleGroupService.getAvailableVehicleGroups(currentGroupId));
         } else {
-            // Nếu không có currentGroupId, chỉ trả về nhóm chưa có xe
-            return vehicleGroupService.getVehicleGroupsWithoutVehicles();
+            return ResponseEntity.ok(vehicleGroupService.getVehicleGroupsWithoutVehicles());
         }
     }
 
@@ -47,7 +59,7 @@ public class VehicleGroupAPI {
      * @return ResponseEntity với Vehiclegroup hoặc thông báo lỗi
      */
     @GetMapping("/{groupId}")
-    public ResponseEntity<?> getVehicleGroupById(@PathVariable String groupId) {
+    public ResponseEntity<?> getVehicleGroupById(@PathVariable @Min(1) Long groupId) {
         try {
             Vehiclegroup group = vehicleGroupService.getVehicleGroupById(groupId);
             if (group != null) {
@@ -67,8 +79,14 @@ public class VehicleGroupAPI {
      * @return ResponseEntity với danh sách xe hoặc thông báo lỗi
      */
     @GetMapping("/{groupId}/vehicles")
-    public ResponseEntity<?> getVehiclesByGroupId(@PathVariable String groupId) {
+    public ResponseEntity<?> getVehiclesByGroupId(@PathVariable @Min(1) Long groupId) {
         try {
+            // Kiểm tra tồn tại của nhóm
+            Vehiclegroup group = vehicleGroupService.getVehicleGroupById(groupId);
+            if (group == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Không tìm thấy nhóm xe với ID: " + groupId);
+            }
             List<Vehicle> vehicles = vehicleGroupService.getVehiclesByGroupId(groupId);
             return ResponseEntity.ok(vehicles);
         } catch (Exception e) {
@@ -77,22 +95,27 @@ public class VehicleGroupAPI {
         }
     }
 
-    // Thêm nhóm xe mới
     @PostMapping
-    public Vehiclegroup addVehicleGroup(@RequestBody Vehiclegroup vehicleGroup) {
-        return vehicleGroupService.addVehicleGroup(vehicleGroup);
+    public ResponseEntity<?> addVehicleGroup(@Valid @RequestBody Vehiclegroup vehicleGroup) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(vehicleGroupService.addVehicleGroup(vehicleGroup));
     }
 
-    /**
-     * Sửa thông tin nhóm xe
-     * Có thể sửa: tên, trạng thái, mô tả
-     * 
-     * @param groupId ID của nhóm xe cần sửa
-     * @param vehicleGroup Đối tượng chứa thông tin cần cập nhật
-     * @return ResponseEntity với Vehiclegroup đã được cập nhật hoặc thông báo lỗi
-     */
-    @PutMapping("/{groupId}")
-    public ResponseEntity<?> updateVehicleGroup(@PathVariable String groupId, @RequestBody Vehiclegroup vehicleGroup) {
+    @PutMapping("/{groupIdStr}")
+    public ResponseEntity<?> updateVehicleGroup(
+            @PathVariable String groupIdStr, 
+            @Valid @RequestBody Vehiclegroup vehicleGroup) {
+        Long groupId;
+        try {
+            groupId = Long.parseLong(groupIdStr);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("ID không hợp lệ hoặc vượt quá giới hạn (overflow)");
+        }
+
+        if (groupId < 1) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("groupId phải lớn hơn hoặc bằng 1");
+        }
+
         try {
             Vehiclegroup updatedGroup = vehicleGroupService.updateVehicleGroup(groupId, vehicleGroup);
             if (updatedGroup != null) {
@@ -113,7 +136,7 @@ public class VehicleGroupAPI {
      * @return ResponseEntity với thông báo kết quả
      */
     @DeleteMapping("/{groupId}")
-    public ResponseEntity<String> deleteVehicleGroup(@PathVariable String groupId) {
+    public ResponseEntity<String> deleteVehicleGroup(@PathVariable @Min(1) Long groupId) {
         try {
             String resultMessage = vehicleGroupService.deleteVehicleGroup(groupId);
             if (resultMessage != null) {
@@ -131,9 +154,9 @@ public class VehicleGroupAPI {
 
     // Lọc nhóm xe theo tên và trạng thái
     @GetMapping("/filter")
-    public List<Vehiclegroup> filterVehicleGroups(
-            @RequestParam(value = "searchQuery", required = false, defaultValue = "") String searchQuery,
-            @RequestParam(value = "statusFilter", required = false, defaultValue = "Tất cả") String statusFilter) {
-        return vehicleGroupService.filterVehicleGroups(searchQuery, statusFilter);
+    public ResponseEntity<?> filterVehicleGroups(
+            @RequestParam(value = "searchQuery") @NotBlank @Size(max = 100) String searchQuery,
+            @RequestParam(value = "statusFilter") @NotBlank @Size(max = 20) String statusFilter) {
+        return ResponseEntity.ok(vehicleGroupService.filterVehicleGroups(searchQuery, statusFilter));
     }
 }

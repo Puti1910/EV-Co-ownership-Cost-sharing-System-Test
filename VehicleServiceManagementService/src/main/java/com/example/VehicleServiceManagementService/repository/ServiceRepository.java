@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ServiceRepository extends JpaRepository<ServiceType, String> {
+public interface ServiceRepository extends JpaRepository<ServiceType, Long> {
 
     /**
      * Tìm dịch vụ theo tên
@@ -31,11 +31,4 @@ public interface ServiceRepository extends JpaRepository<ServiceType, String> {
      */
     @Query("SELECT DISTINCT s.serviceType FROM ServiceType s ORDER BY s.serviceType")
     List<String> findDistinctServiceTypes();
-
-    /**
-     * Lấy service_id lớn nhất có prefix "SRV"
-     * @return Service ID lớn nhất (ví dụ: "SRV003")
-     */
-    @Query("SELECT MAX(s.serviceId) FROM ServiceType s WHERE s.serviceId LIKE 'SRV%'")
-    String findMaxServiceIdWithPrefix();
 }

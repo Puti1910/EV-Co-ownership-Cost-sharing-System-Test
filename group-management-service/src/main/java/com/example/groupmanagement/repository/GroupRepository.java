@@ -10,5 +10,4 @@ import java.util.List;
 public interface GroupRepository extends JpaRepository<Group, Integer> {
     List<Group> findByAdminId(Integer adminId);
     List<Group> findByStatus(Group.GroupStatus status);
-    List<Group> findByVehicleId(Integer vehicleId);
 }

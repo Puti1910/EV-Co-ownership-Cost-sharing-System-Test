@@ -1,7 +1,6 @@
 package com.example.VehicleServiceManagementService.service;
 
 import com.example.VehicleServiceManagementService.model.Vehicleservice;
-import com.example.VehicleServiceManagementService.model.VehicleserviceId;
 import com.example.VehicleServiceManagementService.model.Vehicle;
 import com.example.VehicleServiceManagementService.model.ServiceType;
 import com.example.VehicleServiceManagementService.repository.VehicleServiceRepository;
@@ -12,7 +11,9 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.example.VehicleServiceManagementService.integration.UserAccountClient;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -20,8 +21,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@Slf4j
 public class VehicleServiceService {
+    private static final Logger log = LoggerFactory.getLogger(VehicleServiceService.class);
 
     @Autowired
     private VehicleServiceRepository vehicleServiceRepository;
@@ -32,52 +33,22 @@ public class VehicleServiceService {
     @Autowired
     private ServiceRepository serviceRepository;
 
+    @Autowired
+    private UserAccountClient userAccountClient;
+
     @PersistenceContext
     private EntityManager entityManager;
 
     /**
      * Lưu Vehicleservice vào database với transaction
-     * Sử dụng id AUTO_INCREMENT làm primary key
-     * Cho phép đăng ký cùng một dịch vụ (service_id) cho cùng một xe (vehicle_id) nhiều lần
      */
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRED)
     public Vehicleservice saveVehicleService(Vehicleservice vehicleService) {
-        log.info("🔒 [SAVE] Bắt đầu save Vehicleservice vào database trong transaction...");
+        log.info("🔒 [SAVE] Bắt đầu save Vehicleservice vào database...");
         
         try {
-            String serviceId = vehicleService.getServiceId();
-            String vehicleId = vehicleService.getVehicleId();
-            
-            log.info("🔒 [SAVE] Saving entity - serviceId: {}, vehicleId: {}", serviceId, vehicleId);
-            
-            VehicleserviceId id = new VehicleserviceId(serviceId, vehicleId);
-            vehicleService.setId(id);
-            
-            // Kiểm tra duplicate đã được xử lý ở controller layer
-            // Ở đây chỉ cần đảm bảo không có conflict khi save
-            log.debug("🔒 [SAVE] Kiểm tra lại trước khi save...");
-            
-            // Kiểm tra xem có dịch vụ đang chờ không (double check)
-            long activeCount = vehicleServiceRepository.countActiveByServiceIdAndVehicleId(serviceId, vehicleId);
-            if (activeCount > 0) {
-                log.warn("⚠️ [SAVE] Vẫn còn {} dịch vụ đang chờ, không thể save", activeCount);
-                throw new IllegalArgumentException("Dịch vụ này đã được đăng ký cho xe này và đang trong trạng thái chờ xử lý.");
-            }
-            
-            log.info("🔒 [SAVE] Đăng ký dịch vụ mới hoặc cập nhật bản ghi hiện có - serviceId: {}, vehicleId: {}", serviceId, vehicleId);
-            
-            // Đảm bảo service và vehicle được set
-            if (vehicleService.getService() == null && serviceId != null) {
-                ServiceType serviceEntity = serviceRepository.findById(serviceId)
-                    .orElseThrow(() -> new IllegalArgumentException("Service not found: " + serviceId));
-                vehicleService.setService(serviceEntity);
-            }
-            
-            if (vehicleService.getVehicle() == null && vehicleId != null) {
-                Vehicle vehicleEntity = vehicleRepository.findById(vehicleId)
-                    .orElseThrow(() -> new IllegalArgumentException("Vehicle not found: " + vehicleId));
-                vehicleService.setVehicle(vehicleEntity);
-            }
+            Long serviceId = vehicleService.getServiceId();
+            Long vehicleId = vehicleService.getVehicleId();
             
             // Đảm bảo requestDate được set
             if (vehicleService.getRequestDate() == null) {
@@ -89,18 +60,18 @@ public class VehicleServiceService {
                 vehicleService.setStatus("pending");
             }
             
-            Vehicleservice entityToSave = vehicleService;
+            // Tìm bản ghi mới nhất để cập nhật nếu có
+            Optional<Vehicleservice> existingOpt = vehicleServiceRepository.findTopByServiceIdAndVehicleIdOrderByRequestDateDesc(serviceId, vehicleId);
             
-            Optional<Vehicleservice> existingOpt = vehicleServiceRepository.findById(id);
+            Vehicleservice entityToSave;
             if (existingOpt.isPresent()) {
                 Vehicleservice existing = existingOpt.get();
-                log.info("ℹ️ [SAVE] Bản ghi đã tồn tại → cập nhật thông tin");
-                existing.setService(vehicleService.getService());
-                existing.setVehicle(vehicleService.getVehicle());
+                // Chỉ cập nhật nếu bản ghi đó chưa hoàn thành (thường dùng cho các flow update từ controller)
+                // Hoặc nếu đây là request cập nhật thông tin chung
+                log.info("ℹ️ [SAVE] Tìm thấy bản ghi hiện tại (ID: {}) → tiến hành cập nhật", existing.getId());
                 existing.setServiceName(vehicleService.getServiceName());
                 existing.setServiceDescription(vehicleService.getServiceDescription());
                 existing.setServiceType(vehicleService.getServiceType());
-                existing.setRequestDate(vehicleService.getRequestDate());
                 existing.setStatus(vehicleService.getStatus());
                 existing.setCompletionDate(vehicleService.getCompletionDate());
                 existing.setGroupRefId(vehicleService.getGroupRefId());
@@ -109,52 +80,25 @@ public class VehicleServiceService {
                 existing.setPreferredStartDatetime(vehicleService.getPreferredStartDatetime());
                 existing.setPreferredEndDatetime(vehicleService.getPreferredEndDatetime());
                 entityToSave = existing;
+            } else {
+                log.info("ℹ️ [SAVE] Không tìm thấy bản ghi cũ → tạo mới hoàn toàn");
+                entityToSave = vehicleService;
             }
-            
-            // Lưu entity (id là composite key serviceId + vehicleId)
-            System.out.println("🔒 [SAVE] Đang lưu Vehicleservice vào database...");
-            System.out.println("🔒 [SAVE] Entity trước khi save - serviceId: " + entityToSave.getServiceId() + 
-                             ", vehicleId: " + entityToSave.getVehicleId() + ", status: " + entityToSave.getStatus() + 
-                             ", requestDate: " + entityToSave.getRequestDate());
-            System.out.println("🔒 [SAVE] Service entity: " + (entityToSave.getService() != null ? entityToSave.getService().getServiceId() : "NULL") +
-                             ", Vehicle entity: " + (entityToSave.getVehicle() != null ? entityToSave.getVehicle().getVehicleId() : "NULL"));
-            log.info("🔒 [SAVE] Đang lưu Vehicleservice vào database...");
-            log.info("🔒 [SAVE] Entity trước khi save - serviceId: {}, vehicleId: {}, status: {}, requestDate: {}", 
-                    entityToSave.getServiceId(), entityToSave.getVehicleId(), 
-                    entityToSave.getStatus(), entityToSave.getRequestDate());
             
             Vehicleservice savedService = vehicleServiceRepository.save(entityToSave);
-            System.out.println("🔒 [SAVE] Sau khi gọi save(), đang flush...");
             vehicleServiceRepository.flush();
-            System.out.println("🔒 [SAVE] Flush hoàn tất!");
-            log.info("🔒 [SAVE] Sau khi gọi save(), đang flush...");
-            log.info("🔒 [SAVE] Flush hoàn tất!");
             
-            System.out.println("✅ [SAVE] Entity đã được lưu thành công vào database!");
-            System.out.println("✅ [SAVE] Key: serviceId=" + savedService.getServiceId() + ", vehicleId=" + savedService.getVehicleId() + 
-                             ", status=" + savedService.getStatus() + ", id=" + savedService.getId());
-            log.info("✅ [SAVE] Entity đã được lưu thành công vào database!");
-            log.info("✅ [SAVE] Key: serviceId={}, vehicleId={}, status={}, id={}", 
-                    savedService.getServiceId(), savedService.getVehicleId(), 
-                    savedService.getStatus(), savedService.getId());
+            log.info("✅ [SAVE] Thành công! ID mới: {}", savedService.getId());
             
-            // Đồng bộ trạng thái vehicle sau khi lưu vehicleservice
+            // Đồng bộ trạng thái vehicle
             try {
                 syncVehicleStatus(vehicleId);
-            } catch (Exception e) {
-                log.warn("⚠️ [SAVE] Lỗi khi đồng bộ vehicle status (không ảnh hưởng đến việc lưu): {}", e.getMessage());
-                // Không throw exception để không ảnh hưởng đến việc lưu vehicleservice
-            }
+            } catch (Exception ignored) {}
             
             return savedService;
             
         } catch (Exception e) {
-            log.error("❌ [SAVE] Lỗi khi save Vehicleservice vào database", e);
-            log.error("❌ [SAVE] Error type: {}, message: {}", e.getClass().getName(), e.getMessage());
-            if (e.getCause() != null) {
-                log.error("❌ [SAVE] Cause: {}", e.getCause().getMessage());
-            }
-            // Re-throw exception để transaction rollback
+            log.error("❌ [SAVE] Lỗi: {}", e.getMessage());
             throw e;
         }
     }
@@ -162,23 +106,33 @@ public class VehicleServiceService {
     /**
      * Kiểm tra service và vehicle tồn tại
      */
-    public ServiceType validateAndGetService(String serviceId) {
-        Optional<ServiceType> serviceOpt = serviceRepository.findById(serviceId);
-        if (serviceOpt.isEmpty()) {
-            throw new IllegalArgumentException("Không tìm thấy dịch vụ với ID: " + serviceId);
-        }
-        return serviceOpt.get();
+    public ServiceType validateAndGetService(Long serviceId) {
+        return serviceRepository.findById(serviceId)
+                .orElseThrow(() -> new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy dịch vụ với ID: " + serviceId));
     }
 
     /**
      * Kiểm tra vehicle tồn tại
      */
-    public Vehicle validateAndGetVehicle(String vehicleId) {
-        Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
-        if (vehicleOpt.isEmpty()) {
-            throw new IllegalArgumentException("Không tìm thấy xe với ID: " + vehicleId);
+    public Vehicle validateAndGetVehicle(Long vehicleId) {
+        return vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy xe với ID: " + vehicleId));
+    }
+
+    /**
+     * Kiểm tra User tồn tại qua User Account Service
+     */
+    public void validateAndGetUser(Long userId) {
+        if (userId != null && !userAccountClient.existsById(userId)) {
+            throw new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId);
         }
-        return vehicleOpt.get();
+    }
+
+    /**
+     * Kiểm tra xe có tồn tại không
+     */
+    public boolean existsVehicleById(Long vehicleId) {
+        return vehicleId != null && vehicleId > 0 && vehicleRepository.existsById(vehicleId);
     }
 
     /**
@@ -189,20 +143,17 @@ public class VehicleServiceService {
             Vehicle vehicle,
             String serviceDescription,
             String status,
-            Integer groupRefId,
-            Integer requestedByUserId,
+            Long groupRefId,
+            Long requestedByUserId,
             String requestedByName,
             LocalDateTime preferredStart,
             LocalDateTime preferredEnd) {
         
         Vehicleservice vehicleService = new Vehicleservice();
-        
-        // id sẽ được tự động generate bởi database (AUTO_INCREMENT)
-        // Không cần set id
-        
+        vehicleService.setServiceId(service.getServiceId());
+        vehicleService.setVehicleId(vehicle.getVehicleId());
         vehicleService.setService(service);
         vehicleService.setVehicle(vehicle);
-        vehicleService.setId(new VehicleserviceId(service.getServiceId(), vehicle.getVehicleId()));
         vehicleService.setServiceName(service.getServiceName());
         vehicleService.setServiceType(service.getServiceType());
         
@@ -210,12 +161,8 @@ public class VehicleServiceService {
             vehicleService.setServiceDescription(serviceDescription.trim());
         }
         
-        if (status == null || status.trim().isEmpty()) {
-            status = "pending";
-        }
-        vehicleService.setStatus(status);
+        vehicleService.setStatus(status == null ? "pending" : status);
         vehicleService.setRequestDate(Instant.now());
-        vehicleService.setCompletionDate(null);
         vehicleService.setGroupRefId(groupRefId);
         vehicleService.setRequestedByUserId(requestedByUserId);
         vehicleService.setRequestedByUserName(requestedByName);
@@ -239,7 +186,7 @@ public class VehicleServiceService {
      * 5. ready (sẵn sàng) - mặc định
      */
     @Transactional
-    public void syncVehicleStatus(String vehicleId) {
+    public void syncVehicleStatus(Long vehicleId) {
         try {
             System.out.println("🔄 [SYNC VEHICLE STATUS] Bắt đầu đồng bộ trạng thái cho vehicle: " + vehicleId);
             
@@ -254,7 +201,7 @@ public class VehicleServiceService {
             String currentStatus = vehicle.getStatus();
             
             // Lấy tất cả dịch vụ đang chờ (pending/in_progress) của vehicle này
-            List<Vehicleservice> activeServices = vehicleServiceRepository.findByVehicle_VehicleId(vehicleId).stream()
+            List<Vehicleservice> activeServices = vehicleServiceRepository.findByVehicleId(vehicleId).stream()
                     .filter(vs -> {
                         String status = vs.getStatus();
                         if (status == null) return false;

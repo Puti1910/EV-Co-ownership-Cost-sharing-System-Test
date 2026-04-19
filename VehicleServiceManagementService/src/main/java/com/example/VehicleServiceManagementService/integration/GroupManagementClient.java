@@ -1,7 +1,8 @@
 package com.example.VehicleServiceManagementService.integration;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -16,11 +17,15 @@ import java.util.Map;
 import java.util.Optional;
 
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class GroupManagementClient {
 
+    private static final Logger log = LoggerFactory.getLogger(GroupManagementClient.class);
+
     private final RestTemplate restTemplate;
+
+    public GroupManagementClient(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     @Value("${group.management.service.url:http://localhost:8084}")
     private String primaryBaseUrl;
@@ -28,23 +33,33 @@ public class GroupManagementClient {
     @Value("${group.management.service.fallback-url:http://localhost:8082}")
     private String fallbackBaseUrl;
 
-    public List<Map<String, Object>> getGroupsByUserId(Integer userId) {
+    public List<Map<String, Object>> getGroupsByUserId(Long userId) {
         if (userId == null) {
             return Collections.emptyList();
         }
         String path = "/api/groups/user/" + userId;
-        return exchangeForList(path);
+        List<Map<String, Object>> result = exchangeForList(path);
+        if (result == null) {
+            log.warn("Không tìm thấy dữ liệu nhóm cho userId: {}. Trả về danh sách trống.", userId);
+            return Collections.emptyList();
+        }
+        return result;
     }
 
-    public List<Map<String, Object>> getMaintenanceOptions(Integer userId) {
+    public List<Map<String, Object>> getMaintenanceOptions(Long userId) {
         if (userId == null) {
             return Collections.emptyList();
         }
         String path = "/api/groups/user/" + userId + "/maintenance-options";
-        return exchangeForList(path);
+        List<Map<String, Object>> result = exchangeForList(path);
+        if (result == null) {
+            log.warn("Không tìm thấy tùy chọn bảo dưỡng cho userId: {}. Trả về danh sách trống.", userId);
+            return Collections.emptyList();
+        }
+        return result;
     }
 
-    public Optional<Map<String, Object>> getGroup(Integer groupId) {
+    public Optional<Map<String, Object>> getGroup(Long groupId) {
         if (groupId == null) {
             return Optional.empty();
         }
@@ -52,7 +67,7 @@ public class GroupManagementClient {
         return exchangeForMap(path);
     }
 
-    public Optional<Map<String, Object>> getMembership(Integer groupId, Integer userId) {
+    public Optional<Map<String, Object>> getMembership(Long groupId, Long userId) {
         if (groupId == null || userId == null) {
             return Optional.empty();
         }
@@ -67,7 +82,7 @@ public class GroupManagementClient {
 
     private List<Map<String, Object>> exchangeForList(String path) {
         ParameterizedTypeReference<List<Map<String, Object>>> typeRef = new ParameterizedTypeReference<>() {};
-        return executeWithFallback(path, typeRef, Collections.emptyList());
+        return executeWithFallback(path, typeRef, null);
     }
 
     private Optional<Map<String, Object>> exchangeForMap(String path) {
@@ -97,7 +112,8 @@ public class GroupManagementClient {
                 }
                 log.warn("Group service {} responded with status {}", url, response.getStatusCode());
             } catch (org.springframework.web.client.HttpClientErrorException.NotFound notFound) {
-                throw notFound;
+                log.warn("Resource not found at {}. Returning default value.", url);
+                return defaultValue;
             } catch (Exception ex) {
                 log.warn("Failed to call {}: {}", url, ex.getMessage());
             }

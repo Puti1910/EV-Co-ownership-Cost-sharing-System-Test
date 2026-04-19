@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -24,14 +26,15 @@ import com.example.VehicleServiceManagementService.model.Vehicle;
 import com.example.VehicleServiceManagementService.model.Vehiclegroup;
 import com.example.VehicleServiceManagementService.model.Vehicleservice;
 import com.example.VehicleServiceManagementService.repository.ServiceRepository;
+import com.example.VehicleServiceManagementService.repository.VehicleRepository;
+import com.example.VehicleServiceManagementService.integration.UserAccountClient;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class MaintenanceBookingService {
+
+    private static final Logger log = LoggerFactory.getLogger(MaintenanceBookingService.class);
 
     private final GroupManagementClient groupClient;
     private final VehicleServiceService vehicleServiceService;
@@ -39,42 +42,79 @@ public class MaintenanceBookingService {
     private final VehicleDataSyncService vehicleDataSyncService;
     private final ServiceService serviceService;
     private final com.example.VehicleServiceManagementService.repository.VehicleServiceRepository vehicleServiceRepository;
+    private final VehicleRepository vehicleRepository;
+    private final com.example.VehicleServiceManagementService.integration.UserAccountClient userAccountClient;
+
+    public MaintenanceBookingService(
+            GroupManagementClient groupClient,
+            VehicleServiceService vehicleServiceService,
+            ServiceRepository serviceRepository,
+            VehicleDataSyncService vehicleDataSyncService,
+            ServiceService serviceService,
+            com.example.VehicleServiceManagementService.repository.VehicleServiceRepository vehicleServiceRepository,
+            VehicleRepository vehicleRepository,
+            com.example.VehicleServiceManagementService.integration.UserAccountClient userAccountClient) {
+        this.groupClient = groupClient;
+        this.vehicleServiceService = vehicleServiceService;
+        this.serviceRepository = serviceRepository;
+        this.vehicleDataSyncService = vehicleDataSyncService;
+        this.serviceService = serviceService;
+        this.vehicleServiceRepository = vehicleServiceRepository;
+        this.vehicleRepository = vehicleRepository;
+        this.userAccountClient = userAccountClient;
+    }
 
     /**
      * Get list of groups/vehicles a user can book maintenance for.
      */
-    public List<Map<String, Object>> getUserMaintenanceOptions(Integer userId) {
-        List<Map<String, Object>> options = groupClient.getMaintenanceOptions(userId);
-        if (options.isEmpty()) {
-            log.warn("Không lấy được maintenance-options qua endpoint mới, fallback sang danh sách nhóm cơ bản");
-            options = groupClient.getGroupsByUserId(userId);
-        }
-        if (options.isEmpty()) {
+    public List<Map<String, Object>> getUserMaintenanceOptions(Long userId) {
+        log.info("🔍 Fetching maintenance options for userId: {}", userId);
+        
+        // 1. Fetch groups the user belongs to
+        List<Map<String, Object>> userGroups = groupClient.getGroupsByUserId(userId);
+        if (userGroups == null || userGroups.isEmpty()) {
+            log.warn("No groups found for userId: {}", userId);
             return Collections.emptyList();
         }
+
         List<Map<String, Object>> results = new ArrayList<>();
-        for (Map<String, Object> option : options) {
-            Map<String, Object> view = new HashMap<>();
-            Integer groupId = toInteger(option.get("groupId"));
-            view.put("groupId", groupId);
-            view.put("groupName", option.getOrDefault("groupName", "Group #" + groupId));
-            view.put("role", option.getOrDefault("memberRole", option.get("role")));
-            Object vehicleIdObj = option.get("vehicleId");
-            if (vehicleIdObj != null) {
-                String vehicleId = String.valueOf(vehicleIdObj);
-                view.put("vehicleId", vehicleId);
-                Object label = option.get("vehicleLabel");
-                if (label != null) {
-                    view.put("vehicleName", label);
-                } else {
-                    view.put("vehicleName", "Xe #" + vehicleId);
+        
+        // 2. For each group, find its vehicles in the local database
+        for (Map<String, Object> groupInfo : userGroups) {
+            Long groupId = toLong(groupInfo.get("groupId"));
+            String groupName = (String) groupInfo.getOrDefault("groupName", "Nhóm #" + groupId);
+            String role = (String) groupInfo.getOrDefault("memberRole", groupInfo.get("role"));
+            
+            log.debug("Processing group: {} (id: {})", groupName, groupId);
+            
+            List<Vehicle> groupVehicles = vehicleRepository.findByGroupId(groupId);
+            
+            if (groupVehicles != null && !groupVehicles.isEmpty()) {
+                // If group has vehicles, create an option for each vehicle
+                for (Vehicle vehicle : groupVehicles) {
+                    Map<String, Object> option = new HashMap<>();
+                    option.put("groupId", groupId);
+                    option.put("groupName", groupName);
+                    option.put("role", role);
+                    option.put("vehicleId", vehicle.getVehicleId());
+                    option.put("vehicleName", vehicle.getDisplayName());
+                    option.put("vehicleNumber", vehicle.getVehicleNumber());
+                    option.put("vehicleType", vehicle.getVehicleType());
+                    results.add(option);
                 }
             } else {
-                view.put("vehicleId", null);
-                view.put("vehicleName", null);
+                // If group has NO vehicles, still add the group so user knows it exists
+                Map<String, Object> option = new HashMap<>();
+                option.put("groupId", groupId);
+                option.put("groupName", groupName);
+                option.put("role", role);
+                option.put("vehicleId", null);
+                option.put("vehicleName", "Chưa có xe");
+                results.add(option);
             }
-            results.add(view);
         }
+        
+        log.info("✅ Returning {} combined maintenance options for userId: {}", results.size(), userId);
         return results;
     }
 
@@ -89,15 +129,25 @@ public class MaintenanceBookingService {
         try {
             validateRequest(request);
 
+            // Kiểm tra User ID tồn tại
+            if (!userAccountClient.existsById(request.getUserId())) {
+                throw new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy người dùng với ID: " + request.getUserId());
+            }
+
             Map<String, Object> groupPayload = groupClient.getGroup(request.getGroupId())
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhóm xe #" + request.getGroupId()));
+                    .orElseThrow(() -> new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy nhóm xe #" + request.getGroupId()));
 
             groupClient.getMembership(request.getGroupId(), request.getUserId())
                     .orElseThrow(() -> new IllegalArgumentException("Người dùng không thuộc nhóm này"));
 
-            String resolvedVehicleId = resolveVehicleId(request, groupPayload);
+            Long resolvedVehicleId = resolveVehicleId(request, groupPayload);
             log.info("📝 [BOOKING] Vehicle ID đã được resolve: {}", resolvedVehicleId);
             
+            // KIỂM TRA XE TỒN TẠI (Để tránh lỗi 500 khi sync xe giả)
+            if (!vehicleRepository.existsById(resolvedVehicleId)) {
+                throw new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy xe với ID: " + resolvedVehicleId);
+            }
+
             Vehiclegroup groupEntity = vehicleDataSyncService.ensureGroupSynced(request.getGroupId(), groupPayload);
             Map<String, Object> vehicleSnapshot = new HashMap<>();
             if (request.getVehicleName() != null) {
@@ -150,21 +200,15 @@ public class MaintenanceBookingService {
             Vehicleservice saved = vehicleServiceService.saveVehicleService(vehicleService);
             
             System.out.println("✅ [BOOKING] Vehicleservice đã được lưu thành công vào database!");
-            System.out.println("✅ [BOOKING] Saved entity - ServiceId: " + saved.getServiceId() + ", VehicleId: " + saved.getVehicleId() + 
-                             ", Status: " + saved.getStatus());
-            log.info("✅ [BOOKING] Vehicleservice đã được lưu thành công vào database!");
-            log.info("✅ [BOOKING] Saved entity - ServiceId: {}, VehicleId: {}, Status: {}, Id: {}", 
-                    saved.getServiceId(), saved.getVehicleId(), saved.getStatus(), saved.getId());
             
-            // Kiểm tra lại xem đã thực sự lưu vào database chưa
-            com.example.VehicleServiceManagementService.model.VehicleserviceId verifyId = 
-                    new com.example.VehicleServiceManagementService.model.VehicleserviceId(
-                            saved.getServiceId(), saved.getVehicleId());
-            Optional<Vehicleservice> verify = vehicleServiceRepository.findById(verifyId);
+            // Kiểm tra lại xem đã thực hiện lưu chưa bằng cách tìm bản ghi mới nhất
+            Optional<Vehicleservice> verify = vehicleServiceRepository.findTopByServiceIdAndVehicleIdOrderByRequestDateDesc(
+                    saved.getServiceId(), saved.getVehicleId());
+            
             if (verify.isPresent()) {
-                log.info("✅ [BOOKING] Xác nhận: Dữ liệu đã tồn tại trong database!");
+                log.info("✅ [BOOKING] Xác nhận: Dữ liệu đã tồn tại trong database! ID: {}", verify.get().getId());
             } else {
-                log.error("❌ [BOOKING] CẢNH BÁO: Dữ liệu không tồn tại trong database sau khi save!");
+                log.error("❌ [BOOKING] CẢNH BÁO: Không tìm thấy dữ liệu sau khi save!");
             }
 
             Map<String, Object> response = new LinkedHashMap<>();
@@ -179,14 +223,10 @@ public class MaintenanceBookingService {
 
     private ServiceType resolveServiceType(MaintenanceBookingRequest request) {
         // Ưu tiên tìm theo serviceId
-        if (request.getServiceId() != null && !request.getServiceId().isBlank()) {
-            // Tìm lại một lần nữa để tránh race condition
-            Optional<ServiceType> serviceOpt = serviceRepository.findById(request.getServiceId());
-            if (serviceOpt.isPresent()) {
-                return serviceOpt.get();
-            }
-            // Nếu không tìm thấy theo ID, tự động tạo mới
-            return createServiceIfNotExists(request.getServiceId(), request.getServiceName());
+        if (request.getServiceId() != null) {
+            Long serviceId = request.getServiceId();
+            return serviceRepository.findById(serviceId)
+                    .orElseThrow(() -> new com.example.VehicleServiceManagementService.exception.ResourceNotFoundException("Không tìm thấy dịch vụ với ID: " + serviceId));
         }
         
         // Tìm theo serviceName
@@ -216,7 +256,7 @@ public class MaintenanceBookingService {
      * Sử dụng REQUIRES_NEW để tạo transaction mới, độc lập với transaction chính
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, noRollbackFor = DataIntegrityViolationException.class)
-    private ServiceType createServiceIfNotExists(String serviceId, String serviceName) {
+    private ServiceType createServiceIfNotExists(Long serviceId, String serviceName) {
         // Kiểm tra lại một lần nữa (double-check locking pattern)
         Optional<ServiceType> existingOpt = serviceRepository.findById(serviceId);
         if (existingOpt.isPresent()) {
@@ -285,21 +325,19 @@ public class MaintenanceBookingService {
         if (request.getGroupId() == null) {
             throw new IllegalArgumentException("groupId là bắt buộc");
         }
-        if (request.getVehicleId() == null || request.getVehicleId().isBlank()) {
+        if (request.getVehicleId() == null) {
             throw new IllegalArgumentException("vehicleId là bắt buộc");
         }
     }
 
-    private String resolveVehicleId(MaintenanceBookingRequest request, Map<String, Object> groupPayload) {
-        Object groupVehicleId = groupPayload.get("vehicleId");
-        String targetVehicleId = request.getVehicleId();
-        if (groupVehicleId != null) {
-            String normalized = String.valueOf(groupVehicleId);
-            if (!Objects.equals(normalized, targetVehicleId)) {
-                log.warn("VehicleId {} từ yêu cầu khác với vehicleId {} trong nhóm, sẽ ưu tiên group", targetVehicleId, normalized);
-            }
-            targetVehicleId = normalized;
-        }
+    private Long resolveVehicleId(MaintenanceBookingRequest request, Map<String, Object> groupPayload) {
+        // In 1-N model, the group doesn't have a single vehicleId in its metadata.
+        // We must rely on the vehicleId provided in the request.
+        Long targetVehicleId = request.getVehicleId();
+        
+        // Optionally, we could verify if the vehicle belongs to the group here, 
+        // but ensureVehicleSynced already handles the relationship.
+        
         return targetVehicleId;
     }
 
@@ -315,6 +353,20 @@ public class MaintenanceBookingService {
             return LocalDateTime.parse(value);
         } catch (Exception ex) {
             throw new IllegalArgumentException("Không thể parse thời gian: " + value);
+        }
+    }
+
+    private Long toLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        try {
+            return Long.parseLong(value.toString());
+        } catch (NumberFormatException ex) {
+            return null;
         }
     }
 

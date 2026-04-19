@@ -28,8 +28,6 @@ public class Group {
     @Column(name = "adminId")
     private Integer adminId;
     
-    @Column(name = "vehicleId")
-    private Integer vehicleId;
     
     @Column(name = "createdAt")
     private LocalDateTime createdAt;

@@ -1,18 +1,24 @@
 package com.example.VehicleServiceManagementService.controller;
 
+import com.example.VehicleServiceManagementService.service.VehicleCleanupService;
+
 import com.example.VehicleServiceManagementService.model.Vehicle;
 import com.example.VehicleServiceManagementService.model.Vehiclegroup;
 import com.example.VehicleServiceManagementService.repository.VehicleRepository;
 import com.example.VehicleServiceManagementService.repository.VehicleGroupRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,6 +26,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/vehicles")
 @CrossOrigin(origins = "*")
+@Validated
 public class VehicleAPI {
 
     @Autowired
@@ -31,12 +38,25 @@ public class VehicleAPI {
     @PersistenceContext
     private EntityManager entityManager;
 
+    @Autowired
+    private VehicleCleanupService vehicleCleanupService;
+
     /**
      * Lấy tất cả các xe
      * @return Danh sách tất cả xe
      */
     @GetMapping
-    public ResponseEntity<List<Vehicle>> getAllVehicles() {
+    public ResponseEntity<?> getAllVehicles(
+            @RequestParam(required = false, defaultValue = "20") @Min(1) @Max(200) Integer size) {
+        
+        // Manual validation to guarantee 400 Bad Request
+        if (size != null && (size < 1 || size > 200)) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Dữ liệu không hợp lệ: size must be between 1 and 200");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+        
         try {
             List<Vehicle> vehicles = vehicleRepository.findAll();
             return ResponseEntity.ok(vehicles);
@@ -53,12 +73,12 @@ public class VehicleAPI {
      * @return ResponseEntity với Vehicle hoặc thông báo lỗi
      */
     @GetMapping("/{vehicleId}")
-    public ResponseEntity<?> getVehicleById(@PathVariable String vehicleId) {
+    public ResponseEntity<?> getVehicleById(@PathVariable @Min(1) Long vehicleId) {
         try {
             Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
             if (vehicleOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Không tìm thấy xe với ID: " + vehicleId);
+                        .body(Map.of("success", false, "message", "Không tìm thấy xe với ID: " + vehicleId));
             }
             return ResponseEntity.ok(vehicleOpt.get());
         } catch (Exception e) {
@@ -77,20 +97,40 @@ public class VehicleAPI {
     @Transactional
     public ResponseEntity<?> addVehicles(@RequestBody Map<String, Object> requestData) {
         try {
-            String groupId = (String) requestData.get("groupId");
+            Object groupIdObj = requestData.get("groupId");
+            Long groupId = null;
+            if (groupIdObj != null && !groupIdObj.toString().trim().isEmpty()) {
+                try {
+                    groupId = Long.valueOf(groupIdObj.toString());
+                } catch (NumberFormatException e) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("success", false, "message", "groupId không đúng định dạng số"));
+                }
+            }
+            
+            if (groupId != null && groupId < 1) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("success", false, "message", "groupId không hợp lệ (phải >= 1)"));
+            }
+            
+            Object vehiclesObj = requestData.get("vehicles");
+            if (!(vehiclesObj instanceof List)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("success", false, "message", "Trường 'vehicles' phải là một danh sách các xe"));
+            }
             
             @SuppressWarnings("unchecked")
-            List<Map<String, Object>> vehiclesData = (List<Map<String, Object>>) requestData.get("vehicles");
+            List<Map<String, Object>> vehiclesData = (List<Map<String, Object>>) vehiclesObj;
             
-            if (vehiclesData == null || vehiclesData.isEmpty()) {
+            if (vehiclesData.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Danh sách xe không được để trống");
+                        .body(Map.of("success", false, "message", "Danh sách xe không được để trống"));
             }
             
             Vehiclegroup group = null;
             
             // Nếu có groupId, kiểm tra và lấy nhóm xe
-            if (groupId != null && !groupId.isEmpty()) {
+            if (groupId != null) {
                 Optional<Vehiclegroup> groupOpt = vehicleGroupRepository.findById(groupId);
                 if (groupOpt.isEmpty()) {
                     return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -98,76 +138,109 @@ public class VehicleAPI {
                 }
                 group = groupOpt.get();
                 
-                // Kiểm tra số lượng xe hiện tại trong nhóm
-                long currentVehicleCount = vehicleRepository.countByGroupId(groupId);
-                
-                // Đảm bảo mỗi nhóm chỉ có đúng 1 xe
-                if (currentVehicleCount >= 1) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("Nhóm này đã có xe. Mỗi nhóm chỉ được có đúng 1 xe duy nhất.");
-                }
-                
-                if (vehiclesData.size() > 1) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("Mỗi nhóm chỉ được có đúng 1 xe. Không thể thêm " + vehiclesData.size() + " xe cùng lúc.");
-                }
+                // Restriction removed: groups can now have multiple vehicles
+
             }
             
             List<Vehicle> vehicles = new ArrayList<>();
+            int index = 0;
             for (Map<String, Object> vehicleData : vehiclesData) {
+                index++;
                 Vehicle vehicle = new Vehicle();
                 
-                // Kiểm tra và set vehicleId
-                String vehicleId = null;
-                if (vehicleData.containsKey("vehicleId")) {
-                    vehicleId = (String) vehicleData.get("vehicleId");
-                    if (vehicleId != null && !vehicleId.trim().isEmpty()) {
-                        vehicleId = vehicleId.trim();
-                        // Kiểm tra trùng mã xe
+                // ── vehicleId validation ──
+                Object vehicleIdObj = vehicleData.get("vehicleId");
+                if (vehicleIdObj != null) {
+                    try {
+                        Long vehicleId = Long.valueOf(vehicleIdObj.toString());
+                        if (vehicleId < 1) {
+                            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                    .body(Map.of("success", false, "message", "Xe thứ " + index + ": vehicleId phải lớn hơn hoặc bằng 1"));
+                        }
                         if (vehicleRepository.existsById(vehicleId)) {
                             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                    .body("Mã xe \"" + vehicleId + "\" đã tồn tại trong hệ thống. Vui lòng nhập mã xe khác.");
+                                    .body(Map.of("success", false, "message", "Mã xe \"" + vehicleId + "\" đã tồn tại trong hệ thống."));
                         }
                         vehicle.setVehicleId(vehicleId);
-                    } else {
+                    } catch (NumberFormatException e) {
                         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body("Mã xe là bắt buộc và không được để trống.");
+                                .body(Map.of("success", false, "message", "Xe thứ " + index + ": vehicleId không hợp lệ hoặc vượt quá giới hạn (overflow)"));
                     }
+                }
+                
+                // ── vehicleType validation ──
+                String type = null;
+                if (vehicleData.containsKey("type")) {
+                    type = (String) vehicleData.get("type");
+                } else if (vehicleData.containsKey("vehicleType")) {
+                    type = (String) vehicleData.get("vehicleType");
+                }
+                
+                if (type == null || type.trim().isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("success", false, "message", "Xe thứ " + index + ": Loại xe không được để trống"));
+                }
+                if (type.length() > 50) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("success", false, "message", "Xe thứ " + index + ": Loại xe không được vượt quá 50 ký tự"));
+                }
+                vehicle.setVehicleType(type.trim());
+                
+                // ── vehicleNumber validation ──
+                if (vehicleData.containsKey("vehicleNumber")) {
+                    String vehicleNumber = (String) vehicleData.get("vehicleNumber");
+                    if (vehicleNumber == null || vehicleNumber.trim().isEmpty()) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(Map.of("success", false, "message", "Xe thứ " + index + ": Biển số xe không được để trống"));
+                    }
+                    String trimmedNum = vehicleNumber.trim();
+                    if (trimmedNum.length() > 20) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(Map.of("success", false, "message", "Xe thứ " + index + ": Biển số xe không được vượt quá 20 ký tự"));
+                    }
+                    if (vehicleRepository.existsByVehicleNumber(trimmedNum)) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(Map.of("success", false, "message", "Biển số xe \"" + trimmedNum + "\" đã tồn tại trong hệ thống."));
+                    }
+                    vehicle.setVehicleNumber(trimmedNum);
                 } else {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("Mã xe là bắt buộc.");
+                            .body(Map.of("success", false, "message", "Xe thứ " + index + ": Thiếu biển số xe (vehicleNumber)"));
                 }
                 
-                if (vehicleData.containsKey("type")) {
-                    vehicle.setVehicleType((String) vehicleData.get("type"));
-                } else if (vehicleData.containsKey("vehicleType")) {
-                    vehicle.setVehicleType((String) vehicleData.get("vehicleType"));
-                }
-                
-                // Kiểm tra biển số xe trùng lặp
-                String vehicleNumber = null;
-                if (vehicleData.containsKey("vehicleNumber")) {
-                    vehicleNumber = (String) vehicleData.get("vehicleNumber");
-                    if (vehicleNumber != null && !vehicleNumber.trim().isEmpty()) {
-                        // Kiểm tra trùng biển số xe
-                        if (vehicleRepository.existsByVehicleNumber(vehicleNumber.trim())) {
-                            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                    .body("Biển số xe \"" + vehicleNumber + "\" đã tồn tại trong hệ thống. Vui lòng nhập biển số khác.");
-                        }
-                        vehicle.setVehicleNumber(vehicleNumber.trim());
-                    }
-                }
-                
+                // ── vehicleName validation ──
                 if (vehicleData.containsKey("vehicleName") || vehicleData.containsKey("vehiclename")) {
                     String name = (String) vehicleData.getOrDefault("vehicleName", 
                                                                     vehicleData.get("vehiclename"));
-                    vehicle.setVehicleName(name);
+                    if (name == null || name.trim().isEmpty()) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(Map.of("success", false, "message", "Xe thứ " + index + ": Tên xe không được để trống"));
+                    }
+                    if (name.length() > 100) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(Map.of("success", false, "message", "Xe thứ " + index + ": Tên xe không được vượt quá 100 ký tự"));
+                    }
+                    vehicle.setVehicleName(name.trim());
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("success", false, "message", "Xe thứ " + index + ": Thiếu tên xe (vehicleName)"));
                 }
                 
+                // ── status validation ──
                 if (vehicleData.containsKey("status")) {
-                    vehicle.setStatus((String) vehicleData.get("status"));
+                    String status = (String) vehicleData.get("status");
+                    if (status != null && !status.trim().isEmpty()) {
+                         String statusLower = status.trim().toLowerCase();
+                         if (!statusLower.equals("ready") && !statusLower.equals("maintenance")) {
+                             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                     .body(Map.of("success", false, "message", "Xe thứ " + index + ": Trạng thái không hợp lệ (ready/maintenance)"));
+                         }
+                         vehicle.setStatus(statusLower);
+                    } else {
+                        vehicle.setStatus("ready");
+                    }
                 } else {
-                    vehicle.setStatus("ready"); // Default status: ready (sẵn sàng)
+                    vehicle.setStatus("ready");
                 }
                 
                 vehicle.setGroup(group);
@@ -183,35 +256,49 @@ public class VehicleAPI {
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             e.printStackTrace();
             String errorMessage = e.getMessage();
+            String resMessage = "Đã xảy ra lỗi khi thêm xe: " + (errorMessage != null ? errorMessage : e.getClass().getSimpleName());
+            
             // Kiểm tra nếu lỗi do unique constraint
             if (errorMessage != null) {
                 if (errorMessage.contains("vehicle_number") || errorMessage.contains("uk_vehicle_number")) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("Biển số xe đã tồn tại trong hệ thống. Vui lòng nhập biển số khác.");
-                }
-                if (errorMessage.contains("vehicle_id") || errorMessage.contains("PRIMARY")) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("Mã xe đã tồn tại trong hệ thống. Vui lòng nhập mã xe khác.");
+                    resMessage = "Biển số xe đã tồn tại trong hệ thống. Vui lòng nhập biển số khác.";
+                } else if (errorMessage.contains("vehicle_id") || errorMessage.contains("PRIMARY")) {
+                    resMessage = "Mã xe đã tồn tại trong hệ thống. Vui lòng nhập mã xe khác.";
                 }
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Đã xảy ra lỗi khi thêm xe: " + (errorMessage != null ? errorMessage : e.getClass().getSimpleName()));
+                    .body(Map.of("success", false, "message", resMessage));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Đã xảy ra lỗi khi thêm xe: " + e.getMessage());
+                    .body(Map.of("success", false, "message", "Đã xảy ra lỗi khi thêm xe: " + e.getMessage()));
         }
     }
 
     /**
      * Cập nhật thông tin xe
-     * @param vehicleId ID của xe cần cập nhật
+     * @param vehicleIdStr ID của xe cần cập nhật
      * @param vehicleData Map chứa thông tin cần cập nhật
      * @return ResponseEntity với Vehicle đã được cập nhật hoặc thông báo lỗi
      */
-    @PutMapping("/{vehicleId}")
+    @PutMapping("/{vehicleIdStr}")
     @Transactional
-    public ResponseEntity<?> updateVehicle(@PathVariable String vehicleId, @RequestBody Map<String, Object> vehicleData) {
+    public ResponseEntity<?> updateVehicle(
+            @PathVariable String vehicleIdStr, 
+            @RequestBody Map<String, Object> vehicleData) {
+        Long vehicleId;
+        try {
+            vehicleId = Long.parseLong(vehicleIdStr);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", "ID không hợp lệ hoặc vượt quá giới hạn (overflow)"));
+        }
+
+        if (vehicleId < 1) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", "vehicleId phải lớn hơn hoặc bằng 1"));
+        }
+
         try {
             Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
             if (vehicleOpt.isEmpty()) {
@@ -223,89 +310,109 @@ public class VehicleAPI {
             
             // Kiểm tra nếu cố gắng thay đổi group_id
             if (vehicleData.containsKey("groupId")) {
-                String newGroupId = (String) vehicleData.get("groupId");
-                String currentGroupId = vehicle.getGroup() != null ? vehicle.getGroup().getGroupId() : null;
-                
-                // Nếu newGroupId là null hoặc rỗng, xóa nhóm khỏi xe
-                if (newGroupId == null || newGroupId.trim().isEmpty()) {
+                Object newGroupIdObj = vehicleData.get("groupId");
+                if (newGroupIdObj == null) {
                     vehicle.setGroup(null);
-                } else if (currentGroupId == null || !newGroupId.equals(currentGroupId)) {
-                    // Nếu group_id thay đổi (hoặc xe chưa có nhóm)
-                    // Kiểm tra nhóm mới đã có xe chưa
-                    long vehicleCountInNewGroup = vehicleRepository.countByGroupId(newGroupId);
-                    if (vehicleCountInNewGroup >= 1) {
-                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body("Không thể chuyển xe sang nhóm này. Nhóm đã có xe. Mỗi nhóm chỉ được có đúng 1 xe.");
+                } else {
+                    try {
+                        Long newGroupId = Long.valueOf(newGroupIdObj.toString());
+                        if (newGroupId < 1) {
+                            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("groupId không hợp lệ (phải >= 1)");
+                        }
+                        
+                        Long currentGroupId = vehicle.getGroup() != null ? vehicle.getGroup().getGroupId() : null;
+                        
+                        // Nếu group_id thay đổi (hoặc xe chưa có nhóm)
+                        if (currentGroupId == null || !newGroupId.equals(currentGroupId)) {
+                            // Kiểm tra nhóm mới đã có xe chưa
+                            // Restriction removed: groups can now have multiple vehicles
+
+                            
+                            // Cập nhật group_id
+                            Optional<Vehiclegroup> newGroupOpt = vehicleGroupRepository.findById(newGroupId);
+                            if (newGroupOpt.isEmpty()) {
+                                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                        .body("Không tìm thấy nhóm xe với ID: " + newGroupId);
+                            }
+                            vehicle.setGroup(newGroupOpt.get());
+                        }
+                        // Nếu newGroupId == currentGroupId, không cần làm gì thêm (Bỏ qua lỗi chặn nhầm ID 2)
+                    } catch (NumberFormatException e) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("groupId không đúng định dạng số hoặc vượt quá giới hạn");
                     }
-                    
-                    // Cập nhật group_id
-                    Optional<Vehiclegroup> newGroupOpt = vehicleGroupRepository.findById(newGroupId);
-                    if (newGroupOpt.isEmpty()) {
-                        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                .body("Không tìm thấy nhóm xe với ID: " + newGroupId);
-                    }
-                    vehicle.setGroup(newGroupOpt.get());
                 }
             }
             
             // Cập nhật loại xe
-            if (vehicleData.containsKey("type")) {
-                vehicle.setVehicleType((String) vehicleData.get("type"));
-            } else if (vehicleData.containsKey("vehicleType")) {
-                vehicle.setVehicleType((String) vehicleData.get("vehicleType"));
+            if (vehicleData.containsKey("type") || vehicleData.containsKey("vehicleType")) {
+                String type = (String) vehicleData.getOrDefault("type", vehicleData.get("vehicleType"));
+                if (type == null || type.trim().isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Loại xe không được để trống");
+                }
+                if (type.length() > 50) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Loại xe không được vượt quá 50 ký tự");
+                }
+                vehicle.setVehicleType(type.trim());
             }
             
             // Cập nhật biển số xe và kiểm tra trùng lặp
             if (vehicleData.containsKey("vehicleNumber")) {
                 String newVehicleNumber = (String) vehicleData.get("vehicleNumber");
-                if (newVehicleNumber != null && !newVehicleNumber.trim().isEmpty()) {
-                    String currentVehicleNumber = vehicle.getVehicleNumber();
-                    // Chỉ kiểm tra nếu biển số mới khác biển số hiện tại
-                    if (currentVehicleNumber == null || !currentVehicleNumber.equals(newVehicleNumber.trim())) {
-                        // Kiểm tra trùng biển số xe (trừ xe hiện tại)
-                        if (vehicleRepository.existsByVehicleNumberAndVehicleIdNot(newVehicleNumber.trim(), vehicleId)) {
-                            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                    .body("Biển số xe \"" + newVehicleNumber + "\" đã tồn tại trong hệ thống. Vui lòng nhập biển số khác.");
-                        }
-                    }
-                    vehicle.setVehicleNumber(newVehicleNumber.trim());
-                } else {
-                    vehicle.setVehicleNumber(null);
+                if (newVehicleNumber == null || newVehicleNumber.trim().isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Biển số xe không được để trống");
                 }
+                
+                String trimmedNum = newVehicleNumber.trim();
+                if (trimmedNum.length() > 20) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Biển số xe không được vượt quá 20 ký tự");
+                }
+
+                String currentVehicleNumber = vehicle.getVehicleNumber();
+                // Chỉ kiểm tra nếu biển số mới khác biển số hiện tại
+                if (currentVehicleNumber == null || !currentVehicleNumber.equals(trimmedNum)) {
+                    if (vehicleRepository.existsByVehicleNumberAndVehicleIdNot(trimmedNum, vehicleId)) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body("Biển số xe \"" + trimmedNum + "\" đã tồn tại trong hệ thống. Vui lòng nhập biển số khác.");
+                    }
+                }
+                vehicle.setVehicleNumber(trimmedNum);
             }
             
             // Cập nhật tên xe
             if (vehicleData.containsKey("vehicleName") || vehicleData.containsKey("vehiclename")) {
-                String name = (String) vehicleData.getOrDefault("vehicleName", 
-                                                                vehicleData.get("vehiclename"));
-                vehicle.setVehicleName(name);
+                String name = (String) vehicleData.getOrDefault("vehicleName", vehicleData.get("vehiclename"));
+                if (name == null || name.trim().isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tên xe không được để trống");
+                }
+                if (name.length() > 100) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tên xe không được vượt quá 100 ký tự");
+                }
+                vehicle.setVehicleName(name.trim());
             }
             
             // Cập nhật trạng thái xe
             if (vehicleData.containsKey("status")) {
-                vehicle.setStatus((String) vehicleData.get("status"));
+                String status = (String) vehicleData.get("status");
+                if (status == null || status.trim().isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Trạng thái không được để trống");
+                }
+                String statusLower = status.trim().toLowerCase();
+                if (!statusLower.equals("ready") && !statusLower.equals("maintenance")) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Trạng thái không hợp lệ. Chỉ chấp nhận: ready, maintenance");
+                }
+                vehicle.setStatus(statusLower);
             }
             
             Vehicle updatedVehicle = vehicleRepository.save(vehicle);
-            System.out.println("DEBUG: Đã cập nhật xe " + vehicleId);
-            
             return ResponseEntity.ok(updatedVehicle);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            e.printStackTrace();
             String errorMessage = e.getMessage();
-            // Kiểm tra nếu lỗi do unique constraint
             if (errorMessage != null) {
                 if (errorMessage.contains("vehicle_number") || errorMessage.contains("uk_vehicle_number")) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("Biển số xe đã tồn tại trong hệ thống. Vui lòng nhập biển số khác.");
-                }
-                if (errorMessage.contains("vehicle_id") || errorMessage.contains("PRIMARY")) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("Mã xe đã tồn tại trong hệ thống. Vui lòng nhập mã xe khác.");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Biển số xe đã tồn tại trong hệ thống.");
                 }
             }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Đã xảy ra lỗi khi cập nhật xe: " + (errorMessage != null ? errorMessage : e.getClass().getSimpleName()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Lỗi dữ liệu: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -320,41 +427,31 @@ public class VehicleAPI {
      */
     @DeleteMapping("/{vehicleId}")
     @Transactional(rollbackFor = Exception.class)
-    public ResponseEntity<?> deleteVehicle(@PathVariable String vehicleId) {
+    public ResponseEntity<?> deleteVehicle(@PathVariable @Min(1) Long vehicleId) {
         try {
             Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
             if (vehicleOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Không tìm thấy xe với ID: " + vehicleId);
+                        .body(Map.of("success", false, "message", "Không tìm thấy xe với ID: " + vehicleId));
             }
             
             Vehicle vehicle = vehicleOpt.get();
-            String groupId = vehicle.getGroup() != null ? vehicle.getGroup().getGroupId() : null;
+            Long groupId = vehicle.getGroup() != null ? vehicle.getGroup().getGroupId() : null;
             
             // Xóa tất cả các bản ghi checkinoutlog liên quan đến xe trước
-            // (nằm trong database legal_contract)
-            // Lưu ý: vehicle_id trong checkinoutlog là INT, cần convert vehicleId (String) sang INT
+            // Sử dụng VehicleCleanupService với REQUIRES_NEW để tránh làm hỏng transaction chính
             try {
-                int deletedCheckInOutLogs = entityManager.createNativeQuery(
-                    "DELETE FROM legal_contract.checkinoutlog WHERE vehicle_id = CAST(:vehicleId AS UNSIGNED)"
-                ).setParameter("vehicleId", vehicleId).executeUpdate();
-                System.out.println("DEBUG: Đã xóa " + deletedCheckInOutLogs + " bản ghi checkinoutlog liên quan đến xe " + vehicleId);
+                vehicleCleanupService.deleteCheckInOutLogs(vehicleId);
             } catch (Exception e) {
-                System.err.println("DEBUG: Lỗi khi xóa checkinoutlog liên quan: " + e.getMessage());
-                // Tiếp tục xóa các dữ liệu khác dù có lỗi khi xóa checkinoutlog
+                System.err.println("DEBUG: Lỗi khi xóa checkinoutlog liên quan (xe vẫn sẽ được xóa): " + e.getMessage());
             }
             
             // Xóa tất cả các dịch vụ liên quan đến xe trước
-            // Với id làm primary key, có thể xóa bằng cách xóa theo vehicle_id
-            // Lưu ý: vehicle_id trong vehicleservice là INT, cần convert vehicleId (String) sang INT
+            // Sử dụng VehicleCleanupService với REQUIRES_NEW để tránh làm hỏng transaction chính
             try {
-                int deletedServices = entityManager.createNativeQuery(
-                    "DELETE FROM vehicle_management.vehicleservice WHERE vehicle_id = CAST(:vehicleId AS UNSIGNED)"
-                ).setParameter("vehicleId", vehicleId).executeUpdate();
-                System.out.println("DEBUG: Đã xóa " + deletedServices + " dịch vụ liên quan đến xe " + vehicleId);
+                vehicleCleanupService.deleteVehicleServices(vehicleId);
             } catch (Exception e) {
-                System.err.println("DEBUG: Lỗi khi xóa dịch vụ liên quan: " + e.getMessage());
-                // Tiếp tục xóa xe dù có lỗi khi xóa dịch vụ
+                System.err.println("DEBUG: Lỗi khi xóa dịch vụ liên quan (xe vẫn sẽ được xóa): " + e.getMessage());
             }
             
             // Xóa xe

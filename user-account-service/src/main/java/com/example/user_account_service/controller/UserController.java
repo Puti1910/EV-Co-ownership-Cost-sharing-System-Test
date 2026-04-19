@@ -8,12 +8,14 @@ import com.example.user_account_service.dto.UserProfileUpdateRequest;
 import com.example.user_account_service.entity.User;
 import com.example.user_account_service.service.UserService;
 import com.example.user_account_service.service.StorageService; // <-- THÊM IMPORT
+import jakarta.validation.Valid; // <-- THÊM IMPORT
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile; // <-- THÊM IMPORT
 
@@ -38,7 +40,7 @@ public class UserController {
      * API Đăng ký (PUBLIC)
      */
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
             LoginResponse response = userService.registerUser(registerRequest);
             return ResponseEntity.ok(response);
@@ -47,9 +49,11 @@ public class UserController {
             String errorMessage = e.getMessage();
             if (errorMessage != null && errorMessage.contains("Duplicate entry")) {
                 if (errorMessage.contains("email") || errorMessage.contains("UK6dotkott2kjsp8vw4d0m25fb7")) {
-                    return ResponseEntity.badRequest().body("Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập.");
+                    return ResponseEntity.badRequest()
+                            .body("Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập.");
                 } else if (errorMessage.contains("phone_number")) {
-                    return ResponseEntity.badRequest().body("Số điện thoại này đã được đăng ký. Vui lòng sử dụng số điện thoại khác.");
+                    return ResponseEntity.badRequest()
+                            .body("Số điện thoại này đã được đăng ký. Vui lòng sử dụng số điện thoại khác.");
                 } else if (errorMessage.contains("id_card_number")) {
                     return ResponseEntity.badRequest().body("Số CMND/CCCD này đã được đăng ký.");
                 } else if (errorMessage.contains("license_number")) {
@@ -68,20 +72,17 @@ public class UserController {
      * API Đăng nhập (PUBLIC)
      */
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
-        try {
-            LoginResponse response = userService.loginUser(loginRequest);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body("Sai email hoặc mật khẩu");
-        }
+    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
+        LoginResponse response = userService.loginUser(loginRequest);
+        return ResponseEntity.ok(response);
     }
+
 
     /**
      * API Refresh Token (PUBLIC - dựa vào refresh token hợp lệ)
      */
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         try {
             LoginResponse response = userService.refreshSession(request.getRefreshToken());
             return ResponseEntity.ok(response);
@@ -94,10 +95,11 @@ public class UserController {
      * Thu hồi refresh token (Logout)
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<?> logout(@Valid @RequestBody RefreshTokenRequest request) {
         userService.logout(request.getRefreshToken());
         return ResponseEntity.ok().build();
     }
+
 
     /**
      * API TẢI DỮ LIỆU hồ sơ cá nhân (BẢO VỆ)
@@ -109,15 +111,14 @@ public class UserController {
         logger.info("Authentication name: {}", authentication != null ? authentication.getName() : "N/A");
         logger.info("Authentication authorities: {}", authentication != null ? authentication.getAuthorities() : "N/A");
         logger.info("Authentication class: {}", authentication != null ? authentication.getClass().getName() : "N/A");
-        
+
         if (authentication == null || authentication.getName() == null) {
             logger.warn("GET /profile - Authentication is null or missing name");
             return ResponseEntity.status(401).body(Map.of(
-                "error", "Unauthorized",
-                "message", "Bạn cần đăng nhập để truy cập hồ sơ cá nhân. Vui lòng đăng nhập lại."
-            ));
+                    "error", "Unauthorized",
+                    "message", "Bạn cần đăng nhập để truy cập hồ sơ cá nhân. Vui lòng đăng nhập lại."));
         }
-        
+
         try {
             logger.info("GET /profile - Calling getAuthenticatedUser for: {}", authentication.getName());
             User user = getAuthenticatedUser(authentication);
@@ -129,38 +130,36 @@ public class UserController {
             logger.error("GET /profile - Exception stack trace:", e);
             if (e.getMessage() != null && e.getMessage().contains("không xác định")) {
                 return ResponseEntity.status(401).body(Map.of(
-                    "error", "Unauthorized",
-                    "message", "Không thể xác định người dùng. Vui lòng đăng nhập lại."
-                ));
+                        "error", "Unauthorized",
+                        "message", "Không thể xác định người dùng. Vui lòng đăng nhập lại."));
             }
             return ResponseEntity.status(404).body(Map.of(
-                "error", "Not Found",
-                "message", "Không tìm thấy hồ sơ người dùng."
-            ));
+                    "error", "Not Found",
+                    "message", "Không tìm thấy hồ sơ người dùng."));
         } catch (Exception e) {
             logger.error("GET /profile - Unexpected error: {}", e.getMessage(), e);
             return ResponseEntity.status(500).body(Map.of(
-                "error", "Internal Server Error",
-                "message", "Lỗi máy chủ: " + e.getMessage()
-            ));
+                    "error", "Internal Server Error",
+                    "message", "Lỗi máy chủ: " + e.getMessage()));
         }
     }
 
     /**
      * API CẬP NHẬT hồ sơ cá nhân (BẢO VỆ)
      */
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(@RequestBody UserProfileUpdateRequest request, Authentication authentication) {
+    public ResponseEntity<?> updateProfile(@Valid @RequestBody UserProfileUpdateRequest request,
+            Authentication authentication) {
         logger.info("PUT /profile - Authentication: {}", authentication != null ? authentication.getName() : "NULL");
-        
+
         if (authentication == null || authentication.getName() == null) {
             logger.warn("PUT /profile - Authentication is null or missing name");
             return ResponseEntity.status(401).body(Map.of(
-                "error", "Unauthorized",
-                "message", "Bạn cần đăng nhập để cập nhật hồ sơ cá nhân. Vui lòng đăng nhập lại."
-            ));
+                    "error", "Unauthorized",
+                    "message", "Bạn cần đăng nhập để cập nhật hồ sơ cá nhân. Vui lòng đăng nhập lại."));
         }
-        
+
         try {
             User currentUser = getAuthenticatedUser(authentication);
             logger.info("PUT /profile - Updating profile for user: {}", currentUser.getEmail());
@@ -171,25 +170,27 @@ public class UserController {
             logger.error("PUT /profile - Error updating profile: {}", e.getMessage(), e);
             if (e.getMessage() != null && e.getMessage().contains("không xác định")) {
                 return ResponseEntity.status(401).body(Map.of(
-                    "error", "Unauthorized",
-                    "message", "Không thể xác định người dùng. Vui lòng đăng nhập lại."
-                ));
+                        "error", "Unauthorized",
+                        "message", "Không thể xác định người dùng. Vui lòng đăng nhập lại."));
             }
             return ResponseEntity.badRequest().body(Map.of(
-                "error", "Bad Request",
-                "message", e.getMessage() != null ? e.getMessage() : "Không thể cập nhật hồ sơ."
-            ));
+                    "error", "Bad Request",
+                    "message", e.getMessage() != null ? e.getMessage() : "Không thể cập nhật hồ sơ."));
         }
     }
+
     /**
      * NÂNG CẤP: API UPLOAD FILE (BẢO VỆ)
      * URL: POST http://localhost:8081/api/users/profile/upload
      */
     @PostMapping("/profile/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file,
-                                        Authentication authentication) {
+            Authentication authentication) {
         try {
             User user = getAuthenticatedUser(authentication);
+
+            // Validate file size and content
+            validateFile(file, "ảnh đại diện");
 
             // 1. Lưu file và nhận lại tên file duy nhất
             String savedFileName = storageService.storeFile(file, user.getUserId());
@@ -217,22 +218,26 @@ public class UserController {
             @RequestParam(value = "idCardFront", required = false) MultipartFile idCardFront,
             @RequestParam(value = "idCardBack", required = false) MultipartFile idCardBack,
             @RequestParam(value = "driverLicense", required = false) MultipartFile driverLicense,
-            @RequestParam(value = "portrait", required = false) MultipartFile portrait
-    ) {
+            @RequestParam(value = "portrait", required = false) MultipartFile portrait) {
         try {
             User user = getAuthenticatedUser(authentication);
             Map<String, String> uploadedUrls = new HashMap<>();
 
-            if (idCardFront != null && !idCardFront.isEmpty()) {
+            // Kiểm tra từng file nếu có gửi lên
+            if (idCardFront != null) {
+                validateFile(idCardFront, "mặt trước CMND");
                 uploadedUrls.put("idCardFrontUrl", saveKycFile(idCardFront, user.getUserId()));
             }
-            if (idCardBack != null && !idCardBack.isEmpty()) {
+            if (idCardBack != null) {
+                validateFile(idCardBack, "mặt sau CMND");
                 uploadedUrls.put("idCardBackUrl", saveKycFile(idCardBack, user.getUserId()));
             }
-            if (driverLicense != null && !driverLicense.isEmpty()) {
+            if (driverLicense != null) {
+                validateFile(driverLicense, "bằng lái xe");
                 uploadedUrls.put("licenseImageUrl", saveKycFile(driverLicense, user.getUserId()));
             }
-            if (portrait != null && !portrait.isEmpty()) {
+            if (portrait != null) {
+                validateFile(portrait, "ảnh chân dung");
                 uploadedUrls.put("portraitImageUrl", saveKycFile(portrait, user.getUserId()));
             }
 
@@ -249,15 +254,36 @@ public class UserController {
         }
     }
 
+    /**
+     * Hàm kiểm tra tính hợp lệ của file (1 byte - 10MB)
+     */
+    private void validateFile(MultipartFile file, String fieldName) {
+        if (file == null || file.isEmpty()) {
+            throw new RuntimeException("Tệp " + fieldName + " không được để trống (0 byte).");
+        }
+        if (file.getSize() > 10 * 1024 * 1024) { // 10MB
+            throw new RuntimeException("Tệp " + fieldName + " vượt quá giới hạn 10MB.");
+        }
+    }
+
+    /**
+     * API kiểm tra sự tồn tại của người dùng (PUBLIC - dành cho inter-service calls)
+     */
+    @GetMapping("/{userId}/exists")
+    public ResponseEntity<Boolean> userExists(@PathVariable Long userId) {
+        logger.info("Inter-service call: Checking existence for userId: {}", userId);
+        return ResponseEntity.ok(userService.existsById(userId));
+    }
+
     private User getAuthenticatedUser(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             logger.error("getAuthenticatedUser - Authentication is null or name is null");
             throw new RuntimeException("Người dùng không xác định");
         }
-        
+
         String email = authentication.getName();
         logger.debug("getAuthenticatedUser - Looking up user with email: {}", email);
-        
+
         return userService.findByEmail(email)
                 .orElseThrow(() -> {
                     logger.error("getAuthenticatedUser - User not found with email: {}", email);

@@ -10,8 +10,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "service", schema = "vehicle_management", indexes = {
         @Index(name = "idx_service_name", columnList = "service_name"),
@@ -20,9 +18,9 @@ import java.time.Instant;
 public class ServiceType {
 
     @Id
-    @Size(max = 20, message = "Service ID không được vượt quá 20 ký tự")
-    @Column(name = "service_id", length = 20, nullable = false, unique = true, updatable = false)
-    private String serviceId; // Tự động generate nếu không được cung cấp: SRV001, SRV002, ...
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "service_id", nullable = false, unique = true, updatable = false)
+    private Long serviceId; 
 
     @NotBlank(message = "Tên dịch vụ không được để trống")
     @Size(min = 1, max = 255, message = "Tên dịch vụ phải từ 1 đến 255 ký tự")
@@ -42,15 +40,31 @@ public class ServiceType {
     @Column(name = "updated_date", nullable = false)
     private Instant updatedDate;
 
+    // Manual Getters/Setters
+    public Long getServiceId() { return serviceId; }
+    public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
+
+    public String getServiceName() { return serviceName; }
+    public void setServiceName(String serviceName) { this.serviceName = serviceName; }
+
+    public String getServiceType() { return serviceType; }
+    public void setServiceType(String serviceType) { this.serviceType = serviceType; }
+
+    public Instant getCreatedDate() { return createdDate; }
+    public void setCreatedDate(Instant createdDate) { this.createdDate = createdDate; }
+
+    public Instant getUpdatedDate() { return updatedDate; }
+    public void setUpdatedDate(Instant updatedDate) { this.updatedDate = updatedDate; }
+
     // Constructors
     public ServiceType() {}
 
-    public ServiceType(String serviceId, String serviceName) {
+    public ServiceType(Long serviceId, String serviceName) {
         this.serviceId = serviceId;
         this.serviceName = serviceName;
     }
 
-    public ServiceType(String serviceId, String serviceName, String serviceType) {
+    public ServiceType(Long serviceId, String serviceName, String serviceType) {
         this.serviceId = serviceId;
         this.serviceName = serviceName;
         this.serviceType = serviceType;

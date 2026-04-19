@@ -57,7 +57,7 @@ public class VehicleGroupService {
      * @param currentGroupId ID của nhóm hiện tại (có thể null)
      * @return Danh sách nhóm xe chưa có xe + nhóm hiện tại
      */
-    public List<Vehiclegroup> getAvailableVehicleGroups(String currentGroupId) {
+    public List<Vehiclegroup> getAvailableVehicleGroups(Long currentGroupId) {
         // Lấy tất cả nhóm xe
         List<Vehiclegroup> allGroups = vehicleGroupRepository.findAll();
         
@@ -80,7 +80,7 @@ public class VehicleGroupService {
      * @param groupId ID của nhóm xe
      * @return Vehiclegroup nếu tìm thấy, null nếu không
      */
-    public Vehiclegroup getVehicleGroupById(String groupId) {
+    public Vehiclegroup getVehicleGroupById(Long groupId) {
         Optional<Vehiclegroup> group = vehicleGroupRepository.findById(groupId);
         return group.orElse(null);
     }
@@ -90,7 +90,7 @@ public class VehicleGroupService {
      * @param groupId ID của nhóm xe
      * @return Danh sách các xe trong nhóm
      */
-    public List<Vehicle> getVehiclesByGroupId(String groupId) {
+    public List<Vehicle> getVehiclesByGroupId(Long groupId) {
         return vehicleRepository.findByGroupId(groupId);
     }
 
@@ -123,7 +123,7 @@ public class VehicleGroupService {
      * @return Vehiclegroup đã được cập nhật, null nếu không tìm thấy nhóm xe
      */
     @Transactional
-    public Vehiclegroup updateVehicleGroup(String groupId, Vehiclegroup vehicleGroup) {
+    public Vehiclegroup updateVehicleGroup(Long groupId, Vehiclegroup vehicleGroup) {
         Optional<Vehiclegroup> existingGroup = vehicleGroupRepository.findById(groupId);
         if (existingGroup.isEmpty()) {
             return null; // Nếu không tìm thấy, trả về null
@@ -152,7 +152,7 @@ public class VehicleGroupService {
      * @return Thông báo kết quả xóa (bao gồm số lượng xe đã xóa), null nếu không tìm thấy nhóm xe
      */
     @Transactional
-    public String deleteVehicleGroup(String groupId) {
+    public String deleteVehicleGroup(Long groupId) {
         // Kiểm tra xem nhóm xe có tồn tại trong cơ sở dữ liệu hay không
         Optional<Vehiclegroup> groupOptional = vehicleGroupRepository.findById(groupId);
         if (groupOptional.isEmpty()) {

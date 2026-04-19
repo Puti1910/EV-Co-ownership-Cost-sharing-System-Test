@@ -6,6 +6,7 @@ import com.example.groupmanagement.dto.CreateLeaveRequestDto;
 import com.example.groupmanagement.dto.GroupResponseDto;
 import com.example.groupmanagement.dto.AddGroupMemberRequestDto;
 import com.example.groupmanagement.dto.ApproveLeaveRequestDto;
+import com.example.groupmanagement.dto.CreateGroupContractDto;
 import jakarta.validation.Valid;
 import com.example.groupmanagement.exception.ValidationException;
 import org.springframework.validation.BindingResult;
@@ -36,7 +37,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -45,6 +45,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.dao.DataIntegrityViolationException;
+import jakarta.persistence.PersistenceException;
 
 @RestController
 @RequestMapping("/api/groups")
@@ -1639,56 +1641,128 @@ public class GroupManagementController {
     }
 
     @PostMapping("/{groupId}/contracts")
-    public ResponseEntity<?> createContract(@PathVariable Integer groupId,
-                                            @RequestBody Map<String, Object> requestData) {
+    public ResponseEntity<?> createContract(
+            @PathVariable Integer groupId,
+            @Valid @RequestBody CreateGroupContractDto requestDto,
+            BindingResult bindingResult) {
+        
+        // ============ VALIDATION: Check binding errors ============
+        if (bindingResult.hasErrors()) {
+            List<Map<String, Object>> errors = bindingResult.getFieldErrors().stream()
+                    .map(error -> Map.<String, Object>of(
+                            "field", error.getField(),
+                            "message", error.getDefaultMessage()))
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Validation error",
+                    "details", errors
+            ));
+        }
+
         try {
+            Integer createdBy = requestDto.getCreatedBy();
+            String contractCode = requestDto.getContractCode().trim();
+            String contractContent = requestDto.getContractContent().trim();
+            String contractStatus = requestDto.getContractStatus() != null 
+                    ? requestDto.getContractStatus().trim() 
+                    : "pending";
+
+            logger.info("🔵 [GroupManagementController] POST /api/groups/{}/contracts", groupId);
+            logger.info("   createdBy: {}, contractCode: {}", createdBy, contractCode);
+
+            // ============ BUG 1 FIX: Already handled by @NotBlank annotation ============
+            if (contractContent == null || contractContent.isEmpty()) {
+                logger.error("❌ [GroupManagementController] contractContent is empty");
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Invalid input",
+                    "message", "contractContent không được để trống",
+                    "field", "contractContent"
+                ));
+            }
+
+            // ============ BUG 2 FIX: Already handled by @Size annotation, but adding explicit check ============
+            if (contractContent.length() > 65535) {
+                logger.error("❌ [GroupManagementController] contractContent exceeds max length: {}", contractContent.length());
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Invalid input",
+                    "message", "Nội dung hợp đồng quá dài (max 65.535 ký tự)",
+                    "field", "contractContent",
+                    "code", "CONTENT_TOO_LONG"
+                ));
+            }
+
+            // ============ Check if group exists ============
             Optional<Group> groupOpt = groupRepository.findById(groupId);
             if (groupOpt.isEmpty()) {
-                return ResponseEntity.status(404).body(Map.of("error", "Group not found"));
+                logger.error("❌ [GroupManagementController] Group {} not found", groupId);
+                return ResponseEntity.status(404).body(Map.of(
+                    "error", "Group not found",
+                    "message", "Nhóm ID " + groupId + " không tồn tại"
+                ));
             }
 
             Group group = groupOpt.get();
+
+            // ============ BUG 4 FIX: Check if createdBy is member of the group ============
+            Optional<GroupMember> memberOpt = groupMemberRepository.findByGroup_GroupIdAndUserId(groupId, createdBy);
+            if (memberOpt.isEmpty()) {
+                logger.warn("❌ [GroupManagementController] User {} is not a member of group {}", createdBy, groupId);
+                return ResponseEntity.status(403).body(Map.of(
+                    "error", "Forbidden",
+                    "message", "Bạn không phải là thành viên của nhóm này. Chỉ thành viên mới có quyền tạo hợp đồng.",
+                    "field", "createdBy",
+                    "code", "USER_NOT_MEMBER"
+                ));
+            }
+
+            // ============ BUG 3 FIX: Check contractCode uniqueness ============
+            Optional<GroupContract> existingContract = groupContractRepository.findByContractCode(contractCode);
+            if (existingContract.isPresent()) {
+                logger.warn("❌ [GroupManagementController] Contract code {} already exists", contractCode);
+                return ResponseEntity.status(409).body(Map.of(
+                    "error", "Conflict",
+                    "message", "Mã hợp đồng '" + contractCode + "' đã tồn tại. Vui lòng sử dụng mã khác.",
+                    "field", "contractCode",
+                    "code", "CONTRACT_CODE_DUPLICATE"
+                ));
+            }
+
+            // ============ Create contract ============
             GroupContract contract = new GroupContract();
             contract.setGroup(group);
-
-            String requestedCode = requestData != null && requestData.get("contractCode") != null
-                    ? requestData.get("contractCode").toString()
-                    : null;
-
-            if (requestedCode == null || requestedCode.isBlank()) {
-                requestedCode = generateContractCodeFromGroup(group);
-            }
-
-            // Ensure uniqueness
-            if (groupContractRepository.findByContractCode(requestedCode).isPresent()) {
-                requestedCode = requestedCode + "-" + UUID.randomUUID().toString().substring(0, 4).toUpperCase();
-            }
-            contract.setContractCode(requestedCode);
-
-            String content = requestData != null && requestData.get("contractContent") != null
-                    ? requestData.get("contractContent").toString()
-                    : "Hợp đồng sở hữu chung cho nhóm " + group.getGroupName();
-            contract.setContractContent(content);
-
-            if (requestData != null && requestData.get("contractStatus") != null) {
-                GroupContract.ContractStatus status = toContractStatus(requestData.get("contractStatus").toString());
-                if (status != null) {
-                    contract.setContractStatus(status);
-                }
-            }
-
-            if (requestData != null && requestData.get("createdBy") != null) {
-                contract.setCreatedBy(((Number) requestData.get("createdBy")).intValue());
-            } else {
-                contract.setCreatedBy(group.getAdminId());
-            }
+            contract.setContractCode(contractCode);
+            contract.setContractContent(contractContent);
+            contract.setContractStatus(toContractStatus(contractStatus));
+            contract.setCreatedBy(createdBy);
+            contract.setCreationDate(LocalDateTime.now());
 
             GroupContract saved = groupContractRepository.save(contract);
-            logger.info("✅ Created contract {} for group {}", saved.getContractId(), groupId);
-            return ResponseEntity.status(201).body(convertContractToMap(saved, null));
+            logger.info("✅ [GroupManagementController] Contract created: contractId={}, code={}", saved.getContractId(), saved.getContractCode());
+
+            return ResponseEntity.status(201).body(convertContractToMap(saved, createdBy));
+
+        } catch (DataIntegrityViolationException e) {
+            logger.error("❌ [GroupManagementController] Database constraint violation: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Database constraint violation",
+                "message", "Có lỗi ràng buộc dữ liệu. Vui lòng kiểm tra lại thông tin.",
+                "code", "DATABASE_CONSTRAINT_ERROR"
+            ));
+        } catch (PersistenceException e) {
+            logger.error("❌ [GroupManagementController] Persistence error: {}", e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                "error", "Database error",
+                "message", "Có lỗi khi lưu dữ liệu. Vui lòng thử lại sau.",
+                "code", "DATABASE_ERROR"
+            ));
         } catch (Exception e) {
             logger.error("❌ [GroupManagementController] Error creating contract: {}", e.getMessage());
-            return ResponseEntity.status(500).body(Map.of("error", "Failed to create contract", "message", e.getMessage()));
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                "error", "Failed to create contract",
+                "message", e.getMessage()
+            ));
         }
     }
 

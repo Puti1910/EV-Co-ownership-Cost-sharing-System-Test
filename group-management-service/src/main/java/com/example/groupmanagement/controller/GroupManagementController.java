@@ -13,6 +13,7 @@ import org.springframework.validation.BindingResult;
 import com.example.groupmanagement.util.GroupValidationUtil;
 import com.example.groupmanagement.until.MemberValidationUtil;
 import com.example.groupmanagement.service.UserValidationService;
+import com.example.groupmanagement.service.GroupContractService;
 import com.example.groupmanagement.entity.ContractSignature;
 import com.example.groupmanagement.entity.Group;
 import com.example.groupmanagement.entity.GroupContract;

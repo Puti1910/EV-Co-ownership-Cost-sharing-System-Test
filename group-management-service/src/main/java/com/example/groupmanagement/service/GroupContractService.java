@@ -35,7 +35,7 @@ public class GroupContractService {
      * ============ BUG 2 FIX: Contract status validation ============
      */
     @Transactional
-    public ContractSignature signContractWithAuthorization(Integer contractId, Integer userId, String signatureMethod, String ipAddress) {
+    public ContractSignature signContractWithAuthorization(Integer contractId, Integer userId, String signatureMethod, String ipAddress) throws IllegalAccessException {
         logger.info("🔵 [GroupContractService] Attempting to sign contract {} by user {}", contractId, userId);
         
         // Step 1: Fetch contract

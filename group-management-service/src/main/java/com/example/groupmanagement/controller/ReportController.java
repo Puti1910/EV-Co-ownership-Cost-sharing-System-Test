@@ -123,7 +123,7 @@ public class ReportController {
                         .count();
                     
                     long voteB = results.stream()
-                        .filter(r -> r.getChoice() == VotingResult.VoteChoice.B)
+                        .filter(r -> r.getChoice() == VotingResult.VoteChoice.D)
                         .count();
                     
                     Map<String, Object> report = new HashMap<>();

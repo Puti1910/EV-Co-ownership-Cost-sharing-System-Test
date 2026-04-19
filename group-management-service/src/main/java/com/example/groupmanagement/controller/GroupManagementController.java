@@ -1507,7 +1507,7 @@ public class GroupManagementController {
                 return ResponseEntity.status(400).body(Map.of("error", "Request does not belong to this group"));
             }
             
-            // ============ BUG 2 FIX: Kiểm tra trạng thái Pending ============
+            // ========== BUG 2 FIX: Kiểm tra trạng thái Pending ===========
             if (leaveRequest.getStatus() != LeaveRequest.LeaveStatus.Pending) {
                 logger.warn("⚠️ [GroupManagementController] Request {} already processed with status {}", requestId, leaveRequest.getStatus());
                 return ResponseEntity.status(400).body(Map.of(

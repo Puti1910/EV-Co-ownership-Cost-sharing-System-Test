@@ -77,6 +77,9 @@ public class GroupManagementController {
     private ContractSignatureRepository contractSignatureRepository;
 
     @Autowired
+    private GroupContractService groupContractService;
+
+    @Autowired
     private EntityManager entityManager;
 
     @Autowired
@@ -1767,68 +1770,89 @@ public class GroupManagementController {
     }
 
     @PutMapping("/contracts/{contractId}/sign")
+    @Transactional
     public ResponseEntity<?> signContract(@PathVariable Integer contractId,
                                           @RequestBody(required = false) Map<String, Object> requestData) {
         try {
             if (requestData == null) {
                 requestData = new HashMap<>();
             }
-            Integer userId = requestData.containsKey("userId") ? ((Number) requestData.get("userId")).intValue() : null;
+            
+            Integer userId = requestData.containsKey("userId") 
+                    ? ((Number) requestData.get("userId")).intValue() 
+                    : null;
+            
             if (userId == null) {
-                return ResponseEntity.status(400).body(Map.of("error", "userId is required"));
+                logger.error("❌ [GroupManagementController] userId is required for signing contract");
+                return ResponseEntity.status(400).body(Map.of(
+                    "error", "userId is required",
+                    "message", "Vui lòng cung cấp userId"
+                ));
             }
-
+            
+            String signatureMethod = requestData.containsKey("signatureMethod") 
+                    ? requestData.get("signatureMethod").toString() 
+                    : "electronic";
+            
+            String ipAddress = requestData.containsKey("ipAddress") 
+                    ? requestData.get("ipAddress").toString() 
+                    : "unknown";
+            
+            logger.info("🔵 [GroupManagementController] PUT /api/groups/contracts/{}/sign - userId: {}", contractId, userId);
+            
+            // ============ Use Service with built-in authorization and status validation ============
+            ContractSignature signature = groupContractService.signContractWithAuthorization(
+                    contractId, userId, signatureMethod, ipAddress
+            );
+            
+            // Fetch updated contract
             Optional<GroupContract> contractOpt = groupContractRepository.findById(contractId);
             if (contractOpt.isEmpty()) {
                 return ResponseEntity.status(404).body(Map.of("error", "Contract not found"));
             }
-
+            
             GroupContract contract = contractOpt.get();
-
-            boolean alreadySigned = contractSignatureRepository.existsByGroupContractAndUserId(contract, userId);
-            if (alreadySigned) {
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "alreadySigned", true,
-                        "message", "Người dùng đã ký hợp đồng này trước đó.",
-                        "contract", convertContractToMap(contract, userId),
-                        "requiresJoinAction", true
-                ));
-            }
-
-            ContractSignature signature = new ContractSignature();
-            signature.setGroupContract(contract);
-            signature.setUserId(userId);
-
-            if (requestData.get("signatureMethod") != null) {
-                signature.setSignatureMethod(requestData.get("signatureMethod").toString());
-            } else {
-                signature.setSignatureMethod("electronic");
-            }
-            if (requestData.get("ipAddress") != null) {
-                signature.setIpAddress(requestData.get("ipAddress").toString());
-            }
-
-            ContractSignature savedSignature = contractSignatureRepository.save(signature);
-
-            if (contract.getContractStatus() == GroupContract.ContractStatus.PENDING) {
-                contract.setContractStatus(GroupContract.ContractStatus.SIGNED);
-                contract.setSignedDate(LocalDateTime.now());
-                groupContractRepository.save(contract);
-            }
-
+            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Đã ký hợp đồng thành công.");
             response.put("contract", convertContractToMap(contract, userId));
-            response.put("signature", convertSignatureToMap(savedSignature));
+            response.put("signature", convertSignatureToMap(signature));
             response.put("requiresJoinAction", true);
-            response.put("joinInstruction", "Vui lòng bấm nút Tham gia nhóm và nhập tỉ lệ sở hữu sau khi ký.");
-
+            
+            logger.info("✅ [GroupManagementController] Contract {} signed by user {}", contractId, userId);
             return ResponseEntity.ok(response);
+            
+        } catch (IllegalArgumentException e) {
+            // ============ BUG 1 & 2: Specific error for contract/group validation ============
+            logger.error("❌ [GroupManagementController] Argument error: {}", e.getMessage());
+            return ResponseEntity.status(404).body(Map.of(
+                "error", "Not found",
+                "message", e.getMessage()
+            ));
+        } catch (IllegalAccessException e) {
+            // ============ BUG 1 FIX: Authorization error - 403 Forbidden ============
+            logger.warn("❌ [GroupManagementController] Authorization denied: {}", e.getMessage());
+            return ResponseEntity.status(403).body(Map.of(
+                "error", "Forbidden",
+                "message", e.getMessage(),
+                "code", "USER_NOT_GROUP_MEMBER"
+            ));
+        } catch (IllegalStateException e) {
+            // ============ BUG 2 FIX: Invalid state error - 400 Bad Request ============
+            logger.warn("⚠️ [GroupManagementController] Invalid contract state: {}", e.getMessage());
+            return ResponseEntity.status(400).body(Map.of(
+                "error", "Bad Request",
+                "message", e.getMessage(),
+                "code", "CONTRACT_ALREADY_SIGNED"
+            ));
         } catch (Exception e) {
-            logger.error("❌ [GroupManagementController] Error signing contract: {}", e.getMessage());
-            return ResponseEntity.status(500).body(Map.of("error", "Failed to sign contract", "message", e.getMessage()));
+            logger.error("❌ [GroupManagementController] Unexpected error signing contract: {}", e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                "error", "Failed to sign contract",
+                "message", e.getMessage()
+            ));
         }
     }
 

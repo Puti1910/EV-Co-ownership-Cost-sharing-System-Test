@@ -14,6 +14,8 @@ public interface ContractSignatureRepository extends JpaRepository<ContractSigna
 
     List<ContractSignature> findByGroupContract(GroupContract groupContract);
 
+    java.util.Optional<ContractSignature> findByGroupContractAndUserId(GroupContract groupContract, Integer userId);
+
     java.util.Optional<ContractSignature> findTopByGroupContract_Group_GroupIdAndUserIdOrderBySignedAtDesc(
             Integer groupId,
             Integer userId

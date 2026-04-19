@@ -2,6 +2,8 @@ package com.example.groupmanagement.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,9 +36,11 @@ public class LeaveRequest {
     private GroupMember groupMember;
     
     @Column(name = "userId", nullable = false)
+    @NotNull(message = "userId không được để trống")
     private Integer userId;
     
     @Column(name = "reason", columnDefinition = "TEXT")
+    @Size(max = 255, message = "reason không được vượt quá 255 ký tự")
     private String reason;
     
     @Enumerated(EnumType.STRING)

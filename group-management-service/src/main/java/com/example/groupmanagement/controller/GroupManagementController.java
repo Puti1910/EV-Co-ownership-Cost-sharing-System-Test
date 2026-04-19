@@ -2,6 +2,7 @@ package com.example.groupmanagement.controller;
 
 import com.example.groupmanagement.dto.CreateGroupRequestDto;
 import com.example.groupmanagement.dto.CreateVotingRequestDto;
+import com.example.groupmanagement.dto.CreateLeaveRequestDto;
 import com.example.groupmanagement.dto.GroupResponseDto;
 import com.example.groupmanagement.dto.AddGroupMemberRequestDto;
 import jakarta.validation.Valid;
@@ -1135,23 +1136,27 @@ public class GroupManagementController {
     @PostMapping("/{groupId}/leave-request")
     public ResponseEntity<?> createLeaveRequest(
             @PathVariable Integer groupId,
-            @RequestBody Map<String, Object> requestData) {
+            @Valid @RequestBody CreateLeaveRequestDto requestDto,
+            BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            List<Map<String, Object>> errors = bindingResult.getFieldErrors().stream()
+                    .map(error -> Map.<String, Object>of(
+                            "field", error.getField(),
+                            "message", error.getDefaultMessage()))
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Validation error",
+                    "details", errors
+            ));
+        }
+
         try {
-            Integer userId = requestData.containsKey("userId") ? 
-                ((Number) requestData.get("userId")).intValue() : null;
-            String reason = requestData.containsKey("reason") ? 
-                (String) requestData.get("reason") : null;
+            Integer userId = requestDto.getUserId();
+            String reason = requestDto.getReason();
             
             logger.info("🔵 [GroupManagementController] POST /api/groups/{}/leave-request", groupId);
             logger.info("Request: userId={}, reason={}", userId, reason);
-            
-            // Validation
-            if (userId == null) {
-                return ResponseEntity.status(400).body(Map.of(
-                    "error", "userId is required",
-                    "message", "Vui lòng cung cấp ID của người dùng"
-                ));
-            }
             
             // Kiểm tra user có phải là thành viên không
             List<GroupMember> members = groupMemberRepository.findByGroup_GroupId(groupId);

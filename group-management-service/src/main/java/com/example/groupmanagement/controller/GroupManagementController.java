@@ -5,6 +5,7 @@ import com.example.groupmanagement.dto.CreateVotingRequestDto;
 import com.example.groupmanagement.dto.CreateLeaveRequestDto;
 import com.example.groupmanagement.dto.GroupResponseDto;
 import com.example.groupmanagement.dto.AddGroupMemberRequestDto;
+import com.example.groupmanagement.dto.ApproveLeaveRequestDto;
 import jakarta.validation.Valid;
 import com.example.groupmanagement.exception.ValidationException;
 import org.springframework.validation.BindingResult;
@@ -1278,25 +1279,34 @@ public class GroupManagementController {
     public ResponseEntity<?> approveLeaveRequest(
             @PathVariable Integer groupId,
             @PathVariable Integer requestId,
-            @RequestBody(required = false) Map<String, Object> requestData) {
+            @Valid @RequestBody ApproveLeaveRequestDto requestDto,
+            BindingResult bindingResult) {
+        
+        if (bindingResult.hasErrors()) {
+            List<Map<String, Object>> errors = bindingResult.getFieldErrors().stream()
+                    .map(error -> Map.<String, Object>of(
+                            "field", error.getField(),
+                            "message", error.getDefaultMessage()))
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Validation error",
+                    "details", errors
+            ));
+        }
+
         try {
-            // Handle null requestData
-            if (requestData == null) {
-                requestData = new java.util.HashMap<>();
-            }
-            
-            Integer currentUserId = requestData.containsKey("currentUserId") ? 
-                ((Number) requestData.get("currentUserId")).intValue() : null;
-            String adminNote = requestData.containsKey("adminNote") ? 
-                (String) requestData.get("adminNote") : null;
+            Integer currentUserId = requestDto.getCurrentUserId();
+            String adminNote = requestDto.getAdminNote();
             
             logger.info("🔵 [GroupManagementController] POST /api/groups/{}/leave-requests/{}/approve", groupId, requestId);
             
-            // Validation
-            if (currentUserId == null) {
-                return ResponseEntity.status(400).body(Map.of(
-                    "error", "currentUserId is required",
-                    "message", "Vui lòng cung cấp ID của Admin"
+            // ============ BUG 1 FIX: Kiểm tra groupId tồn tại ============
+            Optional<Group> groupOpt = groupRepository.findById(groupId);
+            if (groupOpt.isEmpty()) {
+                logger.error("❌ [GroupManagementController] Group {} not found", groupId);
+                return ResponseEntity.status(404).body(Map.of(
+                    "error", "Group not found",
+                    "message", "Nhóm ID " + groupId + " không tồn tại"
                 ));
             }
             
@@ -1316,13 +1326,14 @@ public class GroupManagementController {
             
             LeaveRequest leaveRequest = requestOpt.get();
             
-            // Kiểm tra yêu cầu thuộc nhóm này
+            // ============ BUG 1 FIX: Kiểm tra requestId thuộc về groupId ============
             if (!leaveRequest.getGroup().getGroupId().equals(groupId)) {
                 return ResponseEntity.status(400).body(Map.of("error", "Request does not belong to this group"));
             }
             
-            // Kiểm tra status
+            // ============ BUG 2 FIX: Kiểm tra trạng thái Pending ============
             if (leaveRequest.getStatus() != LeaveRequest.LeaveStatus.Pending) {
+                logger.warn("⚠️ [GroupManagementController] Request {} already processed with status {}", requestId, leaveRequest.getStatus());
                 return ResponseEntity.status(400).body(Map.of(
                     "error", "Request already processed",
                     "message", "Yêu cầu này đã được xử lý"
@@ -1444,25 +1455,34 @@ public class GroupManagementController {
     public ResponseEntity<?> rejectLeaveRequest(
             @PathVariable Integer groupId,
             @PathVariable Integer requestId,
-            @RequestBody(required = false) Map<String, Object> requestData) {
+            @Valid @RequestBody ApproveLeaveRequestDto requestDto,
+            BindingResult bindingResult) {
+        
+        if (bindingResult.hasErrors()) {
+            List<Map<String, Object>> errors = bindingResult.getFieldErrors().stream()
+                    .map(error -> Map.<String, Object>of(
+                            "field", error.getField(),
+                            "message", error.getDefaultMessage()))
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Validation error",
+                    "details", errors
+            ));
+        }
+
         try {
-            // Handle null requestData
-            if (requestData == null) {
-                requestData = new java.util.HashMap<>();
-            }
-            
-            Integer currentUserId = requestData.containsKey("currentUserId") ? 
-                ((Number) requestData.get("currentUserId")).intValue() : null;
-            String adminNote = requestData.containsKey("adminNote") ? 
-                (String) requestData.get("adminNote") : null;
+            Integer currentUserId = requestDto.getCurrentUserId();
+            String adminNote = requestDto.getAdminNote();
             
             logger.info("🔵 [GroupManagementController] POST /api/groups/{}/leave-requests/{}/reject", groupId, requestId);
             
-            // Validation
-            if (currentUserId == null) {
-                return ResponseEntity.status(400).body(Map.of(
-                    "error", "currentUserId is required",
-                    "message", "Vui lòng cung cấp ID của Admin"
+            // ============ BUG 1 FIX: Kiểm tra groupId tồn tại ============
+            Optional<Group> groupOpt = groupRepository.findById(groupId);
+            if (groupOpt.isEmpty()) {
+                logger.error("❌ [GroupManagementController] Group {} not found", groupId);
+                return ResponseEntity.status(404).body(Map.of(
+                    "error", "Group not found",
+                    "message", "Nhóm ID " + groupId + " không tồn tại"
                 ));
             }
             
@@ -1482,13 +1502,14 @@ public class GroupManagementController {
             
             LeaveRequest leaveRequest = requestOpt.get();
             
-            // Kiểm tra yêu cầu thuộc nhóm này
+            // ============ BUG 1 FIX: Kiểm tra requestId thuộc về groupId ============
             if (!leaveRequest.getGroup().getGroupId().equals(groupId)) {
                 return ResponseEntity.status(400).body(Map.of("error", "Request does not belong to this group"));
             }
             
-            // Kiểm tra status
+            // ============ BUG 2 FIX: Kiểm tra trạng thái Pending ============
             if (leaveRequest.getStatus() != LeaveRequest.LeaveStatus.Pending) {
+                logger.warn("⚠️ [GroupManagementController] Request {} already processed with status {}", requestId, leaveRequest.getStatus());
                 return ResponseEntity.status(400).body(Map.of(
                     "error", "Request already processed",
                     "message", "Yêu cầu này đã được xử lý"

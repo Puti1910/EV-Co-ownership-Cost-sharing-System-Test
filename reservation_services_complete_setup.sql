@@ -109,7 +109,13 @@ CREATE TABLE IF NOT EXISTS admin_users (
     created_at DATETIME(6)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-DROP TABLE IF EXISTS vehicles;
+CREATE TABLE IF NOT EXISTS `groups` (
+                                        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                        name VARCHAR(255),
+    description TEXT,
+    created_at DATETIME(6)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS vehicles (
                                         id BIGINT AUTO_INCREMENT PRIMARY KEY,
                                         vehicle_name  VARCHAR(255),
@@ -213,7 +219,6 @@ CREATE TABLE IF NOT EXISTS ai_recommendations (
    ============================== */
 
 USE co_ownership_booking;
-
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE reservation_checkpoints;
 TRUNCATE reservations;
@@ -221,25 +226,16 @@ TRUNCATE vehicles;
 TRUNCATE vehicle_groups;
 SET FOREIGN_KEY_CHECKS = 1;
 
-INSERT INTO vehicle_groups (group_id, group_name, description, creation_date, active) VALUES
-                                                                                          ('GRP001', 'Nhóm Tesla', 'Sở hữu chung xe Tesla', '2024-01-10 09:00:00', 'ACTIVE'),
-                                                                                          ('GRP002', 'Nhóm VinFast', 'Sở hữu chung xe VinFast', '2024-02-05 08:00:00', 'ACTIVE');
+INSERT INTO vehicle_groups (group_id, group_name, active) VALUES
+('1', 'Nhóm EV 001', 'ACTIVE'),
+('2', 'Nhóm EV 002', 'ACTIVE');
 
-INSERT INTO vehicles (vehicle_id, vehicle_name, license_plate, vehicle_type, group_id, status) VALUES
-                                                                                                   (1, 'Tesla Model 3', '30A-12345', 'ELECTRIC', 'GRP001', 'AVAILABLE'),
-                                                                                                   (2, 'VinFast VF8', '30B-67890', 'ELECTRIC', 'GRP002', 'AVAILABLE'),
-                                                                                                   (3, 'Tesla Model Y', '30A-22222', 'ELECTRIC', 'GRP001', 'MAINTENANCE');
+INSERT INTO vehicles (vehicle_id, external_vehicle_id, vehicle_name, license_plate, vehicle_type, group_id, status) VALUES
+(1, '1', 'Tesla Model 3', '30A-12345', 'ELECTRIC', '1', 'AVAILABLE'),
+(2, '2', 'VinFast VF8', '30B-67890', 'ELECTRIC', '2', 'AVAILABLE');
 
 INSERT INTO reservations (reservation_id, vehicle_id, user_id, start_datetime, end_datetime, purpose, status) VALUES
-                                                                                                                  (1, 1, 101, '2024-11-15 08:00:00', '2024-11-15 12:00:00', 'Đi công tác Hà Nội', 'BOOKED'),
-                                                                                                                  (2, 1, 102, '2024-11-15 14:00:00', '2024-11-15 18:00:00', 'Đi chơi cuối tuần', 'BOOKED'),
-                                                                                                                  (3, 2, 103, '2024-11-16 09:00:00', '2024-11-16 17:00:00', 'Đi Đà Lạt', 'BOOKED'),
-                                                                                                                  (4, 3, 104, '2024-11-17 07:00:00', '2024-11-17 19:00:00', 'Đi thăm gia đình', 'BOOKED');
-
-INSERT INTO reservation_checkpoints (reservation_id, checkpoint_type, status, qr_token, issued_by, expires_at, notes)
-VALUES
-    (1, 'CHECK_IN', 'PENDING', 'QR-CHKIN-1', 'Admin', DATE_ADD(NOW(), INTERVAL 1 DAY), 'Check-in'),
-    (1, 'CHECK_OUT', 'PENDING', 'QR-CHKOUT-1', 'Admin', DATE_ADD(NOW(), INTERVAL 2 DAY), 'Check-out');
+(1, 1, 3, '2024-11-15 08:00:00', '2024-11-15 12:00:00', 'Đi công tác Hà Nội', 'BOOKED');
 
 /* ==============================
    PHẦN 6: DỮ LIỆU MẪU (ReservationAdminService)
@@ -256,26 +252,16 @@ TRUNCATE users;
 SET FOREIGN_KEY_CHECKS = 1;
 
 INSERT INTO admin_users (username, email, password, role, created_at) VALUES
-                                                                          ('admin', 'admin@example.com', 'admin123', 'ADMIN', NOW()),
-                                                                          ('manager', 'manager@example.com', 'manager123', 'MANAGER', NOW());
+('admin', 'admin@example.com', 'admin123', 'ADMIN', NOW());
 
 INSERT INTO `groups` (name, description, created_at) VALUES
-                                                         ('Nhóm Tesla', 'Nhóm sở hữu Tesla', NOW()),
-                                                         ('Nhóm VinFast', 'Nhóm sở hữu VinFast', NOW());
+('Nhóm EV 001', 'Nhóm sở hữu Tesla', NOW());
 
 INSERT INTO vehicles (id, vehicle_name, vehicle_type, license_plate, group_id, status) VALUES
-                                                                                       (1, 'Tesla Model 3', 'ELECTRIC', '30A-12345', 1, 'AVAILABLE'),
-                                                                                       (2, 'VinFast VF8', 'ELECTRIC', '30B-67890', 2, 'AVAILABLE');
+(1, 'Tesla Model 3', 'ELECTRIC', '30A-12345', 1, 'AVAILABLE');
 
 INSERT INTO users (username, email, full_name) VALUES
-                                                   ('user101', 'user101@example.com', 'Nguyễn Văn A'),
-                                                   ('user102', 'user102@example.com', 'Trần Thị B');
-
-INSERT INTO reservations (reservation_id, user_id, vehicle_id, vehicle_name, user_name,
-                          start_datetime, end_datetime, purpose, status, created_at)
-VALUES
-    (1, 1, 1, 'Tesla Model 3', 'Nguyễn Văn A', '2024-11-15 08:00:00', '2024-11-15 12:00:00', 'Đi công tác Hà Nội', 'BOOKED', NOW()),
-    (2, 2, 1, 'Tesla Model 3', 'Trần Thị B', '2024-11-15 14:00:00', '2024-11-15 18:00:00', 'Đi chơi cuối tuần', 'BOOKED', NOW());
+('namvohoai23', 'namvohoai23@gmail.com', 'Võ Hoài Nam');
 
 /* ==============================
    PHẦN 7: DỮ LIỆU MẪU (AIService)
@@ -288,29 +274,8 @@ TRUNCATE fairness_score;
 TRUNCATE usage_analysis;
 TRUNCATE ownership_info;
 
-INSERT INTO ownership_info (user_id, vehicle_id, group_id, ownership_percentage, role, joined_date)
-VALUES
-    (101, 1, 1, 40.0, 'OWNER', '2024-01-15'),
-    (102, 1, 1, 35.0, 'MEMBER', '2024-01-15'),
-    (103, 2, 2, 50.0, 'OWNER', '2024-02-01');
-
-INSERT INTO usage_analysis (user_id, vehicle_id, group_id, total_hours_used, total_kilometers,
-                            booking_count, cancellation_count, usage_percentage, cost_incurred,
-                            period_start, period_end)
-VALUES
-    (101, 1, 1, 120, 1500, 15, 2, 45, 5000000, '2024-01-01', '2024-11-14'),
-    (102, 1, 1, 80, 1000, 10, 1, 30, 3500000, '2024-01-01', '2024-11-14');
-
-INSERT INTO fairness_score (user_id, vehicle_id, group_id, ownership_percentage, usage_percentage,
-                            difference, fairness_score, priority, period_start, period_end)
-VALUES
-    (101, 1, 1, 40.0, 45.0, 5.0, 85.0, 'NORMAL', '2024-01-01', '2024-11-14'),
-    (102, 1, 1, 35.0, 30.0, -5.0, 90.0, 'HIGH', '2024-01-01', '2024-11-14');
-
-INSERT INTO ai_recommendations (group_id, vehicle_id, type, title, description, severity,
-                                target_user_id, status, period_start, period_end, created_at)
-VALUES
-    (1, 1, 'USAGE_FAIRNESS', 'Ưu tiên cho user 102', 'User 102 dùng ít hơn quyền sở hữu', 'INFO', 102, 'ACTIVE', '2024-11-15', '2024-12-15', NOW());
+INSERT INTO ownership_info (user_id, vehicle_id, group_id, ownership_percentage, role) VALUES
+(3, 1, 1, 100.0, 'OWNER');
 
 /* ==============================
    PHẦN 8: KIỂM TRA
@@ -318,26 +283,3 @@ VALUES
 
 SHOW DATABASES LIKE 'co_ownership%';
 SHOW DATABASES LIKE 'ai_ev';
-
-SELECT 'co_ownership_booking' AS db, TABLE_NAME
-FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = 'co_ownership_booking';
-
-SELECT 'co_ownership_booking_admin' AS db, TABLE_NAME
-FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = 'co_ownership_booking_admin';
-
-SELECT 'ai_ev' AS db, TABLE_NAME
-FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = 'ai_ev';
-
--- Đếm số bản ghi chính
-SELECT 'co_ownership_booking', 'vehicles', COUNT(*) FROM co_ownership_booking.vehicles
-UNION ALL
-SELECT 'co_ownership_booking', 'reservations', COUNT(*) FROM co_ownership_booking.reservations
-UNION ALL
-SELECT 'co_ownership_booking_admin', 'vehicles', COUNT(*) FROM co_ownership_booking_admin.vehicles
-UNION ALL
-SELECT 'co_ownership_booking_admin', 'reservations', COUNT(*) FROM co_ownership_booking_admin.reservations
-UNION ALL
-SELECT 'ai_ev', 'ownership_info', COUNT(*) FROM ai_ev.ownership_info;

@@ -47,12 +47,22 @@ public class ServiceService {
      * @param serviceId ID của dịch vụ
      * @return ServiceType nếu tìm thấy, null nếu không
      */
-    public ServiceType getServiceById(String serviceId) {
-        if (serviceId == null || serviceId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Service ID không được để trống");
+    public ServiceType getServiceById(Long serviceId) {
+        if (serviceId == null || serviceId <= 0) {
+            throw new IllegalArgumentException("Service ID không hợp lệ");
         }
         Optional<ServiceType> service = serviceRepository.findById(serviceId);
         return service.orElse(null);
+    }
+
+    /**
+     * Kiểm tra dịch vụ có tồn tại không
+     */
+    public boolean existsById(Long serviceId) {
+        if (serviceId == null || serviceId <= 0) {
+            return false;
+        }
+        return serviceRepository.existsById(serviceId);
     }
 
     /**
@@ -69,44 +79,7 @@ public class ServiceService {
     }
 
     /**
-     * Kiểm tra dịch vụ có tồn tại không
-     * @param serviceId ID của dịch vụ
-     * @return true nếu tồn tại, false nếu không
-     */
-    public boolean existsById(String serviceId) {
-        if (serviceId == null || serviceId.trim().isEmpty()) {
-            return false;
-        }
-        return serviceRepository.existsById(serviceId);
-    }
-
-    /**
-     * Tự động tạo service_id mới theo format SRV001, SRV002, SRV003, ...
-     * @return Service ID mới
-     */
-    public String generateNextServiceId() {
-        String maxServiceId = serviceRepository.findMaxServiceIdWithPrefix();
-        
-        if (maxServiceId == null || maxServiceId.trim().isEmpty()) {
-            // Nếu chưa có service nào, bắt đầu từ SRV001
-            return "SRV001";
-        }
-        
-        // Tách số từ service_id (ví dụ: "SRV003" -> 3)
-        try {
-            String numberPart = maxServiceId.substring(3); // Bỏ qua "SRV"
-            int nextNumber = Integer.parseInt(numberPart) + 1;
-            return String.format("SRV%03d", nextNumber); // Format: SRV001, SRV002, ...
-        } catch (Exception e) {
-            // Nếu không parse được, bắt đầu từ SRV001
-            System.err.println("Không thể parse service_id: " + maxServiceId + ", bắt đầu từ SRV001");
-            return "SRV001";
-        }
-    }
-
-    /**
      * Thêm dịch vụ mới
-     * Nếu serviceId không được cung cấp, sẽ tự động generate theo format SRV001, SRV002, ...
      * @param service Dịch vụ cần thêm
      * @return ServiceType đã được lưu
      * @throws IllegalArgumentException nếu dữ liệu không hợp lệ
@@ -117,23 +90,11 @@ public class ServiceService {
             throw new IllegalArgumentException("Service không được null");
         }
         
-        // Tự động generate service_id nếu không có
-        if (service.getServiceId() == null || service.getServiceId().trim().isEmpty()) {
-            String generatedId = generateNextServiceId();
-            service.setServiceId(generatedId);
-            System.out.println("✅ Tự động tạo service_id: " + generatedId);
-        }
-        
         if (service.getServiceName() == null || service.getServiceName().trim().isEmpty()) {
             throw new IllegalArgumentException("Tên dịch vụ không được để trống");
         }
         if (service.getServiceType() == null || service.getServiceType().trim().isEmpty()) {
             throw new IllegalArgumentException("Loại dịch vụ không được để trống");
-        }
-
-        // Kiểm tra serviceId đã tồn tại chưa
-        if (serviceRepository.existsById(service.getServiceId())) {
-            throw new DataIntegrityViolationException("Service ID '" + service.getServiceId() + "' đã tồn tại");
         }
 
         try {
@@ -150,9 +111,9 @@ public class ServiceService {
      * @return ServiceType đã được cập nhật, null nếu không tìm thấy
      * @throws IllegalArgumentException nếu dữ liệu không hợp lệ
      */
-    public ServiceType updateService(String serviceId, ServiceType service) {
-        if (serviceId == null || serviceId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Service ID không được để trống");
+    public ServiceType updateService(Long serviceId, ServiceType service) {
+        if (serviceId == null || serviceId <= 0) {
+            throw new IllegalArgumentException("Service ID không hợp lệ");
         }
         if (service == null) {
             throw new IllegalArgumentException("Service không được null");
@@ -169,7 +130,6 @@ public class ServiceService {
             ServiceType existingService = existingServiceOpt.get();
             existingService.setServiceName(service.getServiceName());
             existingService.setServiceType(service.getServiceType());
-            // updatedDate sẽ tự động được cập nhật bởi @UpdateTimestamp
             return serviceRepository.save(existingService);
         }
         return null;
@@ -181,9 +141,9 @@ public class ServiceService {
      * @return true nếu xóa thành công, false nếu không tìm thấy
      * @throws DataIntegrityViolationException nếu dịch vụ đang được sử dụng
      */
-    public boolean deleteService(String serviceId) {
-        if (serviceId == null || serviceId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Service ID không được để trống");
+    public boolean deleteService(Long serviceId) {
+        if (serviceId == null || serviceId <= 0) {
+            throw new IllegalArgumentException("Service ID không hợp lệ");
         }
 
         if (!serviceRepository.existsById(serviceId)) {
@@ -191,11 +151,13 @@ public class ServiceService {
         }
 
         try {
+            // Xóa tất cả các liên kết trong bảng vehicleservice trước để tránh lỗi khóa ngoại
+            vehicleServiceRepository.deleteByServiceId(serviceId);
             serviceRepository.deleteById(serviceId);
             return true;
         } catch (DataIntegrityViolationException e) {
             throw new DataIntegrityViolationException(
-                "Không thể xóa dịch vụ '" + serviceId + "' vì đang được sử dụng trong hệ thống", e);
+                "Không thể xóa dịch vụ '" + serviceId + "' vì vẫn còn ràng buộc dữ liệu không thể xóa tự động", e);
         }
     }
 
@@ -234,28 +196,19 @@ public class ServiceService {
     public List<ServiceType> getDistinctServiceTemplatesFromVehicleService() {
         System.out.println("🔵 [ServiceService] Bắt đầu lấy service templates từ bảng vehicleservice...");
         List<Object[]> templates = vehicleServiceRepository.findDistinctServiceTemplates();
-        System.out.println("🔵 [ServiceService] Query trả về " + (templates != null ? templates.size() : 0) + " templates");
         
         if (CollectionUtils.isEmpty(templates)) {
-            System.out.println("⚠️ [ServiceService] Không có service templates nào từ bảng vehicleservice");
             return new ArrayList<>();
         }
 
         List<ServiceType> result = new ArrayList<>();
         for (Object[] row : templates) {
-            String rawId = row[0] != null ? row[0].toString().trim() : null;
+            Long rawId = row[0] != null ? Long.valueOf(row[0].toString()) : null;
             String rawName = row[1] != null ? row[1].toString().trim() : null;
             String rawType = row[2] != null ? row[2].toString().trim() : null;
 
-            // Nếu không có serviceId, generate một ID mới dựa trên serviceName
-            if (!StringUtils.hasText(rawId)) {
-                if (StringUtils.hasText(rawName)) {
-                    // Generate ID từ serviceName (ví dụ: "Bảo dưỡng định kỳ" -> "MAINT-BDDK")
-                    rawId = generateIdFromName(rawName);
-                } else {
-                    System.out.println("⚠️ [ServiceService] Bỏ qua template vì không có serviceId và serviceName");
-                    continue; // Bỏ qua nếu không có cả serviceId và serviceName
-                }
+            if (rawId == null) {
+                continue; 
             }
             
             if (!StringUtils.hasText(rawName)) {
@@ -270,27 +223,10 @@ public class ServiceService {
             service.setServiceName(rawName);
             service.setServiceType(rawType.toLowerCase());
             result.add(service);
-            System.out.println("✅ [ServiceService] Thêm template: serviceId=" + rawId + ", serviceName=" + rawName + ", serviceType=" + rawType);
         }
-        
-        System.out.println("✅ [ServiceService] Tổng cộng " + result.size() + " service templates từ vehicleservice");
         return result;
     }
     
-    /**
-     * Generate service ID từ service name
-     */
-    private String generateIdFromName(String serviceName) {
-        if (!StringUtils.hasText(serviceName)) {
-            return generateNextServiceId();
-        }
-        // Tạo ID từ tên (ví dụ: "Bảo dưỡng định kỳ" -> "MAINT-BDDK")
-        String normalized = serviceName.toLowerCase()
-                .replaceAll("[^a-z0-9]", "")
-                .substring(0, Math.min(10, serviceName.length()));
-        return "MAINT-" + normalized.toUpperCase();
-    }
-
     /**
      * Đồng bộ danh sách dịch vụ từ bảng vehicleservice khi bảng service trống
      */
@@ -302,12 +238,12 @@ public class ServiceService {
 
         List<ServiceType> created = new ArrayList<>();
         for (Object[] row : templates) {
-            String rawId = row[0] != null ? row[0].toString().trim() : null;
+            Long rawId = row[0] != null ? Long.valueOf(row[0].toString()) : null;
             String rawName = row[1] != null ? row[1].toString().trim() : null;
             String rawType = row[2] != null ? row[2].toString().trim() : null;
 
-            if (!StringUtils.hasText(rawId)) {
-                rawId = generateNextServiceId();
+            if (rawId == null) {
+                continue;
             }
             if (!StringUtils.hasText(rawName)) {
                 rawName = "Service " + rawId;

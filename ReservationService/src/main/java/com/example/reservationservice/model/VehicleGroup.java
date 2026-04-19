@@ -7,6 +7,12 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "vehicle_groups")
+<<<<<<< HEAD
+=======
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+>>>>>>> origin/main
 public class VehicleGroup {
     @Id
     @Column(name = "group_id", length = 20)
@@ -23,6 +29,7 @@ public class VehicleGroup {
 
     @Column(name = "active", length = 50)
     private String active;
+<<<<<<< HEAD
 
     public VehicleGroup() {}
 
@@ -44,5 +51,7 @@ public class VehicleGroup {
     public void setCreationDate(LocalDateTime v) { this.creationDate = v; }
     public String getActive() { return active; }
     public void setActive(String v) { this.active = v; }
+=======
+>>>>>>> origin/main
 }
 

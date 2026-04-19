@@ -20,6 +20,7 @@ public class AdminReservationController {
     }
 
     @GetMapping
+<<<<<<< HEAD
     public List<ReservationDTO> getAllReservations(@RequestParam Map<String, String> allParams) {
         System.out.println("🌐 AdminReservationController.getAllReservations() - Request received");
         
@@ -33,10 +34,15 @@ public class AdminReservationController {
             }
         }
 
+=======
+    public List<ReservationDTO> getAllReservations() {
+        System.out.println("🌐 AdminReservationController.getAllReservations() - Request received");
+>>>>>>> origin/main
         List<ReservationDTO> result = service.getAllReservations();
         System.out.println("✅ AdminReservationController.getAllReservations() - Returning " + result.size() + " reservations");
         return result;
     }
+<<<<<<< HEAD
 
     // =====================================================
     // 📍 MANAGE Endpoints (Consolidated from ReservationAdminController)
@@ -192,12 +198,34 @@ public class AdminReservationController {
                 return ResponseEntity.status(404).body(Map.of("error", "Not Found", "message", msg));
             }
             return ResponseEntity.badRequest().body(Map.of("error", "Validation failed", "message", msg));
+=======
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<ReservationDTO> getReservation(@PathVariable Long id) {
+        return service.getReservationById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<ReservationDTO> updateReservation(
+            @PathVariable Long id,
+            @RequestBody ReservationDTO dto,
+            @RequestHeader(value = "X-Sync-Origin", required = false) String syncOrigin) {
+        try {
+            boolean skipBookingSync = syncOrigin != null && syncOrigin.equalsIgnoreCase("reservation-service");
+            ReservationDTO updated = service.updateReservation(id, dto, skipBookingSync);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+>>>>>>> origin/main
         }
     }
     
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
         try {
+<<<<<<< HEAD
             // TC_17_02: expects 404 for invalid ID in this specific admin-internal endpoint
             if (id != null && id <= 0) {
                 return ResponseEntity.notFound().build();
@@ -212,6 +240,9 @@ public class AdminReservationController {
                 }
                 return ResponseEntity.notFound().build();
             }
+=======
+            service.deleteReservation(id);
+>>>>>>> origin/main
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             return ResponseEntity.notFound().build();

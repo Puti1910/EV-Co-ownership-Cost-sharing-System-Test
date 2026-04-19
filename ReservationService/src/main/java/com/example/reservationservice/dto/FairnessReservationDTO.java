@@ -1,5 +1,6 @@
 package com.example.reservationservice.dto;
 
+<<<<<<< HEAD
 import java.time.LocalDateTime;
 
 public class FairnessReservationDTO {
@@ -7,11 +8,30 @@ public class FairnessReservationDTO {
     private Long vehicleId;
     private String vehicleName;
     private Long userId;
+=======
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FairnessReservationDTO {
+    private Long reservationId;
+    private Integer vehicleId;
+    private String vehicleName;
+    private Integer userId;
+>>>>>>> origin/main
     private String userName;
     private LocalDateTime start;
     private LocalDateTime end;
     private String status;
     private String purpose;
+<<<<<<< HEAD
 
     public FairnessReservationDTO() {}
 
@@ -65,5 +85,7 @@ public class FairnessReservationDTO {
         public FairnessReservationDTOBuilder purpose(String v) { instance.setPurpose(v); return this; }
         public FairnessReservationDTO build() { return instance; }
     }
+=======
+>>>>>>> origin/main
 }
 

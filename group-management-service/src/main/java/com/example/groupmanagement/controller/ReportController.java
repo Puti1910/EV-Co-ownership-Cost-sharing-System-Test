@@ -212,7 +212,7 @@ public class ReportController {
 
     /**
      * Báo cáo bỏ phiếu theo thời gian
-     * GET /api/reports/groups/{groupId}/votings/timeline?startDate={startDate}&endDate={endDate}
+     * GET /api/reports/groups/{groupId}/votings/timeline
      */
     @GetMapping("/groups/{groupId}/votings/timeline")
     public ResponseEntity<?> getVotingTimeline(
@@ -261,7 +261,7 @@ public class ReportController {
             
             Map<String, Object> response = new HashMap<>();
             response.put("groupId", groupId);
-            response.put("period", Map.of("start", startDate, "end", endDate));
+            response.put("period", Map.of("start", startDate != null ? startDate : "", "end", endDate != null ? endDate : ""));
             response.put("totalVotings", filteredVotings.size());
             response.put("votingsByMonth", byMonth);
             
@@ -272,4 +272,3 @@ public class ReportController {
         }
     }
 }
-

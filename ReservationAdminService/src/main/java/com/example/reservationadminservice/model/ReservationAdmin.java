@@ -3,6 +3,8 @@ package com.example.reservationadminservice.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "reservations")
@@ -21,10 +23,10 @@ public class ReservationAdmin {
     private Long userId;
 
     @Column(name = "start_datetime", nullable = false)
-    private java.time.LocalDateTime startDatetime;
+    private LocalDateTime startDatetime;
 
     @Column(name = "end_datetime", nullable = false)
-    private java.time.LocalDateTime endDatetime;
+    private LocalDateTime endDatetime;
 
     @jakarta.validation.constraints.Size(max = 1000, message = "Mục đích sử dụng không được quá 1000 ký tự")
     @Column(name = "purpose", length = 1000)
@@ -34,5 +36,5 @@ public class ReservationAdmin {
     private String status;
 
     @Column(name = "created_at", nullable = true, updatable = false, insertable = false)
-    private java.sql.Timestamp createdAt;
+    private Timestamp createdAt;
 }

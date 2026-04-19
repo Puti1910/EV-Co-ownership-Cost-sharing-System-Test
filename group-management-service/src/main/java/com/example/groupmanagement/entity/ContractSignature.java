@@ -19,7 +19,7 @@ public class ContractSignature {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "signature_id")
-    private Integer signatureId;
+    private Long signatureId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contract_id", nullable = false)
@@ -28,7 +28,7 @@ public class ContractSignature {
     private GroupContract groupContract;
 
     @Column(name = "user_id", nullable = false)
-    private Integer userId;
+    private Long userId;
 
     @Column(name = "signed_at")
     private LocalDateTime signedAt = LocalDateTime.now();
@@ -39,5 +39,3 @@ public class ContractSignature {
     @Column(name = "ip_address")
     private String ipAddress;
 }
-
-

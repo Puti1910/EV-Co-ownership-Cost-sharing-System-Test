@@ -81,6 +81,7 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+<<<<<<< HEAD
 	
 		<dependency>
 			<groupId>org.springdoc</groupId>
@@ -88,6 +89,9 @@
 			<version>2.5.0</version>
 		</dependency>
 </dependencies>
+=======
+	</dependencies>
+>>>>>>> origin/main
 
 	<build>
 		<plugins>

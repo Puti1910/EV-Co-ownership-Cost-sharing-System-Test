@@ -1,9 +1,25 @@
 package com.example.reservationservice.dto;
 
+<<<<<<< HEAD
 import java.time.LocalDateTime;
 
 public class FairnessMemberDTO {
     private Long userId;
+=======
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FairnessMemberDTO {
+    private Integer userId;
+>>>>>>> origin/main
     private String fullName;
     private String email;
     private Double ownershipPercentage;
@@ -14,6 +30,7 @@ public class FairnessMemberDTO {
     private String priority;
     private LocalDateTime lastUsageEnd;
     private LocalDateTime nextReservationStart;
+<<<<<<< HEAD
 
     public FairnessMemberDTO() {}
 
@@ -77,5 +94,7 @@ public class FairnessMemberDTO {
         public FairnessMemberDTOBuilder nextReservationStart(LocalDateTime v) { instance.setNextReservationStart(v); return this; }
         public FairnessMemberDTO build() { return instance; }
     }
+=======
+>>>>>>> origin/main
 }
 

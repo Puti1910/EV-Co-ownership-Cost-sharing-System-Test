@@ -1,5 +1,6 @@
 package com.example.reservationservice.dto;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -38,5 +39,16 @@ public class FairnessSuggestionRequest {
     public LocalDateTime getDesiredStart() { return desiredStart; }
     public Double getDurationHours() { return durationHours; }
     public void setDurationHours(Double durationHours) { this.durationHours = durationHours; }
+=======
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+public class FairnessSuggestionRequest {
+    private Integer userId;
+    private LocalDateTime desiredStart;
+    private Double durationHours = 2.0;
+>>>>>>> origin/main
 }
 

@@ -1,5 +1,6 @@
 package com.example.reservationservice.dto;
 
+<<<<<<< HEAD
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,12 +8,31 @@ import java.util.List;
 public class FairnessSuggestionResponse {
     private Long vehicleId;
     private Long userId;
+=======
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FairnessSuggestionResponse {
+    private Integer vehicleId;
+    private Integer userId;
+>>>>>>> origin/main
     private boolean approved;
     private String priority;
     private String reason;
     private LocalDateTime requestedStart;
     private LocalDateTime requestedEnd;
     private FairnessMemberDTO applicant;
+<<<<<<< HEAD
     private List<FairnessReservationDTO> conflicts = new ArrayList<>();
     private List<FairnessAvailabilityDTO> recommendations = new ArrayList<>();
 
@@ -74,3 +94,11 @@ public class FairnessSuggestionResponse {
         public FairnessSuggestionResponse build() { return instance; }
     }
 }
+=======
+    @Builder.Default
+    private List<FairnessReservationDTO> conflicts = Collections.emptyList();
+    @Builder.Default
+    private List<FairnessAvailabilityDTO> recommendations = Collections.emptyList();
+}
+
+>>>>>>> origin/main

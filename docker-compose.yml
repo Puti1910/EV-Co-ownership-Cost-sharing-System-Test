@@ -1,3 +1,4 @@
+version: '3.8'
 
 services:
   # ============================================
@@ -255,10 +256,14 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://vehicle-mysql:3306/vehicle_management?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=password
+      - GROUP_MANAGEMENT_SERVICE_URL=http://api-gateway:8084
+      - GROUP_MANAGEMENT_SERVICE_FALLBACK_URL=http://group-management-service:8082
       - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=55 -XX:InitialRAMPercentage=15
     depends_on:
       vehicle-mysql:
         condition: service_healthy
+      group-management-service:
+        condition: service_started
     networks:
       - ev-network
     restart: unless-stopped

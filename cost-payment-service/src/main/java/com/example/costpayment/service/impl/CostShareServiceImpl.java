@@ -50,7 +50,11 @@ public class CostShareServiceImpl implements CostShareService {
      * - Thành viên B: 30% = 300,000 VNĐ  
      * - Thành viên C: 20% = 200,000 VNĐ
      */
+<<<<<<< HEAD
     public List<CostShare> calculateCostShares(Integer costId, List<Integer> userIds, List<Double> percentages) {
+=======
+    public List<CostShare> calculateCostShares(Integer costId, List<Integer> userIds, List<java.math.BigDecimal> percentages) {
+>>>>>>> origin/main
         // Kiểm tra chi phí tồn tại
         Cost cost = costRepository.findById(costId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chi phí ID: " + costId));
@@ -61,8 +65,13 @@ public class CostShareServiceImpl implements CostShareService {
         }
 
         // Kiểm tra tổng phần trăm = 100%
+<<<<<<< HEAD
         double totalPercent = percentages.stream().mapToDouble(Double::doubleValue).sum();
         if (Math.abs(totalPercent - 100.0) > 0.01) {
+=======
+        java.math.BigDecimal totalPercent = percentages.stream().reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        if (Math.abs(totalPercent.doubleValue() - 100.0) > 0.01) {
+>>>>>>> origin/main
             throw new RuntimeException("Tổng phần trăm phải bằng 100%. Hiện tại: " + totalPercent + "%");
         }
 
@@ -74,11 +83,19 @@ public class CostShareServiceImpl implements CostShareService {
 
         // Tính toán chia chi phí với độ chính xác cao
         List<CostShare> shares = new ArrayList<>();
+<<<<<<< HEAD
         BigDecimal totalAmount = BigDecimal.valueOf(cost.getAmount());
         BigDecimal remainingAmount = totalAmount;
 
         for (int i = 0; i < userIds.size(); i++) {
             BigDecimal percent = BigDecimal.valueOf(percentages.get(i));
+=======
+        BigDecimal totalAmount = cost.getAmount();
+        BigDecimal remainingAmount = totalAmount;
+
+        for (int i = 0; i < userIds.size(); i++) {
+            BigDecimal percent = percentages.get(i);
+>>>>>>> origin/main
             BigDecimal shareAmount;
             
             if (i == userIds.size() - 1) {
@@ -90,7 +107,11 @@ public class CostShareServiceImpl implements CostShareService {
                 remainingAmount = remainingAmount.subtract(shareAmount);
             }
 
+<<<<<<< HEAD
             CostShare share = new CostShare(costId, userIds.get(i), percentages.get(i), shareAmount.doubleValue());
+=======
+            CostShare share = new CostShare(costId, userIds.get(i), percentages.get(i), shareAmount);
+>>>>>>> origin/main
             shares.add(costShareRepository.save(share));
         }
 
@@ -159,6 +180,7 @@ public class CostShareServiceImpl implements CostShareService {
         Map<String, Object> stats = new java.util.HashMap<>();
         stats.put("userId", userId);
         stats.put("totalShares", userShares.size());
+<<<<<<< HEAD
         stats.put("totalAmount", userShares.stream().mapToDouble(CostShare::getAmountShare).sum());
         stats.put("averageAmount", userShares.stream().mapToDouble(CostShare::getAmountShare).average().orElse(0.0));
         
@@ -167,6 +189,23 @@ public class CostShareServiceImpl implements CostShareService {
             .collect(Collectors.groupingBy(
                 CostShare::getCostId,
                 Collectors.summingDouble(CostShare::getAmountShare)
+=======
+        BigDecimal totalAmount = userShares.stream()
+                .map(CostShare::getAmountShare)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        stats.put("totalAmount", totalAmount);
+        
+        BigDecimal averageAmount = userShares.isEmpty() ? BigDecimal.ZERO : 
+                totalAmount.divide(new BigDecimal(userShares.size()), 2, RoundingMode.HALF_UP);
+        stats.put("averageAmount", averageAmount);
+        
+        // Group by cost ID để xem chi phí nào user đã chia sẻ
+        Map<Integer, BigDecimal> costBreakdown = userShares.stream()
+            .collect(Collectors.groupingBy(
+                CostShare::getCostId,
+                Collectors.mapping(CostShare::getAmountShare,
+                    Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
+>>>>>>> origin/main
             ));
         stats.put("costBreakdown", costBreakdown);
         
@@ -242,8 +281,16 @@ public class CostShareServiceImpl implements CostShareService {
             .filter(share -> !share.getShareId().equals(id))
             .collect(Collectors.toList());
         
+<<<<<<< HEAD
         double otherPercentTotal = otherShares.stream().mapToDouble(CostShare::getPercent).sum();
         if (otherPercentTotal + updatedShare.getPercent() > 100.0) {
+=======
+        BigDecimal otherPercentTotal = otherShares.stream()
+            .map(CostShare::getPercent)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+        if (otherPercentTotal.add(updatedShare.getPercent()).compareTo(new BigDecimal("100.0")) > 0) {
+>>>>>>> origin/main
             throw new RuntimeException("Tổng phần trăm không được vượt quá 100%");
         }
         
@@ -255,10 +302,17 @@ public class CostShareServiceImpl implements CostShareService {
         Optional<Cost> costOpt = costRepository.findById(existing.getCostId());
         if (costOpt.isPresent()) {
             Cost cost = costOpt.get();
+<<<<<<< HEAD
             BigDecimal shareAmount = BigDecimal.valueOf(cost.getAmount())
                 .multiply(BigDecimal.valueOf(updatedShare.getPercent()))
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
             existing.setAmountShare(shareAmount.doubleValue());
+=======
+            BigDecimal shareAmount = cost.getAmount()
+                .multiply(updatedShare.getPercent())
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            existing.setAmountShare(shareAmount);
+>>>>>>> origin/main
         }
         
         return costShareRepository.save(existing);

@@ -12,13 +12,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
 @Configuration
+<<<<<<< HEAD
 @org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 @org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
+=======
+>>>>>>> origin/main
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+<<<<<<< HEAD
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
@@ -34,6 +38,11 @@ public class SecurityConfig {
             )
             .addFilterBefore(new TestJwtFilter(), org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
             
+=======
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+>>>>>>> origin/main
         return http.build();
     }
 

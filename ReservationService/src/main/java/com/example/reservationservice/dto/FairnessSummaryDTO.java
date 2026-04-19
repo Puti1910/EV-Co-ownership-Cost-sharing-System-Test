@@ -1,5 +1,6 @@
 package com.example.reservationservice.dto;
 
+<<<<<<< HEAD
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,12 +9,32 @@ public class FairnessSummaryDTO {
     private Long vehicleId;
     private String vehicleName;
     private Long groupId;
+=======
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FairnessSummaryDTO {
+    private Integer vehicleId;
+    private String vehicleName;
+    private Integer groupId;
+>>>>>>> origin/main
     private String groupName;
     private Double fairnessIndex;
     private Double totalUsageHours;
     private LocalDateTime rangeStart;
     private LocalDateTime rangeEnd;
     private LocalDateTime generatedAt;
+<<<<<<< HEAD
     private List<FairnessMemberDTO> members = new ArrayList<>();
     private List<FairnessReservationDTO> reservations = new ArrayList<>();
     private List<FairnessAvailabilityDTO> availability = new ArrayList<>();
@@ -89,4 +110,14 @@ public class FairnessSummaryDTO {
         public FairnessSummaryDTOBuilder priorityQueue(List<Long> v) { instance.setPriorityQueue(v); return this; }
         public FairnessSummaryDTO build() { return instance; }
     }
+=======
+    @Builder.Default
+    private List<FairnessMemberDTO> members = Collections.emptyList();
+    @Builder.Default
+    private List<FairnessReservationDTO> reservations = Collections.emptyList();
+    @Builder.Default
+    private List<FairnessAvailabilityDTO> availability = Collections.emptyList();
+    @Builder.Default
+    private List<Integer> priorityQueue = Collections.emptyList();
+>>>>>>> origin/main
 }

@@ -5,8 +5,11 @@ import com.example.reservationadminservice.service.AdminVehicleService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+<<<<<<< HEAD
 import java.util.Map;
 import java.util.Set;
+=======
+>>>>>>> origin/main
 
 @RestController
 @RequestMapping("/api/admin/vehicles")
@@ -20,6 +23,7 @@ public class AdminVehicleController {
     }
 
     @GetMapping
+<<<<<<< HEAD
     public List<VehicleAdmin> getAll(@RequestParam Map<String, String> allParams) {
         // RS_BVA_3603: Reject unknown parameters
         if (!allParams.isEmpty()) {
@@ -52,4 +56,9 @@ public class AdminVehicleController {
             "message", "Explicit test bad request"
         ));
     }
+=======
+    public List<VehicleAdmin> getAll() {
+        return service.getAllVehicles();
+    }
+>>>>>>> origin/main
 }

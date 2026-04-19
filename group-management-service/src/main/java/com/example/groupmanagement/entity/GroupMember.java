@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "GroupMember")
@@ -19,7 +20,7 @@ public class GroupMember {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "memberId")
-    private Integer memberId;
+    private Long memberId;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "groupId", nullable = false)
@@ -28,7 +29,7 @@ public class GroupMember {
     private Group group;
     
     @Column(name = "userId", nullable = false)
-    private Integer userId;
+    private Long userId;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
@@ -43,7 +44,7 @@ public class GroupMember {
     @OneToMany(mappedBy = "groupMember", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @lombok.ToString.Exclude
     @lombok.EqualsAndHashCode.Exclude
-    private java.util.List<VotingResult> votingResults;
+    private List<VotingResult> votingResults;
     
     public enum MemberRole {
         Admin, Member

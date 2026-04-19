@@ -1,12 +1,27 @@
 package com.example.reservationservice.dto;
 
+<<<<<<< HEAD
 import java.time.LocalDateTime;
 
+=======
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+>>>>>>> origin/main
 public class FairnessAvailabilityDTO {
     private LocalDateTime start;
     private LocalDateTime end;
     private Double durationHours;
     private String label;
+<<<<<<< HEAD
 
     public FairnessAvailabilityDTO() {}
 
@@ -38,5 +53,7 @@ public class FairnessAvailabilityDTO {
         public FairnessAvailabilityDTOBuilder label(String v) { instance.setLabel(v); return this; }
         public FairnessAvailabilityDTO build() { return instance; }
     }
+=======
+>>>>>>> origin/main
 }
 

@@ -5,7 +5,11 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
+<<<<<<< HEAD
 		<version>3.5.6</version>
+=======
+		<version>3.3.4</version>
+>>>>>>> origin/main
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
@@ -85,9 +89,15 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+<<<<<<< HEAD
 			<version>2.5.0</version>
 		</dependency>
 </dependencies>
+=======
+			<version>2.6.0</version>
+		</dependency>
+	</dependencies>
+>>>>>>> origin/main
 
 	<build>
 		<plugins>

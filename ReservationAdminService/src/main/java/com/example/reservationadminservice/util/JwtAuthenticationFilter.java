@@ -16,12 +16,15 @@ import java.util.Collections;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+<<<<<<< HEAD
     private final JwtUtil jwtUtil;
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
 
+=======
+>>>>>>> origin/main
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -32,6 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String username = null;
         String jwt = null;
 
+<<<<<<< HEAD
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
             // extractUsername trả về null nếu token không hợp lệ (không throw exception nữa)
@@ -50,5 +54,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Luôn tiếp tục filter chain — SecurityConfig có anyRequest().permitAll()
         filterChain.doFilter(request, response);
+=======
+        try {
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                jwt = authHeader.substring(7);
+                username = JwtUtil.extractUsername(jwt);
+            }
+
+            // Nếu username hợp lệ và chưa có trong SecurityContext
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (JwtUtil.validateToken(jwt)) {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
+
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token không hợp lệ hoặc đã hết hạn");
+        }
+>>>>>>> origin/main
     }
 }

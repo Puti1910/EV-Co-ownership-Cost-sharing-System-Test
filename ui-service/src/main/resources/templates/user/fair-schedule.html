@@ -98,6 +98,47 @@
                     </div>
                 </div>
 
+<<<<<<< HEAD
+=======
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2><i class="fas fa-qrcode"></i> Check-in / Check-out</h2>
+                        <p>Phát sinh QR và ký số khi nhận hoặc trả xe.</p>
+                    </div>
+                    <div class="form-field">
+                        <label>Chọn lịch sắp tới</label>
+                        <select id="userReservationSelect">
+                            <option value="">Chưa có lịch phù hợp</option>
+                        </select>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="userGenerateCheckin">
+                            <i class="fas fa-qrcode"></i> QR Check-in
+                        </button>
+                        <button class="btn btn-outline" id="userGenerateCheckout">
+                            <i class="fas fa-qrcode"></i> QR Check-out
+                        </button>
+                    </div>
+                    <div class="qr-preview-user" id="userQrPreview" style="display:none;">
+                        <p class="preview-title">QR của bạn</p>
+                        <img id="userQrImage" alt="QR code">
+                        <small>Hết hạn: <span id="userQrExpire">--</span></small>
+                        <small>Token: <span id="userQrToken">--</span></small>
+                    </div>
+                    <div class="signature-block">
+                        <label>Chữ ký điện tử</label>
+                        <canvas id="signatureCanvas" class="signature-canvas"></canvas>
+                        <div class="btn-group">
+                            <button class="btn btn-outline btn-sm" id="clearSignatureBtn" type="button">
+                                Xóa chữ ký
+                            </button>
+                            <button class="btn btn-success btn-sm" id="submitSignatureBtn" type="button">
+                                <i class="fas fa-paper-plane"></i> Gửi chữ ký
+                            </button>
+                        </div>
+                    </div>
+                </div>
+>>>>>>> origin/main
             </div>
             <div class="fair-right">
                 <div class="section-card calendar-card">
@@ -355,4 +396,9 @@
             }
         }
     </style>
+<<<<<<< HEAD
 </div>
+=======
+</div>
+
+>>>>>>> origin/main

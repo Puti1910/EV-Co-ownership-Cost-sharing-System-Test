@@ -20,7 +20,7 @@ public class Voting {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "voteId")
-    private Integer voteId;
+    private Long voteId;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "groupId", nullable = false)
@@ -57,7 +57,7 @@ public class Voting {
     private LocalDateTime closedAt; // Thời điểm đóng bỏ phiếu
     
     @Column(name = "createdBy")
-    private Integer createdBy; // User ID tạo bỏ phiếu
+    private Long createdBy; // User ID tạo bỏ phiếu
     
     @OneToMany(mappedBy = "voting", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @lombok.ToString.Exclude

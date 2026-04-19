@@ -4,16 +4,21 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "vehicle", schema = "vehicle_management")
 public class Vehicle {
 
     @Id
-    @Column(name = "vehicle_id", length = 20, nullable = false)
-    private String vehicleId; // 🔹 Dạng "VEH001", dùng String thay vì Integer/Long
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "vehicle_id", nullable = false)
+    private Long vehicleId; 
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "group_id", nullable = true)
@@ -35,19 +40,14 @@ public class Vehicle {
     @Column(name = "status", length = 50)
     private String status;
 
-    // 🔹 Constructors
-    public Vehicle() {}
-
-    public Vehicle(String vehicleId, String vehicleNumber,
-                   String vehicleType, String status) {
+    public Vehicle(Long vehicleId, String vehicleNumber, String vehicleType, String status) {
         this.vehicleId = vehicleId;
         this.vehicleNumber = vehicleNumber;
         this.vehicleType = vehicleType;
         this.status = status;
     }
 
-    public Vehicle(String vehicleId, String vehicleNumber, String vehicleName,
-                   String vehicleType, String status) {
+    public Vehicle(Long vehicleId, String vehicleNumber, String vehicleName, String vehicleType, String status) {
         this.vehicleId = vehicleId;
         this.vehicleNumber = vehicleNumber;
         this.vehicleName = vehicleName;
@@ -60,6 +60,6 @@ public class Vehicle {
         if (vehicleName != null && !vehicleName.trim().isEmpty()) {
             return vehicleName;
         }
-        return vehicleNumber != null ? vehicleNumber : vehicleId;
+        return vehicleNumber != null ? vehicleNumber : (vehicleId != null ? vehicleId.toString() : "");
     }
 }

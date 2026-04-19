@@ -7,9 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface VehicleGroupRepository extends JpaRepository<Vehiclegroup, String> {
-    // Các phương thức truy vấn tùy chỉnh có thể thêm vào đây nếu cần
-
-    Optional<Vehiclegroup> findById(String groupId);
-
-    void deleteById(String groupId);}
+public interface VehicleGroupRepository extends JpaRepository<Vehiclegroup, Long> {
+    // JpaRepository đã cung cấp findById(Long) và deleteById(Long) mặc định
+}

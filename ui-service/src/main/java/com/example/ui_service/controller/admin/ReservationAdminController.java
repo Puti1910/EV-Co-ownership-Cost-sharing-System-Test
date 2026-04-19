@@ -60,6 +60,7 @@ public class ReservationAdminController {
     }
 
     /**
+<<<<<<< HEAD
      * Xử lý tạo mới reservation
      */
     @PostMapping("/reservations/create")
@@ -99,6 +100,8 @@ public class ReservationAdminController {
     }
 
     /**
+=======
+>>>>>>> origin/main
      * Xử lý cập nhật reservation
      */
     @PostMapping("/reservations/{id}/update")

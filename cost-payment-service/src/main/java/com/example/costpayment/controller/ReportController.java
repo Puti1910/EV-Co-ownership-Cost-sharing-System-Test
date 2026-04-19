@@ -35,6 +35,14 @@ public class ReportController {
             @RequestParam Integer vehicleId,
             @RequestParam Integer month,
             @RequestParam Integer year) {
+<<<<<<< HEAD
+=======
+        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000 ||
+            month == null || month < 1 || month > 12 ||
+            year == null || year < 2000 || year > 2100) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId, month or year"));
+        }
+>>>>>>> origin/main
         try {
             logger.info("Getting monthly cost report: vehicleId={}, month={}, year={}", vehicleId, month, year);
             Map<String, Object> report = reportService.getMonthlyCostReport(vehicleId, month, year);
@@ -54,6 +62,14 @@ public class ReportController {
             @RequestParam Integer vehicleId,
             @RequestParam Integer quarter,
             @RequestParam Integer year) {
+<<<<<<< HEAD
+=======
+        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000 ||
+            quarter == null || quarter < 1 || quarter > 4 ||
+            year == null || year < 2000 || year > 2100) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId, quarter or year"));
+        }
+>>>>>>> origin/main
         try {
             logger.info("Getting quarterly cost report: vehicleId={}, quarter={}, year={}", vehicleId, quarter, year);
             Map<String, Object> report = reportService.getQuarterlyCostReport(vehicleId, quarter, year);
@@ -72,13 +88,25 @@ public class ReportController {
     public ResponseEntity<?> getYearlyCostReport(
             @RequestParam Integer vehicleId,
             @RequestParam Integer year) {
+<<<<<<< HEAD
+=======
+        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000 ||
+            year == null || year < 2000 || year > 2100) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId or year"));
+        }
+>>>>>>> origin/main
         try {
             logger.info("Getting yearly cost report: vehicleId={}, year={}", vehicleId, year);
             Map<String, Object> report = reportService.getYearlyCostReport(vehicleId, year);
             return ResponseEntity.ok(report);
         } catch (Exception e) {
             logger.error("Error getting yearly cost report: {}", e.getMessage(), e);
+<<<<<<< HEAD
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+=======
+            String errorMsg = e.getMessage() != null ? e.getMessage() : "Internal Server Error";
+            return ResponseEntity.status(500).body(Map.of("error", errorMsg));
+>>>>>>> origin/main
         }
     }
 
@@ -91,6 +119,14 @@ public class ReportController {
             @RequestParam Integer groupId,
             @RequestParam Integer month,
             @RequestParam Integer year) {
+<<<<<<< HEAD
+=======
+        if (groupId == null || groupId < 1 || groupId > 1000000 ||
+            month == null || month < 1 || month > 12 ||
+            year == null || year < 2000 || year > 2100) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid groupId, month or year"));
+        }
+>>>>>>> origin/main
         try {
             logger.info("Comparing usage with ownership: groupId={}, month={}, year={}", groupId, month, year);
             Map<String, Object> report = reportService.compareUsageWithOwnership(groupId, month, year);
@@ -111,6 +147,15 @@ public class ReportController {
             @RequestParam(required = false) Integer groupId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+<<<<<<< HEAD
+=======
+        if (userId == null || userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid userId"));
+        }
+        if (groupId != null && (groupId < 1 || groupId > 1000000)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid groupId"));
+        }
+>>>>>>> origin/main
         try {
             logger.info("Getting personal analysis: userId={}, groupId={}, period={} to {}", 
                 userId, groupId, startDate, endDate);
@@ -131,13 +176,24 @@ public class ReportController {
             @RequestParam Integer groupId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+<<<<<<< HEAD
+=======
+        if (groupId == null || groupId < 1 || groupId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid groupId"));
+        }
+>>>>>>> origin/main
         try {
             logger.info("Getting financial report: groupId={}, period={} to {}", groupId, startDate, endDate);
             Map<String, Object> report = reportService.getFinancialReport(groupId, startDate, endDate);
             return ResponseEntity.ok(report);
         } catch (Exception e) {
             logger.error("Error getting financial report: {}", e.getMessage(), e);
+<<<<<<< HEAD
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+=======
+            String errorMsg = e.getMessage() != null ? e.getMessage() : "Internal Server Error during financial report generation";
+            return ResponseEntity.status(500).body(Map.of("error", errorMsg));
+>>>>>>> origin/main
         }
     }
 
@@ -150,6 +206,12 @@ public class ReportController {
             @RequestParam Integer vehicleId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+<<<<<<< HEAD
+=======
+        if (vehicleId == null || vehicleId < 1 || vehicleId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid vehicleId"));
+        }
+>>>>>>> origin/main
         try {
             logger.info("Getting cost statistics by type: vehicleId={}, period={} to {}", vehicleId, startDate, endDate);
             Map<String, Object> statistics = reportService.getCostStatisticsByType(vehicleId, startDate, endDate);
@@ -169,6 +231,12 @@ public class ReportController {
             @RequestParam Integer userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+<<<<<<< HEAD
+=======
+        if (userId == null || userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid userId"));
+        }
+>>>>>>> origin/main
         try {
             logger.info("Getting user cost payment summary: userId={}, period={} to {}", userId, startDate, endDate);
             Map<String, Object> summary = reportService.getUserCostPaymentSummary(userId, startDate, endDate);

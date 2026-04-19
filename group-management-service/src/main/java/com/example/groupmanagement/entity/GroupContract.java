@@ -21,7 +21,7 @@ public class GroupContract {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "contract_id")
-    private Integer contractId;
+    private Long contractId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", nullable = false)
@@ -47,7 +47,7 @@ public class GroupContract {
     private LocalDateTime signedDate;
 
     @Column(name = "created_by")
-    private Integer createdBy;
+    private Long createdBy;
 
     @OneToMany(mappedBy = "groupContract", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @lombok.EqualsAndHashCode.Exclude
@@ -60,4 +60,3 @@ public class GroupContract {
         ARCHIVED
     }
 }
-

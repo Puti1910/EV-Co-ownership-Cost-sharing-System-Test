@@ -103,7 +103,11 @@ public class PaymentServiceImpl implements PaymentService {
                 if (row[2] != null) {
                     payment.setCostId(((Number) row[2]).intValue());
                 }
+<<<<<<< HEAD
                 payment.setAmount(((Number) row[3]).doubleValue());
+=======
+                payment.setAmount(new java.math.BigDecimal(row[3].toString()));
+>>>>>>> origin/main
                 if (row[4] != null) {
                     payment.setTransactionCode((String) row[4]);
                 }

@@ -73,6 +73,7 @@ public class AdminReservationService {
         }
     }
 
+<<<<<<< HEAD
     public boolean createReservation(Long userId, Long vehicleId, String startDatetime, String endDatetime, String note, String status) {
         try {
             String url = adminReservationServiceUrl + "/api/admin/reservations/manage";
@@ -108,6 +109,8 @@ public class AdminReservationService {
         }
     }
 
+=======
+>>>>>>> origin/main
     public boolean updateReservation(Long id, Long userId, Long vehicleId, String startDatetime, String endDatetime, String note, String status) {
         try {
             String url = adminReservationServiceUrl + "/api/admin/reservations/" + id;

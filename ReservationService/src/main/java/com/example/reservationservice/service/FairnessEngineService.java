@@ -1,7 +1,10 @@
 package com.example.reservationservice.service;
 
 import com.example.reservationservice.dto.*;
+<<<<<<< HEAD
 import com.example.reservationservice.exception.UnauthorizedException;
+=======
+>>>>>>> origin/main
 import com.example.reservationservice.model.Reservation;
 import com.example.reservationservice.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,12 +33,20 @@ public class FairnessEngineService {
     private String vehicleServiceUrl;
 
     @Transactional(readOnly = true)
+<<<<<<< HEAD
     public FairnessSummaryDTO buildSummary(Long vehicleId, Integer rangeDays) {
+=======
+    public FairnessSummaryDTO buildSummary(Integer vehicleId, Integer rangeDays) {
+>>>>>>> origin/main
         return buildSummary(vehicleId, rangeDays, null);
     }
     
     @Transactional(readOnly = true)
+<<<<<<< HEAD
     public FairnessSummaryDTO buildSummary(Long vehicleId, Integer rangeDays, String token) {
+=======
+    public FairnessSummaryDTO buildSummary(Integer vehicleId, Integer rangeDays, String token) {
+>>>>>>> origin/main
         // Lấy thông tin group từ vehicleId
         Optional<Map<String, Object>> groupOpt = groupManagementApiService.getGroupByVehicleId(vehicleId, token);
         if (groupOpt.isEmpty()) {
@@ -43,9 +54,13 @@ public class FairnessEngineService {
         }
         
         Map<String, Object> group = groupOpt.get();
+<<<<<<< HEAD
         Long groupId = group.get("groupId") instanceof Number 
             ? ((Number) group.get("groupId")).longValue() 
             : Long.parseLong(group.get("groupId").toString());
+=======
+        Integer groupId = (Integer) group.get("groupId");
+>>>>>>> origin/main
         
         // Lấy danh sách members từ group-management-service
         List<Map<String, Object>> membersData = groupManagementApiService.getGroupMembers(groupId, token);
@@ -61,15 +76,25 @@ public class FairnessEngineService {
         List<Reservation> reservations = reservationRepository
                 .findByVehicleAndRange(vehicleId, rangeStart, rangeEnd);
 
+<<<<<<< HEAD
         Map<Long, Double> usageHours = new HashMap<>();
         Map<Long, LocalDateTime> lastUsage = new HashMap<>();
         Map<Long, LocalDateTime> nextUsage = new HashMap<>();
+=======
+        Map<Integer, Double> usageHours = new HashMap<>();
+        Map<Integer, LocalDateTime> lastUsage = new HashMap<>();
+        Map<Integer, LocalDateTime> nextUsage = new HashMap<>();
+>>>>>>> origin/main
 
         reservations.stream()
                 .filter(r -> r.getStartDatetime() != null && r.getEndDatetime() != null)
                 .forEach(reservation -> {
                     double hours = calculateDurationHours(reservation.getStartDatetime(), reservation.getEndDatetime());
+<<<<<<< HEAD
                     Long userId = reservation.getUserId();
+=======
+                    Integer userId = reservation.getUserId();
+>>>>>>> origin/main
                     usageHours.merge(userId, hours, Double::sum);
 
                     if (reservation.getEndDatetime().isBefore(now)) {
@@ -102,7 +127,11 @@ public class FairnessEngineService {
                 .sorted(Comparator.comparingDouble(FairnessMemberDTO::getDifference))
                 .collect(Collectors.toList());
 
+<<<<<<< HEAD
         List<Long> priorityQueue = memberStats.stream()
+=======
+        List<Integer> priorityQueue = memberStats.stream()
+>>>>>>> origin/main
                 .sorted(Comparator
                         .comparing(FairnessMemberDTO::getPriority, this::priorityCompare)
                         .thenComparingDouble(FairnessMemberDTO::getDifference))
@@ -134,6 +163,7 @@ public class FairnessEngineService {
     }
 
     @Transactional(readOnly = true)
+<<<<<<< HEAD
     public FairnessSuggestionResponse suggest(Long vehicleId, FairnessSuggestionRequest request, String token) {
         // [LOG] Debug Token: token is null? (token == null)
         System.out.println("[CRITICAL_LOG] Receiving suggest request for vehicle " + vehicleId + " with token prefix: " + (token != null && token.length() > 10 ? token.substring(0, 10) : token));
@@ -173,11 +203,27 @@ public class FairnessEngineService {
         }
 
         FairnessSummaryDTO summary = buildSummary(vehicleId, 30, token);
+=======
+    public FairnessSuggestionResponse suggest(Integer vehicleId, FairnessSuggestionRequest request) {
+        return suggest(vehicleId, request, null);
+    }
+    
+    @Transactional(readOnly = true)
+    public FairnessSuggestionResponse suggest(Integer vehicleId, FairnessSuggestionRequest request, String token) {
+        FairnessSummaryDTO summary = buildSummary(vehicleId, 30, token);
+        if (request.getUserId() == null) {
+            throw new IllegalArgumentException("userId is required");
+        }
+>>>>>>> origin/main
 
         FairnessMemberDTO applicant = summary.getMembers().stream()
                 .filter(m -> Objects.equals(m.getUserId(), request.getUserId()))
                 .findFirst()
+<<<<<<< HEAD
                 .orElseThrow(() -> new IllegalArgumentException("User not found in vehicle's co-ownership list"));
+=======
+                .orElseThrow(() -> new IllegalArgumentException("User is not in vehicle's co-ownership list"));
+>>>>>>> origin/main
 
         LocalDateTime desiredStart = Optional.ofNullable(request.getDesiredStart())
                 .orElse(LocalDateTime.now().plusHours(1));
@@ -231,7 +277,11 @@ public class FairnessEngineService {
                 .build();
     }
 
+<<<<<<< HEAD
     private String getVehicleName(Long vehicleId) {
+=======
+    private String getVehicleName(Integer vehicleId) {
+>>>>>>> origin/main
         // Tạm thời trả về ID, có thể gọi vehicle-service sau
         try {
             // Có thể gọi API từ vehicle-service nếu có
@@ -244,7 +294,11 @@ public class FairnessEngineService {
         }
     }
     
+<<<<<<< HEAD
     private String getUserName(Long userId) {
+=======
+    private String getUserName(Integer userId) {
+>>>>>>> origin/main
         // Hiển thị User#n để tránh lỗi encoding tiếng Việt
         return "User#" + userId;
     }
@@ -268,11 +322,19 @@ public class FairnessEngineService {
     }
 
     private FairnessMemberDTO buildMemberStats(Map<String, Object> memberData,
+<<<<<<< HEAD
                                                Map<Long, Double> usageHours,
                                                double totalUsageHours,
                                                Map<Long, LocalDateTime> lastUsage,
                                                Map<Long, LocalDateTime> nextUsage) {
         Long userId = ((Number) memberData.get("userId")).longValue();
+=======
+                                               Map<Integer, Double> usageHours,
+                                               double totalUsageHours,
+                                               Map<Integer, LocalDateTime> lastUsage,
+                                               Map<Integer, LocalDateTime> nextUsage) {
+        Integer userId = ((Number) memberData.get("userId")).intValue();
+>>>>>>> origin/main
         double hours = usageHours.getOrDefault(userId, 0.0);
         double usagePercentage = totalUsageHours > 0 ? (hours / totalUsageHours) * 100 : 0.0;
         

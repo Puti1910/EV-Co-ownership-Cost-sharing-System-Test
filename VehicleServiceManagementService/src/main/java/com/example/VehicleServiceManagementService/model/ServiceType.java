@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -12,6 +14,8 @@ import java.time.Instant;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "service", schema = "vehicle_management", indexes = {
         @Index(name = "idx_service_name", columnList = "service_name"),
@@ -20,9 +24,9 @@ import java.time.Instant;
 public class ServiceType {
 
     @Id
-    @Size(max = 20, message = "Service ID không được vượt quá 20 ký tự")
-    @Column(name = "service_id", length = 20, nullable = false, unique = true, updatable = false)
-    private String serviceId; // Tự động generate nếu không được cung cấp: SRV001, SRV002, ...
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "service_id", nullable = false, unique = true, updatable = false)
+    private Long serviceId; 
 
     @NotBlank(message = "Tên dịch vụ không được để trống")
     @Size(min = 1, max = 255, message = "Tên dịch vụ phải từ 1 đến 255 ký tự")
@@ -42,15 +46,12 @@ public class ServiceType {
     @Column(name = "updated_date", nullable = false)
     private Instant updatedDate;
 
-    // Constructors
-    public ServiceType() {}
-
-    public ServiceType(String serviceId, String serviceName) {
+    public ServiceType(Long serviceId, String serviceName) {
         this.serviceId = serviceId;
         this.serviceName = serviceName;
     }
 
-    public ServiceType(String serviceId, String serviceName, String serviceType) {
+    public ServiceType(Long serviceId, String serviceName, String serviceType) {
         this.serviceId = serviceId;
         this.serviceName = serviceName;
         this.serviceType = serviceType;
@@ -59,8 +60,9 @@ public class ServiceType {
     @Override
     public String toString() {
         return "ServiceType{" +
-                "serviceId='" + serviceId + '\'' +
+                "serviceId=" + serviceId +
                 ", serviceName='" + serviceName + '\'' +
+                ", serviceType='" + serviceType + '\'' +
                 '}';
     }
 

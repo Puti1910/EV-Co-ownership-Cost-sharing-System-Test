@@ -5,11 +5,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface GroupMemberRepository extends JpaRepository<GroupMember, Integer> {
-    List<GroupMember> findByGroup_GroupId(Integer groupId);
-    List<GroupMember> findByUserId(Integer userId);
+public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> {
+    List<GroupMember> findByGroup_GroupId(Long groupId);
+    List<GroupMember> findByUserId(Long userId);
     List<GroupMember> findByRole(GroupMember.MemberRole role);
-    Integer countByGroup_GroupId(Integer groupId);
+    Integer countByGroup_GroupId(Long groupId);
+    Optional<GroupMember> findByGroup_GroupIdAndUserId(Long groupId, Long userId);
 }

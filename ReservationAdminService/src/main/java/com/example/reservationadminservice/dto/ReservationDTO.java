@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ReservationDTO {
     private Long reservationId;
+<<<<<<< HEAD
 
     @jakarta.validation.constraints.Min(value = 1, message = "vehicleId must be >= 1")
     @jakarta.validation.constraints.Max(value = 2147483647L, message = "vehicleId exceeds Integer range")
@@ -20,11 +21,18 @@ public class ReservationDTO {
 
     @jakarta.validation.constraints.Min(value = 1, message = "userId must be >= 1")
     @jakarta.validation.constraints.Max(value = Long.MAX_VALUE, message = "userId exceeds Long range")
+=======
+    private Long vehicleId;
+    private String vehicleName;
+>>>>>>> origin/main
     private Long userId;
     private String userName;
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
+<<<<<<< HEAD
     @jakarta.validation.constraints.Size(min = 1, max = 1000, message = "Mục đích sử dụng phải từ 1 đến 1000 ký tự")
+=======
+>>>>>>> origin/main
     private String purpose;
     private String status;
     private LocalDateTime createdAt;

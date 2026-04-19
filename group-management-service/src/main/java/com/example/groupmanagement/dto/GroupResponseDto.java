@@ -11,17 +11,16 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GroupResponseDto {
-    private Integer groupId;
+    private Long groupId;
     private String groupName;
-    private Integer adminId;
-    private Integer vehicleId;
+    private Long adminId;
     private LocalDateTime createdAt;
     private String status;
     private Integer memberCount;
     private Integer voteCount;
 
     // User-specific membership metadata (optional)
-    private Integer memberId;
+    private Long memberId;
     private String memberRole;
     private Double ownershipPercent;
     private Boolean hasOwnership;
@@ -31,7 +30,6 @@ public class GroupResponseDto {
         dto.setGroupId(group.getGroupId());
         dto.setGroupName(group.getGroupName());
         dto.setAdminId(group.getAdminId());
-        dto.setVehicleId(group.getVehicleId());
         dto.setCreatedAt(group.getCreatedAt());
         dto.setStatus(group.getStatus() != null ? group.getStatus().name() : null);
         dto.setMemberCount(memberCount);
@@ -39,4 +37,3 @@ public class GroupResponseDto {
         return dto;
     }
 }
-

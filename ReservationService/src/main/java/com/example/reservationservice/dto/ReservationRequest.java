@@ -1,10 +1,13 @@
 package com.example.reservationservice.dto;
 
+<<<<<<< HEAD
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+=======
+>>>>>>> origin/main
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -14,6 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReservationRequest {
+<<<<<<< HEAD
 
     @Min(value = 1, message = "userId must be at least 1")
     @Max(value = Long.MAX_VALUE, message = "userId không được vượt quá Max Long")
@@ -59,3 +63,13 @@ public class ReservationRequest {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 }
+=======
+    private Integer userId;
+    private Integer vehicleId;
+    private LocalDateTime startDatetime;
+    private LocalDateTime endDatetime;
+    private String purpose;
+    private String status;
+}
+
+>>>>>>> origin/main

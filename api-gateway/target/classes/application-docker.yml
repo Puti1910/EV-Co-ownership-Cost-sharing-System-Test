@@ -4,6 +4,15 @@ server:
 spring:
   application:
     name: api-gateway
+<<<<<<< HEAD
+=======
+  codec:
+    max-in-memory-size: 50MB
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 45MB
+>>>>>>> origin/main
   cloud:
     gateway:
       routes:
@@ -11,7 +20,11 @@ spring:
         - id: cost-payment-service
           uri: http://cost-payment-service:8081
           predicates:
+<<<<<<< HEAD
             - Path=/api/costs/**, /api/payments/**, /api/shares/**, /api/cost-shares/**, /api/auto-split/**, /api/usage-tracking/**, /api/funds/**, /api/my-vehicles, /api/auth/logout
+=======
+            - Path=/api/costs/**, /api/payments/**, /api/shares/**, /api/cost-shares/**, /api/auto-split/**, /api/usage-tracking/**, /api/funds/**, /api/my-vehicles, /api/auth/logout, /api/reports/**
+>>>>>>> origin/main
         
         # Group Management Service Routes
         - id: group-management-service

@@ -31,7 +31,6 @@ public class VehicleGroupService {
      * @return Danh sách tất cả nhóm xe
      */
     public List<Vehiclegroup> getAllVehicleGroups() {
-        // Trả về danh sách tất cả các nhóm xe từ repository
         return vehicleGroupRepository.findAll();
     }
 
@@ -40,10 +39,8 @@ public class VehicleGroupService {
      * @return Danh sách nhóm xe chưa có xe
      */
     public List<Vehiclegroup> getVehicleGroupsWithoutVehicles() {
-        // Lấy tất cả nhóm xe
         List<Vehiclegroup> allGroups = vehicleGroupRepository.findAll();
         
-        // Lọc chỉ lấy những nhóm chưa có xe
         return allGroups.stream()
                 .filter(group -> {
                     long vehicleCount = vehicleRepository.countByGroupId(group.getGroupId());
@@ -57,11 +54,9 @@ public class VehicleGroupService {
      * @param currentGroupId ID của nhóm hiện tại (có thể null)
      * @return Danh sách nhóm xe chưa có xe + nhóm hiện tại
      */
-    public List<Vehiclegroup> getAvailableVehicleGroups(String currentGroupId) {
-        // Lấy tất cả nhóm xe
+    public List<Vehiclegroup> getAvailableVehicleGroups(Long currentGroupId) {
         List<Vehiclegroup> allGroups = vehicleGroupRepository.findAll();
         
-        // Lọc lấy những nhóm chưa có xe, hoặc là nhóm hiện tại
         return allGroups.stream()
                 .filter(group -> {
                     // Nếu là nhóm hiện tại, luôn bao gồm
@@ -80,7 +75,7 @@ public class VehicleGroupService {
      * @param groupId ID của nhóm xe
      * @return Vehiclegroup nếu tìm thấy, null nếu không
      */
-    public Vehiclegroup getVehicleGroupById(String groupId) {
+    public Vehiclegroup getVehicleGroupById(Long groupId) {
         Optional<Vehiclegroup> group = vehicleGroupRepository.findById(groupId);
         return group.orElse(null);
     }
@@ -90,7 +85,7 @@ public class VehicleGroupService {
      * @param groupId ID của nhóm xe
      * @return Danh sách các xe trong nhóm
      */
-    public List<Vehicle> getVehiclesByGroupId(String groupId) {
+    public List<Vehicle> getVehiclesByGroupId(Long groupId) {
         return vehicleRepository.findByGroupId(groupId);
     }
 
@@ -101,12 +96,11 @@ public class VehicleGroupService {
      * @return Danh sách nhóm xe đã lọc
      */
     public List<Vehiclegroup> filterVehicleGroups(String searchQuery, String statusFilter) {
-        List<Vehiclegroup> allGroups = vehicleGroupRepository.findAll();  // Lấy tất cả các nhóm xe
+        List<Vehiclegroup> allGroups = vehicleGroupRepository.findAll();
 
-        // Lọc nhóm xe theo tên
         return allGroups.stream()
-                .filter(group -> (searchQuery == null || group.getName().toLowerCase().contains(searchQuery.toLowerCase())))  // Lọc theo tên
-                .collect(Collectors.toList());  // Trả về danh sách nhóm xe đã lọc
+                .filter(group -> (searchQuery == null || group.getName().toLowerCase().contains(searchQuery.toLowerCase())))
+                .collect(Collectors.toList());
     }
 
     // Thêm nhóm xe mới
@@ -116,27 +110,23 @@ public class VehicleGroupService {
 
     /**
      * Sửa thông tin nhóm xe
-     * Có thể sửa: tên, trạng thái, mô tả
-     * 
      * @param groupId ID của nhóm xe cần sửa
      * @param vehicleGroup Đối tượng chứa thông tin cần cập nhật
      * @return Vehiclegroup đã được cập nhật, null nếu không tìm thấy nhóm xe
      */
     @Transactional
-    public Vehiclegroup updateVehicleGroup(String groupId, Vehiclegroup vehicleGroup) {
+    public Vehiclegroup updateVehicleGroup(Long groupId, Vehiclegroup vehicleGroup) {
         Optional<Vehiclegroup> existingGroup = vehicleGroupRepository.findById(groupId);
         if (existingGroup.isEmpty()) {
-            return null; // Nếu không tìm thấy, trả về null
+            return null;
         }
 
         Vehiclegroup groupToUpdate = existingGroup.get();
         
-        // Cập nhật tên nhóm xe (nếu có)
         if (vehicleGroup.getName() != null && !vehicleGroup.getName().trim().isEmpty()) {
             groupToUpdate.setName(vehicleGroup.getName().trim());
         }
         
-        // Cập nhật mô tả (nếu có)
         if (vehicleGroup.getDescription() != null) {
             groupToUpdate.setDescription(vehicleGroup.getDescription());
         }
@@ -146,49 +136,38 @@ public class VehicleGroupService {
 
     /**
      * Xóa nhóm xe theo groupId
-     * Phương thức này sẽ tự động xóa tất cả xe trong nhóm trước khi xóa nhóm
-     * 
      * @param groupId ID của nhóm xe cần xóa
-     * @return Thông báo kết quả xóa (bao gồm số lượng xe đã xóa), null nếu không tìm thấy nhóm xe
+     * @return Thông báo kết quả xóa, null nếu không tìm thấy nhóm xe
      */
     @Transactional
-    public String deleteVehicleGroup(String groupId) {
-        // Kiểm tra xem nhóm xe có tồn tại trong cơ sở dữ liệu hay không
+    public String deleteVehicleGroup(Long groupId) {
         Optional<Vehiclegroup> groupOptional = vehicleGroupRepository.findById(groupId);
         if (groupOptional.isEmpty()) {
-            return null; // Nếu không tìm thấy, trả về null
+            return null;
         }
 
         Vehiclegroup group = groupOptional.get();
         String groupName = group.getName();
 
-        // Tìm tất cả xe trong nhóm
         List<Vehicle> vehiclesInGroup = vehicleRepository.findByGroupId(groupId);
         int vehicleCount = vehiclesInGroup.size();
         
-        // Disable foreign key checks trước khi xóa tất cả dữ liệu liên quan
         entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 0").executeUpdate();
         
         try {
-            // Xóa tất cả xe trong nhóm trước
             if (!vehiclesInGroup.isEmpty()) {
                 vehicleRepository.deleteAll(vehiclesInGroup);
             }
 
-            // Xóa tất cả vehiclehistory liên quan đến nhóm xe này
-            // MySQL sẽ tự động convert groupId (String) sang INT nếu cần
             entityManager.createNativeQuery("DELETE FROM vehicle_management.vehiclehistory WHERE group_id = :groupId")
                     .setParameter("groupId", groupId)
                     .executeUpdate();
 
-            // Sau đó xóa nhóm xe
             vehicleGroupRepository.deleteById(groupId);
         } finally {
-            // Bật lại foreign key checks
             entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 1").executeUpdate();
         }
         
-        // Tạo thông báo kết quả
         if (vehicleCount > 0) {
             return "Nhóm xe '" + groupName + "' và " + vehicleCount + " xe trong nhóm đã được xóa thành công.";
         } else {

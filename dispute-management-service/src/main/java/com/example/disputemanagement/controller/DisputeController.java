@@ -1,5 +1,9 @@
 package com.example.disputemanagement.controller;
 
+<<<<<<< HEAD
+=======
+import com.example.disputemanagement.dto.DisputeAttachmentRequest;
+>>>>>>> origin/main
 import com.example.disputemanagement.entity.*;
 import com.example.disputemanagement.service.DisputeService;
 import org.slf4j.Logger;
@@ -7,6 +11,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+<<<<<<< HEAD
+=======
+import jakarta.validation.Valid;
+>>>>>>> origin/main
 
 import java.util.List;
 import java.util.Map;
@@ -169,7 +177,11 @@ public class DisputeController {
     }
     
     @PostMapping("/{disputeId}/comments")
+<<<<<<< HEAD
     public ResponseEntity<?> addComment(@PathVariable Integer disputeId, @RequestBody DisputeComment comment) {
+=======
+    public ResponseEntity<?> addComment(@PathVariable Integer disputeId, @Valid @RequestBody DisputeComment comment) {
+>>>>>>> origin/main
         try {
             DisputeComment created = disputeService.addComment(disputeId, comment);
             return ResponseEntity.ok(created);
@@ -208,7 +220,11 @@ public class DisputeController {
     }
     
     @PostMapping("/{disputeId}/resolution")
+<<<<<<< HEAD
     public ResponseEntity<?> createResolution(@PathVariable Integer disputeId, @RequestBody DisputeResolution resolution) {
+=======
+public ResponseEntity<?> createResolution(@PathVariable Integer disputeId, @Valid @RequestBody DisputeResolution resolution) {
+>>>>>>> origin/main
         try {
             DisputeResolution created = disputeService.createResolution(disputeId, resolution);
             return ResponseEntity.ok(created);
@@ -245,7 +261,11 @@ public class DisputeController {
     }
     
     @PostMapping("/attachments")
+<<<<<<< HEAD
     public ResponseEntity<?> addAttachment(@RequestBody DisputeAttachment attachment) {
+=======
+    public ResponseEntity<?> addAttachment(@Valid @RequestBody DisputeAttachmentRequest attachment) {
+>>>>>>> origin/main
         try {
             DisputeAttachment created = disputeService.addAttachment(attachment);
             return ResponseEntity.ok(created);

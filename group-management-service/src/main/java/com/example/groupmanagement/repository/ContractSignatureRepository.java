@@ -5,19 +5,20 @@ import com.example.groupmanagement.entity.GroupContract;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface ContractSignatureRepository extends JpaRepository<ContractSignature, Integer> {
+public interface ContractSignatureRepository extends JpaRepository<ContractSignature, Long> {
 
-    boolean existsByGroupContractAndUserId(GroupContract groupContract, Integer userId);
+    boolean existsByGroupContractAndUserId(GroupContract groupContract, Long userId);
 
     long countByGroupContract(GroupContract groupContract);
 
     List<ContractSignature> findByGroupContract(GroupContract groupContract);
 
-    java.util.Optional<ContractSignature> findTopByGroupContract_Group_GroupIdAndUserIdOrderBySignedAtDesc(
-            Integer groupId,
-            Integer userId
+    Optional<ContractSignature> findByGroupContractAndUserId(GroupContract groupContract, Long userId);
+
+    Optional<ContractSignature> findTopByGroupContract_Group_GroupIdAndUserIdOrderBySignedAtDesc(
+            Long groupId,
+            Long userId
     );
 }
-
-

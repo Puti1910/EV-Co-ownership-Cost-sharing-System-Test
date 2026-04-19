@@ -1,9 +1,6 @@
 package com.example.disputemanagement.controller;
 
-<<<<<<< HEAD
-=======
 import com.example.disputemanagement.dto.DisputeAttachmentRequest;
->>>>>>> origin/main
 import com.example.disputemanagement.entity.*;
 import com.example.disputemanagement.service.DisputeService;
 import org.slf4j.Logger;
@@ -11,10 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-<<<<<<< HEAD
-=======
 import jakarta.validation.Valid;
->>>>>>> origin/main
 
 import java.util.List;
 import java.util.Map;
@@ -115,10 +109,27 @@ public class DisputeController {
     }
     
     @PostMapping
-    public ResponseEntity<?> createDispute(@RequestBody Dispute dispute) {
+    public ResponseEntity<?> createDispute(@Valid @RequestBody CreateDisputeRequest request) {
         try {
+            Dispute dispute = new Dispute();
+            dispute.setGroupId(request.getGroupId());
+            dispute.setVehicleId(request.getVehicleId());
+            dispute.setReservationId(request.getReservationId());
+            dispute.setCostId(request.getCostId());
+            dispute.setPaymentId(request.getPaymentId());
+            dispute.setCreatedBy(request.getCreatedBy());
+            dispute.setReportedUserId(request.getReportedUserId());
+            dispute.setTitle(request.getTitle());
+            dispute.setDescription(request.getDescription());
+            dispute.setCategory(request.getCategory());
+            dispute.setPriority(request.getPriority());
+            dispute.setResolutionNote(request.getResolutionNote());
+
             Dispute created = disputeService.createDispute(dispute);
             return ResponseEntity.ok(created);
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid dispute payload", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error creating dispute", e);
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
@@ -140,11 +151,17 @@ public class DisputeController {
     public ResponseEntity<?> assignDispute(@PathVariable Integer disputeId, @RequestBody Map<String, Integer> request) {
         try {
             Integer staffId = request.get("staffId");
-            if (staffId == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "staffId is required"));
+            if (staffId == null || staffId <= 0) {
+                return ResponseEntity.badRequest().body(Map.of("error", "staffId must be > 0"));
             }
             Dispute assigned = disputeService.assignDispute(disputeId, staffId);
             return ResponseEntity.ok(assigned);
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid assign payload", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            logger.error("Dispute not found when assigning", e);
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error assigning dispute", e);
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
@@ -156,6 +173,12 @@ public class DisputeController {
         try {
             disputeService.deleteDispute(disputeId);
             return ResponseEntity.ok(Map.of("success", true, "message", "Dispute deleted"));
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid dispute id for deleting dispute", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            logger.error("Dispute not found when deleting", e);
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error deleting dispute", e);
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
@@ -177,11 +200,7 @@ public class DisputeController {
     }
     
     @PostMapping("/{disputeId}/comments")
-<<<<<<< HEAD
-    public ResponseEntity<?> addComment(@PathVariable Integer disputeId, @RequestBody DisputeComment comment) {
-=======
     public ResponseEntity<?> addComment(@PathVariable Integer disputeId, @Valid @RequestBody DisputeComment comment) {
->>>>>>> origin/main
         try {
             DisputeComment created = disputeService.addComment(disputeId, comment);
             return ResponseEntity.ok(created);
@@ -196,6 +215,12 @@ public class DisputeController {
         try {
             disputeService.deleteComment(commentId);
             return ResponseEntity.ok(Map.of("success", true));
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid comment id for deleting comment", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            logger.error("Comment not found when deleting", e);
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error deleting comment", e);
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
@@ -220,11 +245,7 @@ public class DisputeController {
     }
     
     @PostMapping("/{disputeId}/resolution")
-<<<<<<< HEAD
-    public ResponseEntity<?> createResolution(@PathVariable Integer disputeId, @RequestBody DisputeResolution resolution) {
-=======
 public ResponseEntity<?> createResolution(@PathVariable Integer disputeId, @Valid @RequestBody DisputeResolution resolution) {
->>>>>>> origin/main
         try {
             DisputeResolution created = disputeService.createResolution(disputeId, resolution);
             return ResponseEntity.ok(created);
@@ -261,11 +282,7 @@ public ResponseEntity<?> createResolution(@PathVariable Integer disputeId, @Vali
     }
     
     @PostMapping("/attachments")
-<<<<<<< HEAD
-    public ResponseEntity<?> addAttachment(@RequestBody DisputeAttachment attachment) {
-=======
     public ResponseEntity<?> addAttachment(@Valid @RequestBody DisputeAttachmentRequest attachment) {
->>>>>>> origin/main
         try {
             DisputeAttachment created = disputeService.addAttachment(attachment);
             return ResponseEntity.ok(created);

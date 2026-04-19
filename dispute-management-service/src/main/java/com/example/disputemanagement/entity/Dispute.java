@@ -2,6 +2,8 @@ package com.example.disputemanagement.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -43,9 +45,12 @@ public class Dispute {
     @Column(name = "reportedUserId")
     private Integer reportedUserId;
     
+    @NotBlank(message = "Tiêu đề không được để trống")
+    @Size(max = 255, message = "Tiêu đề không quá 255 ký tự")
     @Column(name = "title", nullable = false, length = 255)
     private String title;
     
+    @NotBlank(message = "Mô tả không được để trống")
     @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
     

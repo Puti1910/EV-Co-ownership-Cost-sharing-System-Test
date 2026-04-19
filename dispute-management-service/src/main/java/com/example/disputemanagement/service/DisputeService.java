@@ -79,6 +79,13 @@ public class DisputeService {
     
     @Transactional
     public Dispute createDispute(Dispute dispute) {
+        if (dispute.getTitle() == null || dispute.getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("Tiêu đề không được để trống");
+        }
+        if (dispute.getDescription() == null || dispute.getDescription().trim().isEmpty()) {
+            throw new IllegalArgumentException("Mô tả không được để trống");
+        }
+
         dispute.setStatus(Dispute.DisputeStatus.PENDING);
         dispute.setCreatedAt(LocalDateTime.now());
         dispute.setUpdatedAt(LocalDateTime.now());
@@ -133,6 +140,13 @@ public class DisputeService {
     
     @Transactional
     public Dispute assignDispute(Integer disputeId, Integer staffId) {
+        if (disputeId == null || disputeId <= 0) {
+            throw new IllegalArgumentException("Dispute ID phải > 0");
+        }
+        if (staffId == null || staffId <= 0) {
+            throw new IllegalArgumentException("staffId phải > 0");
+        }
+
         Dispute dispute = disputeRepository.findById(disputeId)
             .orElseThrow(() -> new RuntimeException("Dispute not found: " + disputeId));
         
@@ -153,6 +167,14 @@ public class DisputeService {
     
     @Transactional
     public void deleteDispute(Integer disputeId) {
+        if (disputeId == null || disputeId <= 0) {
+            throw new IllegalArgumentException("Dispute ID phải > 0");
+        }
+
+        if (!disputeRepository.existsById(disputeId)) {
+            throw new RuntimeException("Dispute not found: " + disputeId);
+        }
+
         disputeRepository.deleteById(disputeId);
     }
     
@@ -194,6 +216,14 @@ public class DisputeService {
     
     @Transactional
     public void deleteComment(Integer commentId) {
+        if (commentId == null || commentId <= 0) {
+            throw new IllegalArgumentException("Comment ID phải > 0");
+        }
+
+        if (!commentRepository.existsById(commentId)) {
+            throw new RuntimeException("Comment not found: " + commentId);
+        }
+
         commentRepository.deleteById(commentId);
     }
     

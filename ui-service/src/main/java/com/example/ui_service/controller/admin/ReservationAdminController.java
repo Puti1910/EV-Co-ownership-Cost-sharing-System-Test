@@ -60,6 +60,48 @@ public class ReservationAdminController {
     }
 
     /**
+<<<<<<< HEAD
+     * Xử lý tạo mới reservation
+     */
+    @PostMapping("/reservations/create")
+    public String createReservation(
+            @RequestParam Long userId,
+            @RequestParam Long vehicleId,
+            @RequestParam String startDatetime,
+            @RequestParam String endDatetime,
+            @RequestParam(required = false) String purpose,
+            @RequestParam String status,
+            RedirectAttributes redirectAttributes) {
+        try {
+            System.out.println("➕ Creating new reservation for user " + userId + " and vehicle " + vehicleId);
+            
+            // Convert datetime-local format if needed
+            String startDt = startDatetime.contains(":") && !startDatetime.contains(":00:00") 
+                ? (startDatetime.length() == 16 ? startDatetime + ":00" : startDatetime)
+                : startDatetime;
+            String endDt = endDatetime.contains(":") && !endDatetime.contains(":00:00") 
+                ? (endDatetime.length() == 16 ? endDatetime + ":00" : endDatetime)
+                : endDatetime;
+            
+            boolean success = adminReservationService.createReservation(userId, vehicleId, startDt, endDt, purpose, status);
+            
+            if (success) {
+                redirectAttributes.addFlashAttribute("successMessage", "Tạo lịch đặt thành công!");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Không thể tạo lịch đặt. Vui lòng thử lại.");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Lỗi khi tạo reservation: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+        }
+        
+        return "redirect:/admin/reservations";
+    }
+
+    /**
+=======
+>>>>>>> origin/main
      * Xử lý cập nhật reservation
      */
     @PostMapping("/reservations/{id}/update")

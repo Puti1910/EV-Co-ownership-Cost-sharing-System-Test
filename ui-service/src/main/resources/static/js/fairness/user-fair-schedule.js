@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+(function () {
+=======
 (function() {
+>>>>>>> origin/main
     const API_BASE = typeof window.getApiBaseUrl === 'function'
         ? window.getApiBaseUrl()
         : 'http://localhost:8084';
@@ -8,15 +12,22 @@
     let currentUserId = null;
     let currentSummary = null;
     let userCalendar;
+<<<<<<< HEAD
+=======
     let signaturePad;
     let activeCheckpointId = null;
+>>>>>>> origin/main
 
     // Helper function để decode JWT token và kiểm tra profileStatus
     function decodeJWT(token) {
         try {
             const base64Url = token.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+<<<<<<< HEAD
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+=======
             const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+>>>>>>> origin/main
                 return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
             }).join(''));
             return JSON.parse(jsonPayload);
@@ -32,7 +43,11 @@
             alert('Vui lòng đăng nhập lại để tiếp tục.');
             return;
         }
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> origin/main
         // Debug: Kiểm tra profileStatus trong token
         const token = localStorage.getItem('jwtToken');
         if (token) {
@@ -48,12 +63,19 @@
                 }
             }
         }
+<<<<<<< HEAD
+
+        bindUserControls();
+        loadUserVehicles().then(() => {
+            loadUserFairness();
+=======
         
         setupSignaturePad();
         bindUserControls();
         loadUserVehicles().then(() => {
             loadUserFairness();
             loadUserReservations();
+>>>>>>> origin/main
         });
     });
 
@@ -61,7 +83,10 @@
         document.getElementById('userVehicleSelect').addEventListener('change', e => {
             currentVehicleId = e.target.value ? Number(e.target.value) : null;
             loadUserFairness();
+<<<<<<< HEAD
+=======
             loadUserReservations();
+>>>>>>> origin/main
         });
         document.getElementById('userRangeSelect').addEventListener('change', e => {
             currentRange = Number(e.target.value || 30);
@@ -69,6 +94,11 @@
         });
         document.getElementById('userRefreshBtn').addEventListener('click', () => {
             loadUserFairness();
+<<<<<<< HEAD
+        });
+        document.getElementById('fairnessSuggestionForm').addEventListener('submit', handleSuggestionSubmit);
+        document.getElementById('copySuggestionBtn').addEventListener('click', copySuggestion);
+=======
             loadUserReservations();
         });
         document.getElementById('fairnessSuggestionForm').addEventListener('submit', handleSuggestionSubmit);
@@ -84,6 +114,7 @@
         signaturePad = new SignaturePad(canvas, {
             penColor: '#1d4ed8'
         });
+>>>>>>> origin/main
     }
 
     async function loadUserVehicles() {
@@ -94,7 +125,11 @@
                 ? window.authenticatedFetch
                 : fetch;
             const res = await client(`${API_BASE}/api/users/${currentUserId}/vehicles`);
+<<<<<<< HEAD
+
+=======
             
+>>>>>>> origin/main
             // Check for 403 error (profile not approved)
             if (res.status === 403) {
                 let errorMessage = 'Hồ sơ chưa được duyệt. Vui lòng hoàn tất KYC.';
@@ -106,7 +141,11 @@
                 } catch (e) {
                     // Use default message
                 }
+<<<<<<< HEAD
+
+=======
                 
+>>>>>>> origin/main
                 // Thử refresh token để lấy profileStatus mới từ database
                 if (typeof window.authenticatedFetch === 'function' && localStorage.getItem('refreshToken')) {
                     console.log('🔄 Attempting to refresh token to get updated profileStatus...');
@@ -116,13 +155,21 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ refreshToken: localStorage.getItem('refreshToken') })
                         });
+<<<<<<< HEAD
+
+=======
                         
+>>>>>>> origin/main
                         if (refreshResponse.ok) {
                             const newSession = await refreshResponse.json();
                             if (typeof window.saveAuthSession === 'function') {
                                 window.saveAuthSession(newSession);
                             }
+<<<<<<< HEAD
+
+=======
                             
+>>>>>>> origin/main
                             // Thử lại request với token mới
                             console.log('✅ Token refreshed, retrying request...');
                             const retryRes = await client(`${API_BASE}/api/users/${currentUserId}/vehicles`);
@@ -151,16 +198,28 @@
                         console.warn('Failed to refresh token:', refreshError);
                     }
                 }
+<<<<<<< HEAD
+
+=======
                 
+>>>>>>> origin/main
                 select.innerHTML = `<option value="">⚠️ ${errorMessage}</option>`;
                 console.error('403 Forbidden:', errorMessage);
                 return;
             }
+<<<<<<< HEAD
+
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+
+=======
             
             if (!res.ok) {
                 throw new Error(`HTTP ${res.status}: ${res.statusText}`);
             }
             
+>>>>>>> origin/main
             const vehicles = await res.json();
             select.innerHTML = '';
             if (!vehicles || !vehicles.length) {
@@ -225,18 +284,38 @@
     }
 
     function renderUserCalendar(events) {
+<<<<<<< HEAD
+=======
         // Kiểm tra xem FullCalendar đã được load chưa
+>>>>>>> origin/main
         if (typeof FullCalendar === 'undefined') {
             console.warn('FullCalendar chưa được load, đợi thêm...');
             setTimeout(() => renderUserCalendar(events), 100);
             return;
         }
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> origin/main
         const calendarEl = document.getElementById('userFairnessCalendar');
         if (!calendarEl) {
             console.warn('Calendar element không tồn tại');
             return;
         }
+<<<<<<< HEAD
+
+        if (!userCalendar) {
+            try {
+                userCalendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    locale: 'vi',
+                    height: 600,
+                    eventColor: '#2563eb',
+                    eventClick: info => alert(`Lịch của ${info.event.title}`)
+                });
+                userCalendar.render();
+=======
         
         if (!userCalendar) {
             try {
@@ -248,6 +327,7 @@
                 eventClick: info => alert(`Lịch của ${info.event.title}`)
             });
             userCalendar.render();
+>>>>>>> origin/main
             } catch (error) {
                 console.error('Lỗi khi khởi tạo FullCalendar:', error);
                 return;
@@ -255,11 +335,31 @@
         }
         userCalendar.removeAllEvents();
         events.forEach(event => {
+<<<<<<< HEAD
+            let startDate = event.start;
+            let endDate = event.end;
+
+            if (Array.isArray(startDate)) {
+                const [y, m, d, h = 0, min = 0, s = 0] = startDate;
+                startDate = new Date(y, m - 1, d, h, min, s);
+            }
+            if (Array.isArray(endDate)) {
+                const [y, m, d, h = 0, min = 0, s = 0] = endDate;
+                endDate = new Date(y, m - 1, d, h, min, s);
+            }
+
+            userCalendar.addEvent({
+                id: event.reservationId,
+                title: `${event.userName || 'Thành viên'} - ${event.status}`,
+                start: startDate,
+                end: endDate,
+=======
             userCalendar.addEvent({
                 id: event.reservationId,
                 title: `${event.userName || 'Thành viên'} - ${event.status}`,
                 start: event.start,
                 end: event.end,
+>>>>>>> origin/main
                 backgroundColor: event.userId === Number(currentUserId) ? '#22c55e' : '#94a3b8',
                 borderColor: event.userId === Number(currentUserId) ? '#16a34a' : '#94a3b8'
             });
@@ -317,6 +417,9 @@
             alert('Đã sao chép vào clipboard');
         });
     }
+<<<<<<< HEAD
+})();
+=======
 
     async function loadUserReservations() {
         const select = document.getElementById('userReservationSelect');
@@ -441,3 +544,4 @@
     }
 })();
 
+>>>>>>> origin/main

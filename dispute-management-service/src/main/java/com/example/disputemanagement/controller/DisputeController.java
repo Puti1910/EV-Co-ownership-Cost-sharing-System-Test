@@ -1,7 +1,6 @@
 package com.example.disputemanagement.controller;
 
 import com.example.disputemanagement.dto.DisputeAttachmentRequest;
-import com.example.disputemanagement.dto.CreateDisputeRequest;
 import com.example.disputemanagement.entity.*;
 import com.example.disputemanagement.service.DisputeService;
 import org.slf4j.Logger;

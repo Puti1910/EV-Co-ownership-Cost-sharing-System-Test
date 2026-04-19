@@ -1,0 +1,570 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-reservation-flat",
+    "name": "Reservation Services (8086 + 8087)",
+    "description": "Ba service phẳng (không lồng folder con):\n- **ReservationAdminService** → `{{baseUrl8087}}`\n- **ReservationService** → `{{baseUrl8086}}`\n- **user-account-service** → `{{base_url}}`\n\nTên request: `METHOD METHOD /path` để dễ quét khi test. Chỉnh biến `reservationId`, `userId`, `vehicleId`, `checkpointId`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl8086", "value": "http://localhost:8086" },
+    { "key": "baseUrl8087", "value": "http://localhost:8087" },
+    { "key": "base_url", "value": "http://localhost:8082" },
+    { "key": "reservationId", "value": "1" },
+    { "key": "userId", "value": "1" },
+    { "key": "vehicleId", "value": "1" },
+    { "key": "checkpointId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "ReservationAdminService",
+      "item": [
+        {
+          "name": "POST POST /api/admin/auth/login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"your_admin_username\",\n  \"password\": \"your_password\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl8087}}/api/admin/auth/login"
+          }
+        },
+        {
+          "name": "GET GET /api/admin/reservations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl8087}}/api/admin/reservations"
+          }
+        },
+        {
+          "name": "GET GET /api/admin/reservations/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl8087}}/api/admin/reservations/{{reservationId}}"
+          }
+        },
+        {
+          "name": "PUT PUT /api/admin/reservations/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Sync-Origin", "value": "reservation-service", "disabled": true }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": 1,\n  \"userId\": 1,\n  \"startDatetime\": \"2026-03-28T09:00:00\",\n  \"endDatetime\": \"2026-03-28T17:00:00\",\n  \"purpose\": \"Admin update\",\n  \"status\": \"BOOKED\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl8087}}/api/admin/reservations/{{reservationId}}"
+          }
+        },
+        {
+          "name": "DELETE DELETE /api/admin/reservations/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl8087}}/api/admin/reservations/{{reservationId}}"
+          }
+        },
+        {
+          "name": "POST POST /api/admin/reservations/sync",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservationId\": 1,\n  \"vehicleId\": 1,\n  \"userId\": 1,\n  \"startDatetime\": \"2026-03-28T09:00:00\",\n  \"endDatetime\": \"2026-03-28T17:00:00\",\n  \"purpose\": \"Sync test\",\n  \"status\": \"BOOKED\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl8087}}/api/admin/reservations/sync"
+          }
+        },
+        {
+          "name": "GET GET /api/admin/reservations/manage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl8087}}/api/admin/reservations/manage"
+          }
+        },
+        {
+          "name": "POST POST /api/admin/reservations/manage",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": {{vehicleId}},\n  \"userId\": {{userId}},\n  \"startDatetime\": \"2026-03-28T09:00:00\",\n  \"endDatetime\": \"2026-03-28T17:00:00\",\n  \"purpose\": \"Manage create\",\n  \"status\": \"BOOKED\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl8087}}/api/admin/reservations/manage"
+          }
+        },
+        {
+          "name": "PUT PUT /api/admin/reservations/manage/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDatetime\": \"2026-03-28T10:00:00\",\n  \"endDatetime\": \"2026-03-28T18:00:00\",\n  \"status\": \"BOOKED\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl8087}}/api/admin/reservations/manage/{{reservationId}}"
+          }
+        },
+        {
+          "name": "DELETE DELETE /api/admin/reservations/manage/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl8087}}/api/admin/reservations/manage/{{reservationId}}"
+          }
+        },
+        {
+          "name": "GET GET /api/admin/vehicles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl8087}}/api/admin/vehicles"
+          }
+        },
+        {
+          "name": "GET GET /api/reservations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl8087}}/api/reservations",
+            "description": "Proxy trên Admin Service (8087)"
+          }
+        },
+        {
+          "name": "GET GET /api/reservations/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl8087}}/api/reservations/{{reservationId}}"
+          }
+        },
+        {
+          "name": "POST POST /api/reservations",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": 1,\n  \"userId\": 1,\n  \"startDatetime\": \"2026-03-28T09:00:00\",\n  \"endDatetime\": \"2026-03-28T17:00:00\",\n  \"purpose\": \"Test Postman\",\n  \"status\": \"BOOKED\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl8087}}/api/reservations"
+          }
+        },
+        {
+          "name": "PUT PUT /api/reservations/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": 1,\n  \"userId\": 1,\n  \"startDatetime\": \"2026-03-28T10:00:00\",\n  \"endDatetime\": \"2026-03-28T18:00:00\",\n  \"purpose\": \"Updated\",\n  \"status\": \"BOOKED\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl8087}}/api/reservations/{{reservationId}}"
+          }
+        },
+        {
+          "name": "PUT PUT /api/reservations/{id}/status",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl8087}}/api/reservations/{{reservationId}}/status?status=IN_USE",
+              "host": ["{{baseUrl8087}}"],
+              "path": ["api", "reservations", "{{reservationId}}", "status"],
+              "query": [{ "key": "status", "value": "IN_USE" }]
+            }
+          }
+        },
+        {
+          "name": "DELETE DELETE /api/reservations/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl8087}}/api/reservations/{{reservationId}}"
+          }
+        },
+        {
+          "name": "GET GET /api/test/user/{userId}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl8087}}/api/test/user/{{userId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ReservationService",
+      "item": [
+        {
+          "name": "GET GET /api/reservations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl8086}}/api/reservations"
+          }
+        },
+        {
+          "name": "GET GET /api/reservations/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl8086}}/api/reservations/{{reservationId}}"
+          }
+        },
+        {
+          "name": "POST POST /api/reservations",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-Id", "value": "{{userId}}", "disabled": true },
+              { "key": "Authorization", "value": "Bearer YOUR_JWT", "disabled": true }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": {{vehicleId}},\n  \"userId\": {{userId}},\n  \"startDatetime\": \"2026-03-28T09:00:00\",\n  \"endDatetime\": \"2026-03-28T17:00:00\",\n  \"purpose\": \"Postman 8086\",\n  \"status\": \"BOOKED\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl8086}}/api/reservations"
+          }
+        },
+        {
+          "name": "PUT PUT /api/reservations/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDatetime\": \"2026-03-28T10:00:00\",\n  \"endDatetime\": \"2026-03-28T18:00:00\",\n  \"purpose\": \"Updated\",\n  \"status\": \"BOOKED\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl8086}}/api/reservations/{{reservationId}}"
+          }
+        },
+        {
+          "name": "PUT PUT /api/reservations/{id}/status",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl8086}}/api/reservations/{{reservationId}}/status?status=IN_USE",
+              "host": ["{{baseUrl8086}}"],
+              "path": ["api", "reservations", "{{reservationId}}", "status"],
+              "query": [{ "key": "status", "value": "IN_USE" }]
+            }
+          }
+        },
+        {
+          "name": "DELETE DELETE /api/reservations/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl8086}}/api/reservations/{{reservationId}}"
+          }
+        },
+        {
+          "name": "GET GET /api/vehicles/{vehicleId}/reservations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl8086}}/api/vehicles/{{vehicleId}}/reservations"
+          }
+        },
+        {
+          "name": "GET GET /api/vehicles/{vehicleId}/group",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer YOUR_JWT", "disabled": true }],
+            "url": "{{baseUrl8086}}/api/vehicles/{{vehicleId}}/group"
+          }
+        },
+        {
+          "name": "GET GET /api/users/{userId}/vehicles",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer YOUR_JWT", "disabled": true }],
+            "url": "{{baseUrl8086}}/api/users/{{userId}}/vehicles"
+          }
+        },
+        {
+          "name": "GET GET /api/users/{userId}/vehicles/{vehicleId}/reservations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl8086}}/api/users/{{userId}}/vehicles/{{vehicleId}}/reservations"
+          }
+        },
+        {
+          "name": "GET GET /api/availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl8086}}/api/availability?vehicleId={{vehicleId}}&start=2026-03-28T09:00:00&end=2026-03-28T17:00:00",
+              "host": ["{{baseUrl8086}}"],
+              "path": ["api", "availability"],
+              "query": [
+                { "key": "vehicleId", "value": "{{vehicleId}}" },
+                { "key": "start", "value": "2026-03-28T09:00:00" },
+                { "key": "end", "value": "2026-03-28T17:00:00" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET GET /api/reservations/{reservationId}/checkpoints",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl8086}}/api/reservations/{{reservationId}}/checkpoints"
+          }
+        },
+        {
+          "name": "POST POST /api/reservations/{reservationId}/checkpoints",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"PICKUP\",\n  \"issuedBy\": \"admin\",\n  \"notes\": \"Postman test\",\n  \"validMinutes\": 60\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl8086}}/api/reservations/{{reservationId}}/checkpoints"
+          }
+        },
+        {
+          "name": "POST POST /api/reservations/checkpoints/scan",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"checkpoint-token-from-issue\",\n  \"latitude\": 10.762622,\n  \"longitude\": 106.660172\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl8086}}/api/reservations/checkpoints/scan"
+          }
+        },
+        {
+          "name": "POST POST /api/reservations/checkpoints/{checkpointId}/sign",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signerName\": \"Nguyen Van A\",\n  \"signerIdNumber\": \"001234567890\",\n  \"signatureData\": \"base64-or-text-placeholder\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl8086}}/api/reservations/checkpoints/{{checkpointId}}/sign"
+          }
+        },
+        {
+          "name": "GET GET /api/fairness/vehicles/{vehicleId}",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer YOUR_JWT", "disabled": true }],
+            "url": {
+              "raw": "{{baseUrl8086}}/api/fairness/vehicles/{{vehicleId}}?rangeDays=30",
+              "host": ["{{baseUrl8086}}"],
+              "path": ["api", "fairness", "vehicles", "{{vehicleId}}"],
+              "query": [{ "key": "rangeDays", "value": "30" }]
+            }
+          }
+        },
+        {
+          "name": "POST POST /api/fairness/vehicles/{vehicleId}/suggest",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer YOUR_JWT", "disabled": true }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{userId}},\n  \"desiredStart\": \"2026-03-28T09:00:00\",\n  \"durationHours\": 2.0\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl8086}}/api/fairness/vehicles/{{vehicleId}}/suggest"
+          }
+        }
+      ]
+    },
+    {
+      "name": "user-account-service",
+      "item": [
+        {
+          "name": "GET /api/auth/admin/pending-users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/admin/pending-users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "admin", "pending-users"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/auth/admin/users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "admin", "users"]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/auth/admin/approve/{userId}",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/admin/approve/:userId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "admin", "approve", ":userId"]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/auth/admin/reject/{userId}",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/admin/reject/:userId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "admin", "reject", ":userId"]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/auth/admin/users/{userId}/role",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/admin/users/:userId/role",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "admin", "users", ":userId", "role"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/auth/users/register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "users", "register"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/auth/users/login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "users", "login"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/auth/users/refresh",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "users", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/auth/users/logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "users", "logout"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/auth/users/profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/auth/users/profile",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/auth/users/profile/upload",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/profile/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "users", "profile", "upload"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/auth/users/profile/kyc",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/profile/kyc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "users", "profile", "kyc"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -356,6 +356,67 @@
     </main>
 </div>
 
+<<<<<<< HEAD
+<!-- Create Modal -->
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Thêm Mới Lịch Đặt
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createForm" method="post" action="/admin/reservations/create">
+                <div th:if="${_csrf != null}" class="d-none">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Người Dùng ID</label>
+                            <input type="number" class="form-control" name="userId" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Xe ID</label>
+                            <input type="number" class="form-control" name="vehicleId" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Thời Gian Bắt Đầu</label>
+                            <input type="datetime-local" class="form-control" name="startDatetime" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Thời Gian Kết Thúc</label>
+                            <input type="datetime-local" class="form-control" name="endDatetime" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi Chú</label>
+                        <textarea class="form-control" name="purpose" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Trạng Thái</label>
+                        <select class="form-select" name="status" required>
+                            <option value="BOOKED">Đã đặt</option>
+                            <option value="IN_USE">Đang sử dụng</option>
+                            <option value="COMPLETED">Hoàn thành</option>
+                            <option value="CANCELLED">Đã hủy</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Tạo Mới</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+=======
+>>>>>>> origin/main
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">

@@ -6,12 +6,16 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "vehicleservice", schema = "vehicle_management", 
        indexes = {
@@ -23,18 +27,23 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "service", "vehicle"})
 public class Vehicleservice {
 
-    @EmbeddedId
-    private VehicleserviceId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
 
-    // Thay đổi optional = true để có thể load được ngay cả khi foreign key không tồn tại
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @MapsId("serviceId")
-    @JoinColumn(name = "service_id", nullable = false)
+    @Column(name = "service_id", nullable = false)
+    private Long serviceId;
+
+    @Column(name = "vehicle_id", nullable = false)
+    private Long vehicleId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_id", insertable = false, updatable = false)
     private ServiceType service;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @MapsId("vehicleId")
-    @JoinColumn(name = "vehicle_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicle_id", insertable = false, updatable = false)
     private Vehicle vehicle;
 
     @Size(max = 255)
@@ -60,12 +69,12 @@ public class Vehicleservice {
     private Instant completionDate;
 
     @Column(name = "group_ref_id")
-    private Integer groupRefId;
+    private Long groupRefId;
 
     @Column(name = "requested_by_user_id")
-    private Integer requestedByUserId;
+    private Long requestedByUserId;
 
-    @Column(name = "requested_by_user_name", length = 150)
+    @Column(name = "requested_by_user_name", length = 255)
     private String requestedByUserName;
 
     @Column(name = "preferred_start_datetime")
@@ -74,48 +83,14 @@ public class Vehicleservice {
     @Column(name = "preferred_end_datetime")
     private LocalDateTime preferredEndDatetime;
 
-    
-    // Helper methods để dễ dàng truy cập serviceId và vehicleId
-    public String getServiceId() {
-        if (id != null && id.getServiceId() != null) {
-            return id.getServiceId();
-        }
-        return service != null ? service.getServiceId() : null;
-    }
-
-    public void setServiceId(String serviceId) {
-        if (id == null) {
-            id = new VehicleserviceId();
-        }
-        id.setServiceId(serviceId);
-    }
-    
-    public String getVehicleId() {
-        if (id != null && id.getVehicleId() != null) {
-            return id.getVehicleId();
-        }
-        return vehicle != null ? vehicle.getVehicleId() : null;
-    }
-
-    public void setVehicleId(String vehicleId) {
-        if (id == null) {
-            id = new VehicleserviceId();
-        }
-        id.setVehicleId(vehicleId);
-    }
-    
-    // Method để đảm bảo serviceType luôn được set từ ServiceType nếu null
-    // Được gọi sau khi entity được load từ database
     @PostLoad
     public void ensureServiceType() {
-        // Nếu serviceType null hoặc rỗng, lấy từ ServiceType entity
         if ((serviceType == null || serviceType.trim().isEmpty()) && service != null) {
             String serviceTypeFromService = service.getServiceType();
             if (serviceTypeFromService != null && !serviceTypeFromService.trim().isEmpty()) {
                 this.serviceType = serviceTypeFromService;
             }
         }
-        // Đảm bảo serviceName cũng được set nếu null
         if ((serviceName == null || serviceName.trim().isEmpty()) && service != null) {
             String serviceNameFromService = service.getServiceName();
             if (serviceNameFromService != null && !serviceNameFromService.trim().isEmpty()) {

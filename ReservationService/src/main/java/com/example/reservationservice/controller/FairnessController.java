@@ -17,7 +17,11 @@ public class FairnessController {
 
     @GetMapping("/vehicles/{vehicleId}")
     public FairnessSummaryDTO getFairnessSummary(
+<<<<<<< HEAD
+            @PathVariable Long vehicleId,
+=======
             @PathVariable Integer vehicleId,
+>>>>>>> origin/main
             @RequestParam(required = false, defaultValue = "30") Integer rangeDays,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         String token = authHeader != null ? authHeader : null;
@@ -26,7 +30,11 @@ public class FairnessController {
 
     @PostMapping("/vehicles/{vehicleId}/suggest")
     public FairnessSuggestionResponse suggest(
+<<<<<<< HEAD
+            @PathVariable Long vehicleId,
+=======
             @PathVariable Integer vehicleId,
+>>>>>>> origin/main
             @RequestBody FairnessSuggestionRequest request,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         String token = authHeader != null ? authHeader : null;

@@ -52,6 +52,14 @@ public class CostShareRestController {
      */
     @GetMapping("/user/{userId}/pending")
     public ResponseEntity<List<CostShareDto>> getPendingCostSharesByUserId(@PathVariable Integer userId) {
+<<<<<<< HEAD
+=======
+        // BVA Validation: userId phải trong khoảng 1 - 1,000,000
+        if (userId == null || userId < 1 || userId > 1000000) {
+            logger.warn("Invalid userId: {}. Must be between 1 and 1,000,000.", userId);
+            return ResponseEntity.badRequest().build();
+        }
+>>>>>>> origin/main
         try {
             logger.info("Fetching pending cost shares for userId: {}", userId);
             
@@ -96,6 +104,15 @@ public class CostShareRestController {
     public ResponseEntity<Map<String, Object>> confirmPayment(
             @PathVariable Integer shareId,
             @RequestBody Map<String, Object> paymentInfo) {
+<<<<<<< HEAD
+=======
+        // BVA Validation: shareId phải trong khoảng 1 - 1,000,000
+        if (shareId == null || shareId < 1 || shareId > 1000000) {
+            logger.warn("Invalid shareId: {}. Must be between 1 and 1,000,000.", shareId);
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "shareId không hợp lệ. Phải từ 1 đến 1.000.000."));
+        }
+>>>>>>> origin/main
         try {
             logger.info("Processing payment confirmation for shareId: {}", shareId);
             logger.info("Payment info: {}", paymentInfo);
@@ -147,6 +164,14 @@ public class CostShareRestController {
      */
     @GetMapping("/user/{userId}/history")
     public ResponseEntity<List<CostShareDto>> getPaymentHistoryByUserId(@PathVariable Integer userId) {
+<<<<<<< HEAD
+=======
+        // BVA Validation: userId phải trong khoảng 1 - 1,000,000
+        if (userId == null || userId < 1 || userId > 1000000) {
+            logger.warn("Invalid userId: {}. Must be between 1 and 1,000,000.", userId);
+            return ResponseEntity.badRequest().build();
+        }
+>>>>>>> origin/main
         try {
             logger.info("Fetching payment history for userId: {}", userId);
             

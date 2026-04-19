@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+(function (window) {
+=======
 (function(window) {
+>>>>>>> origin/main
     const API_BASE = typeof window.getApiBaseUrl === 'function'
         ? window.getApiBaseUrl()
         : 'http://localhost:8084';
@@ -38,6 +42,13 @@
         return handleResponse(res);
     }
 
+<<<<<<< HEAD
+    window.FairnessAPI = {
+        fetchFairnessSummary,
+        requestFairnessSuggestion
+    };
+})(window);
+=======
     async function issueCheckpoint(reservationId, payload) {
         const url = `${API_BASE}/api/reservations/${reservationId}/checkpoints`;
         const res = await httpClient(url, {
@@ -84,3 +95,4 @@
     };
 })(window);
 
+>>>>>>> origin/main

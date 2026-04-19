@@ -43,6 +43,7 @@ public class FundController {
      */
     @GetMapping("/group/{groupId}")
     public ResponseEntity<?> getFundByGroupId(@PathVariable Integer groupId) {
+<<<<<<< HEAD
         try {
             return fundService.getFundByGroupId(groupId)
                 .map(ResponseEntity::ok)
@@ -51,6 +52,22 @@ public class FundController {
             logger.error("Error getting fund for groupId={}: {}", groupId, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", e.getMessage()));
+=======
+        logger.info("=== getFundByGroupId() called with groupId: {} ===", groupId);
+        // BVA Validation: groupId (min = 1, max = 1000000)
+        if (groupId == null || groupId < 1 || groupId > 1000000) {
+            logger.warn("Invalid groupId: {}. Must be between 1 and 1,000,000.", groupId);
+            return ResponseEntity.badRequest().body(Map.<String, Object>of("error", "Invalid groupId"));
+        }
+        try {
+            return fundService.getFundByGroupId(groupId)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            logger.error("Error getting fund for groupId={}: {}", groupId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -60,13 +77,26 @@ public class FundController {
      */
     @PostMapping("/group/{groupId}")
     public ResponseEntity<?> createFundForGroup(@PathVariable Integer groupId) {
+<<<<<<< HEAD
+=======
+        logger.info("=== createFundForGroup() called with groupId: {} ===", groupId);
+        // BVA Validation: groupId (min = 1, max = 1000000)
+        if (groupId == null || groupId < 1 || groupId > 1000000) {
+            logger.warn("Invalid groupId: {}. Must be between 1 and 1,000,000.", groupId);
+            return ResponseEntity.badRequest().body(Map.<String, Object>of("error", "Invalid groupId"));
+        }
+>>>>>>> origin/main
         try {
             GroupFund fund = fundService.createFundForGroup(groupId);
             return ResponseEntity.status(HttpStatus.CREATED).body(fund);
         } catch (Exception e) {
             logger.error("Error creating fund for groupId={}: {}", groupId, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -76,13 +106,32 @@ public class FundController {
      */
     @GetMapping("/{fundId}/summary")
     public ResponseEntity<?> getFundSummary(@PathVariable Integer fundId) {
+<<<<<<< HEAD
+=======
+        logger.info("=== getFundSummary() called with fundId: {} ===", fundId);
+        // BVA Validation: fundId (min = 1, max = 1000000)
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            logger.warn("Invalid fundId: {}. Must be between 1 and 1,000,000.", fundId);
+            return ResponseEntity.badRequest().body(Map.<String, Object>of("error", "Invalid fundId"));
+        }
+>>>>>>> origin/main
         try {
             FundSummaryDto summary = fundService.getFundSummary(fundId);
             return ResponseEntity.ok(summary);
         } catch (Exception e) {
             logger.error("Error getting fund summary for fundId={}: {}", fundId, e.getMessage());
+<<<<<<< HEAD
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", e.getMessage()));
+=======
+            // Trả về 404 nếu không tìm thấy quỹ thay vì 500
+            if (e.getMessage() != null && e.getMessage().toLowerCase().contains("không tìm thấy")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", e.getMessage()));
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -98,15 +147,25 @@ public class FundController {
     @PostMapping("/deposit")
     public ResponseEntity<?> deposit(@Valid @RequestBody DepositRequestDto request) {
         try {
+<<<<<<< HEAD
             logger.info("Received deposit request: fundId={}, userId={}, amount={}, purpose={}", 
                 request.getFundId(), request.getUserId(), request.getAmount(), request.getPurpose());
             
+=======
+            logger.info("Received deposit request: fundId={}, userId={}, amount={}, purpose={}",
+                    request.getFundId(), request.getUserId(), request.getAmount(), request.getPurpose());
+
+>>>>>>> origin/main
             FundTransaction transaction = fundService.deposit(request);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "✅ Nạp tiền thành công");
             response.put("transaction", transaction);
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> origin/main
             logger.info("Deposit successful: transactionId={}", transaction.getTransactionId());
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
@@ -115,7 +174,11 @@ public class FundController {
         } catch (Exception e) {
             logger.error("Error processing deposit: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -144,7 +207,11 @@ public class FundController {
         } catch (Exception e) {
             logger.error("Error creating withdraw request: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -154,10 +221,17 @@ public class FundController {
      */
     @GetMapping("/{fundId}/pending-requests")
     public ResponseEntity<?> getPendingRequests(@PathVariable Integer fundId) {
+<<<<<<< HEAD
+=======
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid fundId"));
+        }
+>>>>>>> origin/main
         try {
             logger.info("Getting pending requests for fundId={}", fundId);
             List<FundTransaction> requests = fundService.getPendingRequests(fundId);
             logger.info("Found {} pending requests for fundId={}", requests != null ? requests.size() : 0, fundId);
+<<<<<<< HEAD
             
             if (requests == null) {
                 return ResponseEntity.ok(java.util.Collections.emptyList());
@@ -204,6 +278,19 @@ public class FundController {
                         // Trả về map cơ bản nếu có lỗi
                         Map<String, Object> map = new HashMap<>();
                         if (transaction != null) {
+=======
+
+            if (requests == null) {
+                return ResponseEntity.ok(java.util.Collections.emptyList());
+            }
+
+            // Thêm voteCount vào mỗi request
+            List<Map<String, Object>> requestsWithVotes = requests.stream()
+                    .filter(transaction -> transaction != null && transaction.getTransactionId() != null)
+                    .map(transaction -> {
+                        try {
+                            Map<String, Object> map = new HashMap<>();
+>>>>>>> origin/main
                             map.put("transactionId", transaction.getTransactionId());
                             map.put("fundId", transaction.getFundId());
                             map.put("userId", transaction.getUserId());
@@ -214,17 +301,67 @@ public class FundController {
                             map.put("transactionType", transaction.getTransactionType());
                             map.put("approvedBy", transaction.getApprovedBy());
                             map.put("approvedAt", transaction.getApprovedAt());
+<<<<<<< HEAD
                         }
                         map.put("voteCount", Map.of("approve", 0L, "reject", 0L, "total", 0L));
                         return map;
                     }
                 }).collect(java.util.stream.Collectors.toList());
             
+=======
+
+                            // Thêm voteCount
+                            try {
+                                long approveCount = fundService
+                                        .countApprovesByTransactionId(transaction.getTransactionId());
+                                long rejectCount = fundService
+                                        .countRejectsByTransactionId(transaction.getTransactionId());
+                                long totalCount = fundService.countVotesByTransactionId(transaction.getTransactionId());
+
+                                Map<String, Object> voteCount = new HashMap<>();
+                                voteCount.put("approve", approveCount);
+                                voteCount.put("reject", rejectCount);
+                                voteCount.put("total", totalCount);
+                                map.put("voteCount", voteCount);
+                            } catch (Exception e) {
+                                logger.error("Error getting vote counts for transaction {}: {}",
+                                        transaction.getTransactionId(), e.getMessage());
+                                map.put("voteCount", Map.of("approve", 0L, "reject", 0L, "total", 0L));
+                            }
+
+                            return map;
+                        } catch (Exception e) {
+                            logger.error("Error processing transaction {}: {}",
+                                    transaction != null ? transaction.getTransactionId() : "null", e.getMessage(), e);
+                            // Trả về map cơ bản nếu có lỗi
+                            Map<String, Object> map = new HashMap<>();
+                            if (transaction != null) {
+                                map.put("transactionId", transaction.getTransactionId());
+                                map.put("fundId", transaction.getFundId());
+                                map.put("userId", transaction.getUserId());
+                                map.put("amount", transaction.getAmount());
+                                map.put("purpose", transaction.getPurpose());
+                                map.put("date", transaction.getDate());
+                                map.put("status", transaction.getStatus());
+                                map.put("transactionType", transaction.getTransactionType());
+                                map.put("approvedBy", transaction.getApprovedBy());
+                                map.put("approvedAt", transaction.getApprovedAt());
+                            }
+                            map.put("voteCount", Map.of("approve", 0L, "reject", 0L, "total", 0L));
+                            return map;
+                        }
+                    }).collect(java.util.stream.Collectors.toList());
+
+>>>>>>> origin/main
             return ResponseEntity.ok(requestsWithVotes);
         } catch (Exception e) {
             logger.error("Error getting pending requests for fundId={}: {}", fundId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -252,7 +389,11 @@ public class FundController {
         } catch (Exception e) {
             logger.error("Error processing admin withdraw: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -277,9 +418,15 @@ public class FundController {
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
+<<<<<<< HEAD
             response.put("message", request.getApproved() 
                 ? "✅ Yêu cầu đã được phê duyệt" 
                 : "❌ Yêu cầu đã bị từ chối");
+=======
+            response.put("message", request.getApproved()
+                    ? "✅ Yêu cầu đã được phê duyệt"
+                    : "❌ Yêu cầu đã bị từ chối");
+>>>>>>> origin/main
             response.put("transaction", transaction);
             return ResponseEntity.ok(response);
         } catch (IllegalStateException e) {
@@ -288,24 +435,43 @@ public class FundController {
         } catch (Exception e) {
             logger.error("Error approving/rejecting request: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
         }
     }
     
+=======
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+>>>>>>> origin/main
     /**
      * Admin phê duyệt giao dịch (riêng lẻ)
      * POST /api/funds/transactions/{transactionId}/approve
      */
     @PostMapping("/transactions/{transactionId}/approve")
     public ResponseEntity<?> approveTransaction(@PathVariable Integer transactionId) {
+<<<<<<< HEAD
+=======
+        if (transactionId == null || transactionId < 1 || transactionId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid transactionId"));
+        }
+>>>>>>> origin/main
         try {
             ApproveRequestDto request = new ApproveRequestDto();
             request.setTransactionId(transactionId);
             request.setApproved(true);
             request.setAdminId(1); // TODO: Get from session
+<<<<<<< HEAD
             
             FundTransaction transaction = fundService.approveWithdrawRequest(request);
             
+=======
+
+            FundTransaction transaction = fundService.approveWithdrawRequest(request);
+
+>>>>>>> origin/main
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "✅ Yêu cầu đã được phê duyệt");
@@ -317,10 +483,17 @@ public class FundController {
         } catch (Exception e) {
             logger.error("Error approving transaction: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
         }
     }
     
+=======
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+>>>>>>> origin/main
     /**
      * Admin từ chối giao dịch (riêng lẻ)
      * POST /api/funds/transactions/{transactionId}/reject
@@ -328,9 +501,17 @@ public class FundController {
      */
     @PostMapping("/transactions/{transactionId}/reject")
     public ResponseEntity<?> rejectTransaction(
+<<<<<<< HEAD
         @PathVariable Integer transactionId,
         @RequestBody(required = false) Map<String, String> body
     ) {
+=======
+            @PathVariable Integer transactionId,
+            @RequestBody(required = false) Map<String, String> body) {
+        if (transactionId == null || transactionId < 1 || transactionId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid transactionId"));
+        }
+>>>>>>> origin/main
         try {
             ApproveRequestDto request = new ApproveRequestDto();
             request.setTransactionId(transactionId);
@@ -339,9 +520,15 @@ public class FundController {
             if (body != null && body.containsKey("reason")) {
                 request.setNote(body.get("reason"));
             }
+<<<<<<< HEAD
             
             FundTransaction transaction = fundService.rejectWithdrawRequest(request);
             
+=======
+
+            FundTransaction transaction = fundService.rejectWithdrawRequest(request);
+
+>>>>>>> origin/main
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "❌ Yêu cầu đã bị từ chối");
@@ -353,7 +540,11 @@ public class FundController {
         } catch (Exception e) {
             logger.error("Error rejecting transaction: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -368,6 +559,7 @@ public class FundController {
      */
     @PostMapping("/transactions/{transactionId}/vote")
     public ResponseEntity<?> voteOnWithdrawRequest(
+<<<<<<< HEAD
         @PathVariable Integer transactionId,
         @Valid @RequestBody VoteRequestDto request
     ) {
@@ -380,6 +572,22 @@ public class FundController {
             response.put("message", request.getApprove() 
                 ? "✅ Bạn đã đồng ý yêu cầu rút tiền này" 
                 : "❌ Bạn đã từ chối yêu cầu rút tiền này");
+=======
+            @PathVariable Integer transactionId,
+            @Valid @RequestBody VoteRequestDto request) {
+        if (transactionId == null || transactionId < 1 || transactionId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid transactionId"));
+        }
+        try {
+            request.setTransactionId(transactionId);
+            FundTransaction transaction = fundService.voteOnWithdrawRequest(request);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", request.getApprove()
+                    ? "✅ Bạn đã đồng ý yêu cầu rút tiền này"
+                    : "❌ Bạn đã từ chối yêu cầu rút tiền này");
+>>>>>>> origin/main
             response.put("transaction", transaction);
             return ResponseEntity.ok(response);
         } catch (IllegalStateException e) {
@@ -388,7 +596,11 @@ public class FundController {
         } catch (Exception e) {
             logger.error("Error voting on withdraw request: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -398,13 +610,23 @@ public class FundController {
      */
     @GetMapping("/pending-vote-requests/user/{userId}")
     public ResponseEntity<?> getPendingVoteRequestsForUser(@PathVariable Integer userId) {
+<<<<<<< HEAD
+=======
+        if (userId == null || userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid userId"));
+        }
+>>>>>>> origin/main
         try {
             List<FundTransaction> requests = fundService.getPendingVoteRequestsForUser(userId);
             return ResponseEntity.ok(requests);
         } catch (Exception e) {
             logger.error("Error getting pending vote requests for user {}: {}", userId, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -418,6 +640,7 @@ public class FundController {
      */
     @GetMapping("/{fundId}/transactions")
     public ResponseEntity<?> getAllTransactions(@PathVariable Integer fundId) {
+<<<<<<< HEAD
         try {
             List<FundTransaction> transactions = fundService.getAllTransactions(fundId);
             
@@ -469,11 +692,73 @@ public class FundController {
                     return map;
                 }).collect(java.util.stream.Collectors.toList());
             
+=======
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid fundId"));
+        }
+        try {
+            List<FundTransaction> transactions = fundService.getAllTransactions(fundId);
+
+            if (transactions == null) {
+                return ResponseEntity.ok(java.util.Collections.emptyList());
+            }
+
+            // Map sang Map để tránh lỗi serialize
+            List<Map<String, Object>> transactionsList = transactions.stream()
+                    .filter(transaction -> transaction != null && transaction.getTransactionId() != null)
+                    .map(transaction -> {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("transactionId", transaction.getTransactionId());
+                        map.put("fundId", transaction.getFundId());
+                        map.put("userId", transaction.getUserId());
+                        map.put("amount", transaction.getAmount());
+                        map.put("purpose", transaction.getPurpose());
+                        map.put("date", transaction.getDate());
+                        map.put("status", transaction.getStatus());
+                        map.put("transactionType", transaction.getTransactionType());
+                        map.put("approvedBy", transaction.getApprovedBy());
+                        map.put("approvedAt", transaction.getApprovedAt());
+                        map.put("voteId", transaction.getVoteId());
+                        map.put("receiptUrl", transaction.getReceiptUrl());
+
+                        // Thêm voteCount cho withdrawal requests
+                        if (transaction.getTransactionType() != null &&
+                                transaction.getTransactionType() == FundTransaction.TransactionType.Withdraw &&
+                                transaction.getTransactionId() != null) {
+                            try {
+                                long approveCount = fundService
+                                        .countApprovesByTransactionId(transaction.getTransactionId());
+                                long rejectCount = fundService
+                                        .countRejectsByTransactionId(transaction.getTransactionId());
+                                long totalCount = fundService.countVotesByTransactionId(transaction.getTransactionId());
+
+                                Map<String, Object> voteCount = new HashMap<>();
+                                voteCount.put("approve", approveCount);
+                                voteCount.put("reject", rejectCount);
+                                voteCount.put("total", totalCount);
+                                map.put("voteCount", voteCount);
+                            } catch (Exception e) {
+                                logger.error("Error getting vote counts for transaction {}: {}",
+                                        transaction.getTransactionId(), e.getMessage());
+                                map.put("voteCount", Map.of("approve", 0L, "reject", 0L, "total", 0L));
+                            }
+                        } else {
+                            map.put("voteCount", Map.of("approve", 0L, "reject", 0L, "total", 0L));
+                        }
+
+                        return map;
+                    }).collect(java.util.stream.Collectors.toList());
+
+>>>>>>> origin/main
             return ResponseEntity.ok(transactionsList);
         } catch (Exception e) {
             logger.error("Error getting transactions for fundId={}: {}", fundId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -483,9 +768,18 @@ public class FundController {
      */
     @GetMapping("/transactions/user/{userId}")
     public ResponseEntity<?> getTransactionsByUser(@PathVariable Integer userId) {
+<<<<<<< HEAD
         try {
             List<FundTransaction> transactions = fundService.getTransactionsByUser(userId);
             
+=======
+        if (userId == null || userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid userId"));
+        }
+        try {
+            List<FundTransaction> transactions = fundService.getTransactionsByUser(userId);
+
+>>>>>>> origin/main
             // Map sang Map để tránh lỗi serialize và thêm voteCount
             List<Map<String, Object>> transactionsList = transactions.stream().map(transaction -> {
                 Map<String, Object> map = new HashMap<>();
@@ -501,21 +795,33 @@ public class FundController {
                 map.put("approvedAt", transaction.getApprovedAt());
                 map.put("voteId", transaction.getVoteId());
                 map.put("receiptUrl", transaction.getReceiptUrl());
+<<<<<<< HEAD
                 
                 // Thêm voteCount cho withdrawal requests
                 if (transaction.getTransactionType() != null && 
                     transaction.getTransactionType() == FundTransaction.TransactionType.Withdraw) {
+=======
+
+                // Thêm voteCount cho withdrawal requests
+                if (transaction.getTransactionType() != null &&
+                        transaction.getTransactionType() == FundTransaction.TransactionType.Withdraw) {
+>>>>>>> origin/main
                     try {
                         long approveCount = fundService.countApprovesByTransactionId(transaction.getTransactionId());
                         long rejectCount = fundService.countRejectsByTransactionId(transaction.getTransactionId());
                         long totalCount = fundService.countVotesByTransactionId(transaction.getTransactionId());
+<<<<<<< HEAD
                         
+=======
+
+>>>>>>> origin/main
                         Map<String, Object> voteCount = new HashMap<>();
                         voteCount.put("approve", approveCount);
                         voteCount.put("reject", rejectCount);
                         voteCount.put("total", totalCount);
                         map.put("voteCount", voteCount);
                     } catch (Exception e) {
+<<<<<<< HEAD
                         logger.error("Error getting vote counts for transaction {}: {}", 
                             transaction.getTransactionId(), e.getMessage());
                         map.put("voteCount", Map.of("approve", 0L, "reject", 0L, "total", 0L));
@@ -525,11 +831,26 @@ public class FundController {
                 return map;
             }).collect(java.util.stream.Collectors.toList());
             
+=======
+                        logger.error("Error getting vote counts for transaction {}: {}",
+                                transaction.getTransactionId(), e.getMessage());
+                        map.put("voteCount", Map.of("approve", 0L, "reject", 0L, "total", 0L));
+                    }
+                }
+
+                return map;
+            }).collect(java.util.stream.Collectors.toList());
+
+>>>>>>> origin/main
             return ResponseEntity.ok(transactionsList);
         } catch (Exception e) {
             logger.error("Error getting user transactions: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -540,16 +861,28 @@ public class FundController {
      */
     @GetMapping("/{fundId}/transactions/type/{type}")
     public ResponseEntity<?> getTransactionsByType(
+<<<<<<< HEAD
         @PathVariable Integer fundId,
         @PathVariable String type
     ) {
+=======
+            @PathVariable Integer fundId,
+            @PathVariable String type) {
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid fundId"));
+        }
+>>>>>>> origin/main
         try {
             List<FundTransaction> transactions = fundService.getTransactionsByType(fundId, type);
             return ResponseEntity.ok(transactions);
         } catch (Exception e) {
             logger.error("Error getting transactions by type: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -559,17 +892,30 @@ public class FundController {
      */
     @GetMapping("/{fundId}/transactions/range")
     public ResponseEntity<?> getTransactionsByDateRange(
+<<<<<<< HEAD
         @PathVariable Integer fundId,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
     ) {
+=======
+            @PathVariable Integer fundId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid fundId"));
+        }
+>>>>>>> origin/main
         try {
             List<FundTransaction> transactions = fundService.getTransactionsByDateRange(fundId, start, end);
             return ResponseEntity.ok(transactions);
         } catch (Exception e) {
             logger.error("Error getting transactions by date range: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -579,6 +925,7 @@ public class FundController {
      */
     @GetMapping("/transactions/{transactionId}")
     public ResponseEntity<?> getTransactionById(@PathVariable Integer transactionId) {
+<<<<<<< HEAD
         try {
             return fundService.getTransactionById(transactionId)
                 .map(transaction -> {
@@ -625,6 +972,58 @@ public class FundController {
             logger.error("Error getting transaction: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", e.getMessage()));
+=======
+        if (transactionId == null || transactionId < 1 || transactionId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid transactionId"));
+        }
+        try {
+            return fundService.getTransactionById(transactionId)
+                    .map(transaction -> {
+                        // Map sang Map để tránh lỗi serialize và thêm voteCount
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("transactionId", transaction.getTransactionId());
+                        map.put("fundId", transaction.getFundId());
+                        map.put("userId", transaction.getUserId());
+                        map.put("amount", transaction.getAmount());
+                        map.put("purpose", transaction.getPurpose());
+                        map.put("date", transaction.getDate());
+                        map.put("status", transaction.getStatus());
+                        map.put("transactionType", transaction.getTransactionType());
+                        map.put("approvedBy", transaction.getApprovedBy());
+                        map.put("approvedAt", transaction.getApprovedAt());
+                        map.put("voteId", transaction.getVoteId());
+                        map.put("receiptUrl", transaction.getReceiptUrl());
+
+                        // Lấy thông tin fund để có groupId và currentBalance
+                        if (transaction.getFundId() != null) {
+                            fundService.getFundById(transaction.getFundId()).ifPresent(fund -> {
+                                map.put("groupId", fund.getGroupId());
+                                map.put("currentBalance", fund.getCurrentBalance());
+                            });
+                        }
+
+                        // Thêm voteCount cho withdrawal requests
+                        if (transaction.getTransactionType() == FundTransaction.TransactionType.Withdraw) {
+                            long approveCount = fundService
+                                    .countApprovesByTransactionId(transaction.getTransactionId());
+                            long rejectCount = fundService.countRejectsByTransactionId(transaction.getTransactionId());
+                            long totalCount = fundService.countVotesByTransactionId(transaction.getTransactionId());
+
+                            Map<String, Object> voteCount = new HashMap<>();
+                            voteCount.put("approve", approveCount);
+                            voteCount.put("reject", rejectCount);
+                            voteCount.put("total", totalCount);
+                            map.put("voteCount", voteCount);
+                        }
+
+                        return ResponseEntity.ok(map);
+                    })
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            logger.error("Error getting transaction: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -635,12 +1034,24 @@ public class FundController {
      */
     @DeleteMapping("/transactions/{transactionId}")
     public ResponseEntity<?> cancelTransaction(
+<<<<<<< HEAD
         @PathVariable Integer transactionId,
         @RequestParam Integer userId
     ) {
         try {
             FundTransaction transaction = fundService.cancelWithdrawRequest(transactionId, userId);
             
+=======
+            @PathVariable Integer transactionId,
+            @RequestParam Integer userId) {
+        if (transactionId == null || transactionId < 1 || transactionId > 1000000 ||
+            userId == null || userId < 1 || userId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid transactionId or userId"));
+        }
+        try {
+            FundTransaction transaction = fundService.cancelWithdrawRequest(transactionId, userId);
+
+>>>>>>> origin/main
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "✅ Đã xóa yêu cầu rút tiền khỏi hệ thống");
@@ -653,7 +1064,11 @@ public class FundController {
         } catch (Exception e) {
             logger.error("Error cancelling transaction: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
@@ -667,11 +1082,18 @@ public class FundController {
      */
     @GetMapping("/{fundId}/statistics")
     public ResponseEntity<?> getStatistics(@PathVariable Integer fundId) {
+<<<<<<< HEAD
+=======
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid fundId"));
+        }
+>>>>>>> origin/main
         try {
             // Kiểm tra fund có tồn tại không
             Optional<GroupFund> fundOpt = fundService.getFundById(fundId);
             if (!fundOpt.isPresent()) {
                 return ResponseEntity.ok(Map.of(
+<<<<<<< HEAD
                     "totalDeposit", 0.0,
                     "totalWithdraw", 0.0,
                     "currentBalance", 0.0,
@@ -684,24 +1106,53 @@ public class FundController {
             
             // Lấy thống kê với xử lý lỗi cho từng method
             try {
+                Double totalDeposit = fundService.getTotalDeposit(fundId);
+                stats.put("totalDeposit", totalDeposit != null ? totalDeposit : 0.0);
+=======
+                        "totalDeposit", 0.0,
+                        "totalWithdraw", 0.0,
+                        "currentBalance", 0.0,
+                        "pendingRequests", 0L));
+            }
+
+            GroupFund fund = fundOpt.get();
+            Map<String, Object> stats = new HashMap<>();
+
+            // Lấy thống kê với xử lý lỗi cho từng method
+            try {
                 java.math.BigDecimal totalDeposit = fundService.getTotalDeposit(fundId);
                 stats.put("totalDeposit", totalDeposit != null ? totalDeposit : java.math.BigDecimal.ZERO);
+>>>>>>> origin/main
             } catch (Exception e) {
                 logger.warn("Error getting totalDeposit for fundId={}: {}", fundId, e.getMessage());
                 stats.put("totalDeposit", 0.0);
             }
+<<<<<<< HEAD
             
+            try {
+                Double totalWithdraw = fundService.getTotalWithdraw(fundId);
+                stats.put("totalWithdraw", totalWithdraw != null ? totalWithdraw : 0.0);
+=======
+
             try {
                 java.math.BigDecimal totalWithdraw = fundService.getTotalWithdraw(fundId);
                 stats.put("totalWithdraw", totalWithdraw != null ? totalWithdraw : java.math.BigDecimal.ZERO);
+>>>>>>> origin/main
             } catch (Exception e) {
                 logger.warn("Error getting totalWithdraw for fundId={}: {}", fundId, e.getMessage());
                 stats.put("totalWithdraw", 0.0);
             }
+<<<<<<< HEAD
             
             // Sử dụng currentBalance từ fund object thay vì gọi lại service
             stats.put("currentBalance", fund.getCurrentBalance() != null ? fund.getCurrentBalance() : 0.0);
             
+=======
+
+            // Sử dụng currentBalance từ fund object thay vì gọi lại service
+            stats.put("currentBalance", fund.getCurrentBalance() != null ? fund.getCurrentBalance() : 0.0);
+
+>>>>>>> origin/main
             try {
                 Long pendingRequests = fundService.countPendingRequests(fundId);
                 stats.put("pendingRequests", pendingRequests != null ? pendingRequests : 0L);
@@ -709,32 +1160,55 @@ public class FundController {
                 logger.warn("Error getting pendingRequests for fundId={}: {}", fundId, e.getMessage());
                 stats.put("pendingRequests", 0L);
             }
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> origin/main
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
             logger.error("Error getting statistics for fundId={}: {}", fundId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
     /**
      * Báo cáo tài chính minh bạch cho quỹ chung
+<<<<<<< HEAD
      * GET /api/funds/{fundId}/financial-report?startDate={startDate}&endDate={endDate}
+=======
+     * GET
+     * /api/funds/{fundId}/financial-report?startDate={startDate}&endDate={endDate}
+>>>>>>> origin/main
      */
     @GetMapping("/{fundId}/financial-report")
     public ResponseEntity<?> getFinancialReport(
             @PathVariable Integer fundId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+<<<<<<< HEAD
         try {
             logger.info("Getting financial report for fundId={}, period={} to {}", fundId, startDate, endDate);
             
+=======
+        if (fundId == null || fundId < 1 || fundId > 1000000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid fundId"));
+        }
+        try {
+            logger.info("Getting financial report for fundId={}, period={} to {}", fundId, startDate, endDate);
+
+>>>>>>> origin/main
             // Lấy thông tin quỹ
             Optional<GroupFund> fundOpt = fundService.getFundById(fundId);
             if (!fundOpt.isPresent()) {
                 return ResponseEntity.notFound().build();
             }
+<<<<<<< HEAD
             
             GroupFund fund = fundOpt.get();
             
@@ -751,14 +1225,40 @@ public class FundController {
                 .collect(java.util.stream.Collectors.toList());
             
             // Tính tổng
+            double totalDeposit = deposits.stream()
+                .mapToDouble(t -> t.getAmount() != null ? t.getAmount() : 0.0)
+                .sum();
+            
+            double totalWithdraw = withdraws.stream()
+                .mapToDouble(t -> t.getAmount() != null ? t.getAmount() : 0.0)
+                .sum();
+            
+=======
+
+            GroupFund fund = fundOpt.get();
+
+            // Lấy giao dịch trong khoảng thời gian
+            List<FundTransaction> transactions = fundService.getTransactionsByDateRange(fundId, startDate, endDate);
+
+            // Phân loại giao dịch
+            List<FundTransaction> deposits = transactions.stream()
+                    .filter(t -> "Deposit".equals(t.getTransactionType().toString()))
+                    .collect(java.util.stream.Collectors.toList());
+
+            List<FundTransaction> withdraws = transactions.stream()
+                    .filter(t -> "Withdraw".equals(t.getTransactionType().toString()))
+                    .collect(java.util.stream.Collectors.toList());
+
+            // Tính tổng
             java.math.BigDecimal totalDeposit = deposits.stream()
-                .map(t -> t.getAmount() != null ? t.getAmount() : java.math.BigDecimal.ZERO)
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
-            
+                    .map(t -> t.getAmount() != null ? t.getAmount() : java.math.BigDecimal.ZERO)
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
             java.math.BigDecimal totalWithdraw = withdraws.stream()
-                .map(t -> t.getAmount() != null ? t.getAmount() : java.math.BigDecimal.ZERO)
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
-            
+                    .map(t -> t.getAmount() != null ? t.getAmount() : java.math.BigDecimal.ZERO)
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+>>>>>>> origin/main
             // Thống kê theo user
             Map<Integer, Map<String, Object>> userStats = new HashMap<>();
             for (FundTransaction transaction : transactions) {
@@ -766,21 +1266,41 @@ public class FundController {
                 if (userId != null) {
                     userStats.putIfAbsent(userId, new HashMap<>());
                     Map<String, Object> stats = userStats.get(userId);
+<<<<<<< HEAD
                     
                     if ("Deposit".equals(transaction.getTransactionType().toString())) {
-                        java.math.BigDecimal currentDep = (java.math.BigDecimal) stats.getOrDefault("totalDeposit", java.math.BigDecimal.ZERO);
-                        stats.put("totalDeposit", currentDep.add(transaction.getAmount()));
+                        stats.put("totalDeposit", 
+                            ((Double) stats.getOrDefault("totalDeposit", 0.0)) + transaction.getAmount());
                         stats.put("depositCount", 
                             ((Integer) stats.getOrDefault("depositCount", 0)) + 1);
                     } else if ("Withdraw".equals(transaction.getTransactionType().toString())) {
-                        java.math.BigDecimal currentWith = (java.math.BigDecimal) stats.getOrDefault("totalWithdraw", java.math.BigDecimal.ZERO);
-                        stats.put("totalWithdraw", currentWith.add(transaction.getAmount()));
+                        stats.put("totalWithdraw", 
+                            ((Double) stats.getOrDefault("totalWithdraw", 0.0)) + transaction.getAmount());
                         stats.put("withdrawCount", 
                             ((Integer) stats.getOrDefault("withdrawCount", 0)) + 1);
                     }
                 }
             }
             
+=======
+
+                    if ("Deposit".equals(transaction.getTransactionType().toString())) {
+                        java.math.BigDecimal currentDep = (java.math.BigDecimal) stats.getOrDefault("totalDeposit",
+                                java.math.BigDecimal.ZERO);
+                        stats.put("totalDeposit", currentDep.add(transaction.getAmount()));
+                        stats.put("depositCount",
+                                ((Integer) stats.getOrDefault("depositCount", 0)) + 1);
+                    } else if ("Withdraw".equals(transaction.getTransactionType().toString())) {
+                        java.math.BigDecimal currentWith = (java.math.BigDecimal) stats.getOrDefault("totalWithdraw",
+                                java.math.BigDecimal.ZERO);
+                        stats.put("totalWithdraw", currentWith.add(transaction.getAmount()));
+                        stats.put("withdrawCount",
+                                ((Integer) stats.getOrDefault("withdrawCount", 0)) + 1);
+                    }
+                }
+            }
+
+>>>>>>> origin/main
             Map<String, Object> report = new HashMap<>();
             report.put("fundId", fundId);
             report.put("groupId", fund.getGroupId());
@@ -788,15 +1308,23 @@ public class FundController {
             report.put("totalContributed", fund.getTotalContributed());
             report.put("period", Map.of("start", startDate, "end", endDate));
             report.put("summary", Map.of(
+<<<<<<< HEAD
                 "totalDeposit", totalDeposit,
                 "totalWithdraw", totalWithdraw,
-                "netChange", totalDeposit.subtract(totalWithdraw),
+                "netChange", totalDeposit - totalWithdraw,
                 "transactionCount", transactions.size()
             ));
+=======
+                    "totalDeposit", totalDeposit,
+                    "totalWithdraw", totalWithdraw,
+                    "netChange", totalDeposit.subtract(totalWithdraw),
+                    "transactionCount", transactions.size()));
+>>>>>>> origin/main
             report.put("deposits", deposits.size());
             report.put("withdraws", withdraws.size());
             report.put("userStatistics", userStats);
             report.put("transactions", transactions.stream()
+<<<<<<< HEAD
                 .map(t -> {
                     Map<String, Object> tMap = new HashMap<>();
                     tMap.put("transactionId", t.getTransactionId());
@@ -810,23 +1338,50 @@ public class FundController {
                 })
                 .collect(java.util.stream.Collectors.toList()));
             
+=======
+                    .map(t -> {
+                        Map<String, Object> tMap = new HashMap<>();
+                        tMap.put("transactionId", t.getTransactionId());
+                        tMap.put("type", t.getTransactionType().toString());
+                        tMap.put("amount", t.getAmount());
+                        tMap.put("userId", t.getUserId());
+                        tMap.put("purpose", t.getPurpose());
+                        tMap.put("status", t.getStatus().toString());
+                        tMap.put("createdAt", t.getDate());
+                        return tMap;
+                    })
+                    .collect(java.util.stream.Collectors.toList()));
+
+>>>>>>> origin/main
             return ResponseEntity.ok(report);
         } catch (Exception e) {
             logger.error("Error getting financial report: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+<<<<<<< HEAD
                 .body(Map.of("error", e.getMessage()));
+=======
+                    .body(Map.of("error", e.getMessage()));
+>>>>>>> origin/main
         }
     }
 
     /**
+<<<<<<< HEAD
      * Xử lý tất cả pending transactions (kiểm tra vote và tự động hoàn tất hoặc từ chối)
      * Endpoint này có thể được gọi để xử lý các transactions đã có đủ votes từ trước
+=======
+     * Xử lý tất cả pending transactions (kiểm tra vote và tự động hoàn tất hoặc từ
+     * chối)
+     * Endpoint này có thể được gọi để xử lý các transactions đã có đủ votes từ
+     * trước
+>>>>>>> origin/main
      */
     @PostMapping("/process-pending")
     public ResponseEntity<Map<String, Object>> processAllPendingTransactions() {
         try {
             int processedCount = fundService.processAllPendingTransactions();
             return ResponseEntity.ok(Map.of(
+<<<<<<< HEAD
                 "success", true,
                 "message", "Đã xử lý " + processedCount + " pending transactions",
                 "processedCount", processedCount
@@ -839,3 +1394,15 @@ public class FundController {
     }
 }
 
+=======
+                    "success", true,
+                    "message", "Đã xử lý " + processedCount + " pending transactions",
+                    "processedCount", processedCount));
+        } catch (Exception e) {
+            logger.error("Error processing all pending transactions: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+}
+>>>>>>> origin/main

@@ -27,26 +27,25 @@ public class GroupManagementService {
         return groupRepository.findAll();
     }
 
-    public Optional<Group> getGroupById(Integer id) {
+    public Optional<Group> getGroupById(Long id) {
         return groupRepository.findById(id);
     }
 
-    public Optional<Group> updateGroup(Integer id, Group group) {
+    public Optional<Group> updateGroup(Long id, Group group) {
         return groupRepository.findById(id)
                 .map(existingGroup -> {
                     existingGroup.setGroupName(group.getGroupName());
                     existingGroup.setAdminId(group.getAdminId());
-                    existingGroup.setVehicleId(group.getVehicleId());
                     existingGroup.setStatus(group.getStatus());
                     return groupRepository.save(existingGroup);
                 });
     }
 
-    public void deleteGroup(Integer id) {
+    public void deleteGroup(Long id) {
         groupRepository.deleteById(id);
     }
 
-    public List<Group> getGroupsByAdmin(Integer adminId) {
+    public List<Group> getGroupsByAdmin(Long adminId) {
         return groupRepository.findByAdminId(adminId);
     }
 
@@ -54,7 +53,7 @@ public class GroupManagementService {
         return groupRepository.findByStatus(status);
     }
 
-    public GroupMember addMember(Integer groupId, GroupMember member) {
+    public GroupMember addMember(Long groupId, GroupMember member) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("Group not found"));
 
@@ -71,11 +70,11 @@ public class GroupManagementService {
         return memberRepository.save(member);
     }
 
-    public List<GroupMember> getGroupMembers(Integer groupId) {
+    public List<GroupMember> getGroupMembers(Long groupId) {
         return memberRepository.findByGroup_GroupId(groupId);
     }
 
-    public Optional<GroupMember> updateMember(Integer groupId, Integer memberId, GroupMember member) {
+    public Optional<GroupMember> updateMember(Long groupId, Long memberId, GroupMember member) {
         return memberRepository.findById(memberId)
                 .filter(m -> m.getGroup().getGroupId().equals(groupId))
                 .map(existingMember -> {
@@ -84,13 +83,13 @@ public class GroupManagementService {
                 });
     }
 
-    public void removeMember(Integer groupId, Integer memberId) {
+    public void removeMember(Long groupId, Long memberId) {
         memberRepository.findById(memberId)
                 .filter(m -> m.getGroup().getGroupId().equals(groupId))
                 .ifPresent(memberRepository::delete);
     }
 
-    public List<GroupMember> getMembersByUserId(Integer userId) {
+    public List<GroupMember> getMembersByUserId(Long userId) {
         return memberRepository.findByUserId(userId);
     }
 }

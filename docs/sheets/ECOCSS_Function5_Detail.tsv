@@ -1,0 +1,36 @@
+TC_ID	Service	# No	Function Name	Requirement Name	Method	Path	Port	Precondition	Test Steps	Expected Result	Priority
+ECOCSS-F5-001	ReservationService	1	getAllReservations	Lấy toàn bộ đặt chỗ (booking chính)	GET	/api/reservations	8086	Service 8086 chạy; MySQL booking có dữ liệu	Mở Postman GET baseUrl8086/api/reservations; Send	200; JSON array; mỗi phần tử có reservationId vehicleId status	High
+ECOCSS-F5-002	ReservationService	2	getReservationById	Lấy chi tiết đặt chỗ theo ID	GET	/api/reservations/{id}	8086	Có reservationId hợp lệ	GET với {{reservationId}}	200; object khớp id URL	High
+ECOCSS-F5-003	ReservationService	3	createReservation	Tạo đặt chỗ mới	POST	/api/reservations	8086	Có vehicleId userId hợp lệ	POST body JSON theo collection	200 hoặc 201; có reservationId; status BOOKED	High
+ECOCSS-F5-004	ReservationService	4	updateReservation	Cập nhật đặt chỗ	PUT	/api/reservations/{id}	8086	Có reservation tồn tại	PUT body theo collection	200; field cập nhật khớp body	High
+ECOCSS-F5-005	ReservationService	5	updateReservationStatus	Cập nhật trạng thái đặt chỗ	PUT	/api/reservations/{id}/status	8086	Có reservation; status hợp lệ	PUT ?status=IN_USE	200; status response khớp query	High
+ECOCSS-F5-006	ReservationService	6	deleteReservation	Xóa đặt chỗ	DELETE	/api/reservations/{id}	8086	Có id cần xóa	DELETE	200 hoặc 204	High
+ECOCSS-F5-007	ReservationService	7	getVehicleReservations	Lịch đặt theo xe	GET	/api/vehicles/{vehicleId}/reservations	8086	Có vehicleId	GET	200; array; vehicleId khớp	High
+ECOCSS-F5-008	ReservationService	8	getVehicleGroupInfo	Thông tin nhóm sở hữu theo xe	GET	/api/vehicles/{vehicleId}/group	8086	Group service sẵn sàng	GET; bật Authorization nếu cần	200; có groupId members	High
+ECOCSS-F5-009	ReservationService	9	getUserVehicles	Danh sách xe của người dùng	GET	/api/users/{userId}/vehicles	8086	User có group	GET; JWT nếu cần	200; array	High
+ECOCSS-F5-010	ReservationService	10	getUserVehicleReservations	Lịch đặt theo user và xe	GET	/api/users/{userId}/vehicles/{vehicleId}/reservations	8086	Có dữ liệu	GET	200; array	High
+ECOCSS-F5-011	ReservationService	11	checkAvailability	Kiểm tra khả dụng slot	GET	/api/availability	8086	Query vehicleId start end	GET với query	200; boolean	High
+ECOCSS-F5-012	ReservationService	12	listReservationCheckpoints	Liệt kê checkpoint	GET	/api/reservations/{id}/checkpoints	8086	Có reservation	GET	200; array	High
+ECOCSS-F5-013	ReservationService	13	issueReservationCheckpoint	Phát hành checkpoint	POST	/api/reservations/{id}/checkpoints	8086	Có reservation	POST body type issuedBy	200 hoặc 201	High
+ECOCSS-F5-014	ReservationService	14	scanCheckpoint	Quét checkpoint	POST	/api/reservations/checkpoints/scan	8086	Có token hợp lệ	POST token lat lng	200 hoặc 201	High
+ECOCSS-F5-015	ReservationService	15	signCheckpoint	Ký checkpoint	POST	/api/reservations/checkpoints/{id}/sign	8086	Có checkpointId	POST body signer	200 hoặc 201	High
+ECOCSS-F5-016	ReservationService	16	getFairnessSummary	Tóm tắt công bằng	GET	/api/fairness/vehicles/{vehicleId}	8086	Có vehicleId	GET ?rangeDays=30	200; object	High
+ECOCSS-F5-017	ReservationService	17	suggestFairnessSlot	Gợi ý slot công bằng	POST	/api/fairness/vehicles/{vehicleId}/suggest	8086	Có vehicleId userId	POST body JSON	200 hoặc 201	High
+ECOCSS-F5-018	ReservationAdminService	18	adminLogin	Đăng nhập admin	POST	/api/admin/auth/login	8087	Có tài khoản admin	POST username password	200 hoặc 201; có token	High
+ECOCSS-F5-019	ReservationAdminService	19	getAllAdminReservations	Danh sách reservation admin	GET	/api/admin/reservations	8087	Service 8087 chạy	GET	200; array DTO admin	High
+ECOCSS-F5-020	ReservationAdminService	20	getAdminReservationById	Chi tiết reservation admin	GET	/api/admin/reservations/{id}	8087	Có id	GET	200 hoặc 404	High
+ECOCSS-F5-021	ReservationAdminService	21	updateAdminReservation	Cập nhật reservation admin	PUT	/api/admin/reservations/{id}	8087	Có id	PUT body	200	High
+ECOCSS-F5-022	ReservationAdminService	22	deleteAdminReservation	Xóa reservation admin	DELETE	/api/admin/reservations/{id}	8087	Có id	DELETE	200 hoặc 204	High
+ECOCSS-F5-023	ReservationAdminService	23	syncReservationFromBooking	Đồng bộ booking	POST	/api/admin/reservations/sync	8087	Payload đầy đủ	POST JSON	200 hoặc 201	High
+ECOCSS-F5-024	ReservationAdminService	24	getManageReservations	Danh sách manage	GET	/api/admin/reservations/manage	8087	—	GET	200; array manage view	High
+ECOCSS-F5-025	ReservationAdminService	25	createManageReservation	Tạo lịch manage	POST	/api/admin/reservations/manage	8087	vehicleId userId hợp lệ	POST body	200 hoặc 201; message id	High
+ECOCSS-F5-026	ReservationAdminService	26	updateManageReservation	Cập nhật lịch manage	PUT	/api/admin/reservations/manage/{id}	8087	Có id	PUT body	200; message	High
+ECOCSS-F5-027	ReservationAdminService	27	deleteManageReservation	Xóa lịch manage	DELETE	/api/admin/reservations/manage/{id}	8087	Có id	DELETE	200 hoặc 204	High
+ECOCSS-F5-028	ReservationAdminService	28	getAdminVehicles	Danh sách xe admin	GET	/api/admin/vehicles	8087	—	GET	200; array	High
+ECOCSS-F5-029	ReservationAdminService	29	proxyGetAllReservations	Proxy GET tất cả	GET	/api/reservations	8087	8087 chạy	GET baseUrl8087	200; array	High
+ECOCSS-F5-030	ReservationAdminService	30	proxyGetReservationById	Proxy GET theo id	GET	/api/reservations/{id}	8087	Có id	GET	200 hoặc 404	High
+ECOCSS-F5-031	ReservationAdminService	31	proxyCreateReservation	Proxy POST tạo	POST	/api/reservations	8087	Body hợp lệ	POST	200 hoặc 201	High
+ECOCSS-F5-032	ReservationAdminService	32	proxyUpdateReservation	Proxy PUT	PUT	/api/reservations/{id}	8087	Có id	PUT	200	High
+ECOCSS-F5-033	ReservationAdminService	33	proxyUpdateReservationStatus	Proxy PUT status	PUT	/api/reservations/{id}/status	8087	Có id; status query	PUT	200	High
+ECOCSS-F5-034	ReservationAdminService	34	proxyDeleteReservation	Proxy DELETE	DELETE	/api/reservations/{id}	8087	Có id	DELETE	200 hoặc 204	High
+ECOCSS-F5-035	ReservationAdminService	35	getTestUserById	Test user debug	GET	/api/test/user/{userId}	8087	Có userId	GET	200; object	Medium

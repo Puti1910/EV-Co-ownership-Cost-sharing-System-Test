@@ -15,10 +15,19 @@ public class AdminAuthService {
 
     private final AdminUserRepository userRepository;
     private final BCryptPasswordEncoder encoder;
+<<<<<<< HEAD
+    private final JwtUtil jwtUtil;
+
+    public AdminAuthService(AdminUserRepository repository, BCryptPasswordEncoder encoder, JwtUtil jwtUtil) {
+        this.userRepository = repository;
+        this.encoder = encoder;
+        this.jwtUtil = jwtUtil;
+=======
 
     public AdminAuthService(AdminUserRepository repository, BCryptPasswordEncoder encoder) {
         this.userRepository = repository;
         this.encoder = encoder;
+>>>>>>> origin/main
     }
 
 
@@ -35,8 +44,13 @@ public class AdminAuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Tên đăng nhập hoặc mật khẩu không đúng");
         }
 
+<<<<<<< HEAD
+        // ✅ Trả token nếu đúng (dùng bean jwtUtil thay vì static)
+        return jwtUtil.generateToken(user.getUsername(), user.getRole());
+=======
         // ✅ Trả token nếu đúng
         return JwtUtil.generateToken(user.getUsername(), user.getRole());
+>>>>>>> origin/main
     }
 
 

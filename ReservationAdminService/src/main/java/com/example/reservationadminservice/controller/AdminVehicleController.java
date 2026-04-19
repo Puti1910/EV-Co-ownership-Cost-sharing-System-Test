@@ -5,6 +5,11 @@ import com.example.reservationadminservice.service.AdminVehicleService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+<<<<<<< HEAD
+import java.util.Map;
+import java.util.Set;
+=======
+>>>>>>> origin/main
 
 @RestController
 @RequestMapping("/api/admin/vehicles")
@@ -18,7 +23,42 @@ public class AdminVehicleController {
     }
 
     @GetMapping
+<<<<<<< HEAD
+    public List<VehicleAdmin> getAll(@RequestParam Map<String, String> allParams) {
+        // RS_BVA_3603: Reject unknown parameters
+        if (!allParams.isEmpty()) {
+            java.util.Set<String> allowedParams = java.util.Set.of("status");
+            for (String param : allParams.keySet()) {
+                if (!allowedParams.contains(param)) {
+                    throw new IllegalArgumentException("Unknown parameter: " + param);
+                }
+            }
+        }
+        
+        // Validate status value if present
+        if (allParams.containsKey("status")) {
+            String status = allParams.get("status");
+            if (status != null && !status.isEmpty()) {
+                java.util.Set<String> validStatuses = java.util.Set.of("AVAILABLE", "IN_USE", "MAINTENANCE");
+                if (!validStatuses.contains(status.toUpperCase())) {
+                    throw new IllegalArgumentException("Invalid status value: " + status);
+                }
+            }
+        }
+
+        return service.getAllVehicles();
+    }
+
+    @GetMapping("/bad-request")
+    public org.springframework.http.ResponseEntity<?> handleBadRequest() {
+        return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of(
+            "error", "Bad Request",
+            "message", "Explicit test bad request"
+        ));
+    }
+=======
     public List<VehicleAdmin> getAll() {
         return service.getAllVehicles();
     }
+>>>>>>> origin/main
 }

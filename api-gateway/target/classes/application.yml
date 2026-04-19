@@ -4,60 +4,66 @@ server:
 spring:
   application:
     name: api-gateway
+  codec:
+    max-in-memory-size: 50MB
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 45MB
   cloud:
     gateway:
       routes:
         # Cost Payment Service Routes
         - id: cost-payment-service
-          uri: http://localhost:8081
+          uri: http://cost-payment-service:8081
           predicates:
             - Path=/api/costs/**, /api/payments/**, /api/shares/**, /api/cost-shares/**, /api/auto-split/**, /api/usage-tracking/**, /api/funds/**, /api/my-vehicles, /api/auth/logout, /api/reports/**
         
         # Group Management Service Routes
         - id: group-management-service
-          uri: http://localhost:8082
+          uri: http://group-management-service:8082
           predicates:
             - Path=/api/groups/**, /api/votes/**, /api/admin/auth/login
         
-        # Reservation Service Routes (phải đặt trước user-account-service để match /api/users/*/vehicles trước)
+        # Reservation Service Routes
         - id: reservation-service
-          uri: http://localhost:8086
+          uri: http://reservation-service:8086
           predicates:
-            - Path=/api/reservations/**, /api/users/*/vehicles, /api/fairness/**, /api/vehicles/*/reservations/**, /api/vehicles/*/group
+            - Path=/api/availability/**, /api/reservations/**, /api/users/*/vehicles, /api/fairness/**, /api/vehicles/*/reservations/**, /api/vehicles/*/group
         
         # User Account Service Routes
         - id: user-account-service
-          uri: http://localhost:8083
+          uri: http://user-account-service:8083
           predicates:
             - Path=/api/auth/**, /api/users/**, /api/my-vehicles
         
         # User uploads (images, documents)
         - id: user-account-uploads
-          uri: http://localhost:8083
+          uri: http://user-account-service:8083
           predicates:
             - Path=/uploads/**
         
         # Vehicle Service Routes
         - id: vehicle-service
-          uri: http://localhost:8085
+          uri: http://vehicle-service:8085
           predicates:
             - Path=/api/vehicles/**, /api/vehicle-services/**, /api/vehicle-groups/**, /api/services/**
         
         # Reservation Admin Service Routes
         - id: reservation-admin-service
-          uri: http://localhost:8087
+          uri: http://reservation-admin-service:8087
           predicates:
             - Path=/api/admin/reservations/**
         
         # Legal Contract Service Routes
         - id: legal-contract-service
-          uri: http://localhost:8089
+          uri: http://legal-contract-service:8089
           predicates:
             - Path=/api/contracts/**, /api/legalcontracts/**
         
         # Dispute Management Service Routes
         - id: dispute-management-service
-          uri: http://localhost:8090
+          uri: http://dispute-management-service:8090
           predicates:
             - Path=/api/disputes/**
       
@@ -102,4 +108,3 @@ logging:
 jwt:
   secret:
     key: RjlaYTRjY2RmYS04NjcwLTRkMDMtYmI1OS02ZmMxNmIzNjAwYmY=
-

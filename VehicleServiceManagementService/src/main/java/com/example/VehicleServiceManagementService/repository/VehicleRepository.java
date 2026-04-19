@@ -7,9 +7,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface VehicleRepository extends JpaRepository<Vehicle, String> {
+public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     // JpaRepository đã cung cấp các phương thức cơ bản như save(), findAll(), findById(), deleteById()...
 
     /**
@@ -18,7 +19,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, String> {
      * @return Danh sách các xe thuộc nhóm
      */
     @Query("SELECT v FROM Vehicle v WHERE v.group.groupId = :groupId")
-    List<Vehicle> findByGroupId(@Param("groupId") String groupId);
+    List<Vehicle> findByGroupId(@Param("groupId") Long groupId);
 
     /**
      * Đếm số lượng xe thuộc về một nhóm xe
@@ -26,7 +27,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, String> {
      * @return Số lượng xe
      */
     @Query("SELECT COUNT(v) FROM Vehicle v WHERE v.group.groupId = :groupId")
-    long countByGroupId(@Param("groupId") String groupId);
+    long countByGroupId(@Param("groupId") Long groupId);
 
     /**
      * Tìm xe theo biển số xe
@@ -34,7 +35,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, String> {
      * @return Optional Vehicle
      */
     @Query("SELECT v FROM Vehicle v WHERE v.vehicleNumber = :vehicleNumber")
-    java.util.Optional<Vehicle> findByVehicleNumber(@Param("vehicleNumber") String vehicleNumber);
+    Optional<Vehicle> findByVehicleNumber(@Param("vehicleNumber") String vehicleNumber);
 
     /**
      * Kiểm tra xem biển số xe đã tồn tại chưa (trừ xe hiện tại khi update)
@@ -43,7 +44,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, String> {
      * @return true nếu biển số đã tồn tại
      */
     @Query("SELECT COUNT(v) > 0 FROM Vehicle v WHERE v.vehicleNumber = :vehicleNumber AND v.vehicleNumber IS NOT NULL AND v.vehicleNumber != '' AND v.vehicleId != :vehicleId")
-    boolean existsByVehicleNumberAndVehicleIdNot(@Param("vehicleNumber") String vehicleNumber, @Param("vehicleId") String vehicleId);
+    boolean existsByVehicleNumberAndVehicleIdNot(@Param("vehicleNumber") String vehicleNumber, @Param("vehicleId") Long vehicleId);
 
     /**
      * Kiểm tra xem biển số xe đã tồn tại chưa (khi thêm mới)

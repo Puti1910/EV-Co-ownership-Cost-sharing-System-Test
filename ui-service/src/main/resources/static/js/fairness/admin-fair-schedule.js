@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+(function () {
+=======
 (function() {
+>>>>>>> origin/main
     const API_BASE = typeof window.getApiBaseUrl === 'function'
         ? window.getApiBaseUrl()
         : 'http://localhost:8084';
@@ -28,9 +32,12 @@
             currentRange = Number(rangeSelect.value || 30);
             loadFairnessSummary();
         });
+<<<<<<< HEAD
+=======
 
         document.getElementById('issueCheckinBtn').addEventListener('click', () => handleIssueCheckpoint('CHECK_IN'));
         document.getElementById('issueCheckoutBtn').addEventListener('click', () => handleIssueCheckpoint('CHECK_OUT'));
+>>>>>>> origin/main
     }
 
     async function loadVehicleOptions() {
@@ -285,6 +292,11 @@
             <dt class="col-5">Trạng thái</dt><dd class="col-7">${reservation.status}</dd>
             <dt class="col-5">Ghi chú</dt><dd class="col-7">${reservation.purpose || '—'}</dd>
         `;
+<<<<<<< HEAD
+        reservationModal.show();
+    }
+
+=======
 
         document.getElementById('issueCheckinBtn').dataset.reservationId = reservation.reservationId;
         document.getElementById('issueCheckoutBtn').dataset.reservationId = reservation.reservationId;
@@ -370,9 +382,13 @@
             checkpoint.expiresAt ? formatTime(checkpoint.expiresAt) : '—';
     }
 
+>>>>>>> origin/main
     function showToast(message) {
         if (!message) return;
         alert(message);
     }
 })();
+<<<<<<< HEAD
+=======
 
+>>>>>>> origin/main

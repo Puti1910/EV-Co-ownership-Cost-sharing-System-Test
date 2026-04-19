@@ -8,12 +8,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Integer> {
-    List<LeaveRequest> findByGroup_GroupId(Integer groupId);
-    List<LeaveRequest> findByGroup_GroupIdAndStatus(Integer groupId, LeaveRequest.LeaveStatus status);
-    List<LeaveRequest> findByUserId(Integer userId);
-    List<LeaveRequest> findByUserIdAndStatus(Integer userId, LeaveRequest.LeaveStatus status);
-    List<LeaveRequest> findByGroup_GroupIdAndUserId(Integer groupId, Integer userId);
-    Optional<LeaveRequest> findByGroup_GroupIdAndUserIdAndStatus(Integer groupId, Integer userId, LeaveRequest.LeaveStatus status);
+public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long> {
+    List<LeaveRequest> findByGroup_GroupId(Long groupId);
+    List<LeaveRequest> findByGroup_GroupIdAndStatus(Long groupId, LeaveRequest.LeaveStatus status);
+    List<LeaveRequest> findByUserId(Long userId);
+    List<LeaveRequest> findByUserIdAndStatus(Long userId, LeaveRequest.LeaveStatus status);
+    List<LeaveRequest> findByGroup_GroupIdAndUserId(Long groupId, Long userId);
+    Optional<LeaveRequest> findByGroup_GroupIdAndUserIdAndStatus(Long groupId, Long userId, LeaveRequest.LeaveStatus status);
 }
-

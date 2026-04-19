@@ -14,7 +14,11 @@ public interface CostShareService {
     void deleteCostShare(Integer id);
     
     // 💰 Tính toán chia chi phí theo phần trăm
+<<<<<<< HEAD
+    List<CostShare> calculateCostShares(Integer costId, List<Integer> userIds, List<Double> percentages);
+=======
     List<CostShare> calculateCostShares(Integer costId, List<Integer> userIds, List<java.math.BigDecimal> percentages);
+>>>>>>> origin/main
     
     // 🔍 Tìm kiếm và thống kê
     List<CostShare> getCostSharesByUserId(Integer userId);

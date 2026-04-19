@@ -15,10 +15,10 @@ public class Reservation {
     private Long reservationId;
 
     @Column(name = "vehicle_id", nullable = false)
-    private Integer vehicleId;
+    private Long vehicleId;
 
     @Column(name = "user_id", nullable = false)
-    private Integer userId;
+    private Long userId;
 
     @Column(name = "start_datetime")
     private LocalDateTime startDatetime;
@@ -26,6 +26,7 @@ public class Reservation {
     @Column(name = "end_datetime")
     private LocalDateTime endDatetime;
     
+    @Column(name = "purpose", length = 1000)
     private String purpose;
 
     @Enumerated(EnumType.STRING)

@@ -43,7 +43,11 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
 
     @Autowired(required = false)
     private RestTemplate restTemplate;
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     @org.springframework.beans.factory.annotation.Value("${group-management.service.url:http://api-gateway:8084}")
     private String groupManagementServiceUrl;
 
@@ -55,7 +59,12 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
     public List<CostShare> autoSplitCost(Integer costId, Integer groupId, Integer month, Integer year) {
         // Lấy thông tin chi phí
         Cost cost = costRepository.findById(costId)
+<<<<<<< HEAD
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chi phí ID: " + costId));
+=======
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Không tìm thấy chi phí ID: " + costId));
+>>>>>>> origin/main
 
         // Xác định split method (nếu có trong entity hoặc dựa vào costType)
         SplitMethod splitMethod = determineSplitMethod(cost);
@@ -87,16 +96,29 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
      */
     @Override
     @Transactional
+<<<<<<< HEAD
     public List<CostShare> autoSplitCostWithMethod(Integer costId, Integer groupId, String splitMethodStr, Integer month, Integer year) {
         return autoSplitCostWithMethod(costId, groupId, splitMethodStr, month, year, null);
     }
     
+=======
+    public List<CostShare> autoSplitCostWithMethod(Integer costId, Integer groupId, String splitMethodStr,
+            Integer month, Integer year) {
+        return autoSplitCostWithMethod(costId, groupId, splitMethodStr, month, year, null);
+    }
+
+>>>>>>> origin/main
     /**
      * Tự động chia chi phí với splitMethod được chỉ định (từ form) - có token
      */
     @Override
     @Transactional
+<<<<<<< HEAD
     public List<CostShare> autoSplitCostWithMethod(Integer costId, Integer groupId, String splitMethodStr, Integer month, Integer year, String token) {
+=======
+    public List<CostShare> autoSplitCostWithMethod(Integer costId, Integer groupId, String splitMethodStr,
+            Integer month, Integer year, String token) {
+>>>>>>> origin/main
         System.out.println("=== AUTO SPLIT WITH METHOD ===");
         System.out.println("Cost ID: " + costId);
         System.out.println("Group ID: " + groupId);
@@ -105,7 +127,12 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
 
         // Validate cost exists
         Cost cost = costRepository.findById(costId)
+<<<<<<< HEAD
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chi phí ID: " + costId));
+=======
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Không tìm thấy chi phí ID: " + costId));
+>>>>>>> origin/main
 
         // Parse split method từ String
         SplitMethod splitMethod;
@@ -150,20 +177,39 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
     @Transactional
     public List<CostShare> splitByOwnership(Integer costId, Map<Integer, Double> ownershipMap) {
         Cost cost = costRepository.findById(costId)
+<<<<<<< HEAD
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chi phí ID: " + costId));
 
         // Validate và normalize tổng ownership
         double totalOwnership = ownershipMap.values().stream().mapToDouble(Double::doubleValue).sum();
         
+=======
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Không tìm thấy chi phí ID: " + costId));
+
+        // Validate và normalize tổng ownership
+        double totalOwnership = ownershipMap.values().stream().mapToDouble(Double::doubleValue).sum();
+
+>>>>>>> origin/main
         // Nếu tổng ownership = 0 hoặc quá nhỏ, báo lỗi
         if (totalOwnership <= 0) {
             throw new RuntimeException("Tổng ownership phải lớn hơn 0%, hiện tại: " + totalOwnership + "%");
         }
+<<<<<<< HEAD
         
         // Nếu tổng ownership không bằng 100%, tự động normalize (trong phạm vi hợp lý: 50-150%)
         if (Math.abs(totalOwnership - 100.0) > 0.01) {
             if (totalOwnership < 50.0 || totalOwnership > 150.0) {
                 throw new RuntimeException("Tổng ownership không hợp lệ: " + totalOwnership + "%. Vui lòng kiểm tra dữ liệu nhóm.");
+=======
+
+        // Nếu tổng ownership không bằng 100%, tự động normalize (trong phạm vi hợp lý:
+        // 50-150%)
+        if (Math.abs(totalOwnership - 100.0) > 0.01) {
+            if (totalOwnership < 50.0 || totalOwnership > 150.0) {
+                throw new RuntimeException(
+                        "Tổng ownership không hợp lệ: " + totalOwnership + "%. Vui lòng kiểm tra dữ liệu nhóm.");
+>>>>>>> origin/main
             }
             // Normalize: chia tất cả giá trị cho totalOwnership và nhân với 100
             System.out.println("Warning: Tổng ownership = " + totalOwnership + "%, đang normalize về 100%");
@@ -180,10 +226,14 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
 
         // Tạo danh sách userId và % từ map
         List<Integer> userIds = new ArrayList<>(ownershipMap.keySet());
+<<<<<<< HEAD
+        List<Double> percentages = new ArrayList<>(ownershipMap.values());
+=======
         List<java.math.BigDecimal> percentages = new ArrayList<>();
         for (Integer userId : userIds) {
             percentages.add(java.math.BigDecimal.valueOf(ownershipMap.get(userId)));
         }
+>>>>>>> origin/main
 
         // Sử dụng service có sẵn
         return costShareService.calculateCostShares(costId, userIds, percentages);
@@ -196,7 +246,12 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
     @Transactional
     public List<CostShare> splitByUsage(Integer costId, Map<Integer, Double> usageMap) {
         Cost cost = costRepository.findById(costId)
+<<<<<<< HEAD
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chi phí ID: " + costId));
+=======
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Không tìm thấy chi phí ID: " + costId));
+>>>>>>> origin/main
 
         // Tính tổng km
         double totalKm = usageMap.values().stream().mapToDouble(Double::doubleValue).sum();
@@ -216,10 +271,14 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
 
         // Tạo danh sách userId và %
         List<Integer> userIds = new ArrayList<>(percentageMap.keySet());
+<<<<<<< HEAD
+        List<Double> percentages = new ArrayList<>(percentageMap.values());
+=======
         List<java.math.BigDecimal> percentages = new ArrayList<>();
         for (Integer userId : userIds) {
             percentages.add(java.math.BigDecimal.valueOf(percentageMap.get(userId)));
         }
+>>>>>>> origin/main
 
         // Sử dụng service có sẵn
         return costShareService.calculateCostShares(costId, userIds, percentages);
@@ -232,10 +291,20 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
     @Transactional
     public List<CostShare> splitEqually(Integer costId, List<Integer> userIds) {
         Cost cost = costRepository.findById(costId)
+<<<<<<< HEAD
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chi phí ID: " + costId));
 
         if (userIds == null || userIds.isEmpty()) {
             throw new RuntimeException("Danh sách user không được rỗng");
+=======
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Không tìm thấy chi phí ID: " + costId));
+
+        if (userIds == null || userIds.isEmpty()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND,
+                    "Không tìm thấy thông tin thành viên cho nhóm, hoặc nhóm không tồn tại.");
+>>>>>>> origin/main
         }
 
         // Xóa các chia sẻ cũ
@@ -243,9 +312,15 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
 
         // Tính % đều cho mỗi người
         double percentPerPerson = 100.0 / userIds.size();
+<<<<<<< HEAD
+        List<Double> percentages = new ArrayList<>();
+        for (int i = 0; i < userIds.size(); i++) {
+            percentages.add(percentPerPerson);
+=======
         List<java.math.BigDecimal> percentages = new ArrayList<>();
         for (int i = 0; i < userIds.size(); i++) {
             percentages.add(java.math.BigDecimal.valueOf(percentPerPerson));
+>>>>>>> origin/main
         }
 
         // Sử dụng service có sẵn
@@ -257,9 +332,15 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
      */
     @Override
     public Map<Integer, Double> getGroupOwnership(Integer groupId) {
-        return getGroupOwnership(groupId, getCurrentToken());
+<<<<<<< HEAD
+        return getGroupOwnership(groupId, null);
     }
     
+=======
+        return getGroupOwnership(groupId, getCurrentToken());
+    }
+
+>>>>>>> origin/main
     /**
      * Lấy ownership % của nhóm từ Group Management Service (có token)
      */
@@ -269,15 +350,23 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
             if (restTemplate == null) {
                 restTemplate = new RestTemplate();
             }
+<<<<<<< HEAD
             
             String url = groupManagementServiceUrl + "/api/groups/" + groupId + "/members/view";
             System.out.println("Calling Group Management Service: " + url);
             
+=======
+
+            String url = groupManagementServiceUrl + "/api/groups/" + groupId + "/members/view";
+            System.out.println("Calling Group Management Service: " + url);
+
+>>>>>>> origin/main
             HttpHeaders headers = new HttpHeaders();
             if (token != null && !token.isEmpty()) {
                 headers.set("Authorization", token.startsWith("Bearer ") ? token : "Bearer " + token);
             }
             HttpEntity<?> entity = new HttpEntity<>(headers);
+<<<<<<< HEAD
             
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 url,
@@ -294,10 +383,37 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> members = (List<Map<String, Object>>) responseBody.get("members");
             
+=======
+
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    new ParameterizedTypeReference<Map<String, Object>>() {
+                    });
+
+            Map<String, Object> responseBody = response.getBody();
+            if (responseBody == null || !responseBody.containsKey("members")) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND,
+                        "Không tìm thấy thông tin thành viên cho Group ID: " + groupId);
+            }
+
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> members = (List<Map<String, Object>>) responseBody.get("members");
+
+            if (members.isEmpty()) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND,
+                        "Không tìm thấy thông tin thành viên cho Group ID: " + groupId + ", hoặc nhóm không tồn tại.");
+            }
+
+>>>>>>> origin/main
             Map<Integer, Double> ownershipMap = new HashMap<>();
             for (Map<String, Object> member : members) {
                 Integer userId = (Integer) member.get("userId");
                 Object ownershipPercentObj = member.get("ownershipPercent");
+<<<<<<< HEAD
                 Double ownershipPercent = ownershipPercentObj != null ? 
                     (ownershipPercentObj instanceof Number ? 
                         ((Number) ownershipPercentObj).doubleValue() : 
@@ -313,6 +429,28 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
             System.err.println("Lỗi khi gọi Group Management Service: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Không thể lấy thông tin ownership từ Group Management Service: " + e.getMessage());
+=======
+                Double ownershipPercent = ownershipPercentObj != null
+                        ? (ownershipPercentObj instanceof Number ? ((Number) ownershipPercentObj).doubleValue()
+                                : Double.parseDouble(ownershipPercentObj.toString()))
+                        : 0.0;
+                ownershipMap.put(userId, ownershipPercent);
+            }
+
+            System.out.println("Ownership map: " + ownershipMap);
+            return ownershipMap;
+
+        } catch (Exception e) {
+            System.err.println("Lỗi khi gọi Group Management Service: " + e.getMessage());
+            e.printStackTrace();
+            if (e instanceof org.springframework.web.client.HttpClientErrorException.NotFound) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND,
+                        "Không tìm thấy Group ID: " + groupId);
+            }
+            throw new RuntimeException(
+                    "Không thể lấy thông tin ownership từ Group Management Service: " + e.getMessage());
+>>>>>>> origin/main
         }
     }
 
@@ -354,8 +492,14 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
         }
 
         if (usageMap.isEmpty()) {
+<<<<<<< HEAD
             throw new RuntimeException("Không có dữ liệu km cho nhóm " + groupId +
                     " trong tháng " + month + "/" + year);
+=======
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND,
+                    "Không có dữ liệu km cho nhóm " + groupId + " trong tháng " + month + "/" + year);
+>>>>>>> origin/main
         }
 
         return usageMap;
@@ -365,9 +509,15 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
      * Lấy danh sách userId của nhóm từ Group Management Service
      */
     private List<Integer> getUserIdsByGroup(Integer groupId) {
-        return getUserIdsByGroup(groupId, getCurrentToken());
+<<<<<<< HEAD
+        return getUserIdsByGroup(groupId, null);
     }
     
+=======
+        return getUserIdsByGroup(groupId, getCurrentToken());
+    }
+
+>>>>>>> origin/main
     /**
      * Lấy danh sách userId của nhóm từ Group Management Service (có token)
      */
@@ -376,15 +526,23 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
             if (restTemplate == null) {
                 restTemplate = new RestTemplate();
             }
+<<<<<<< HEAD
             
             String url = groupManagementServiceUrl + "/api/groups/" + groupId + "/members/view";
             System.out.println("Calling Group Management Service: " + url);
             
+=======
+
+            String url = groupManagementServiceUrl + "/api/groups/" + groupId + "/members/view";
+            System.out.println("Calling Group Management Service: " + url);
+
+>>>>>>> origin/main
             HttpHeaders headers = new HttpHeaders();
             if (token != null && !token.isEmpty()) {
                 headers.set("Authorization", token.startsWith("Bearer ") ? token : "Bearer " + token);
             }
             HttpEntity<?> entity = new HttpEntity<>(headers);
+<<<<<<< HEAD
             
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 url,
@@ -401,6 +559,32 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> members = (List<Map<String, Object>>) responseBody.get("members");
             
+=======
+
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    new ParameterizedTypeReference<Map<String, Object>>() {
+                    });
+
+            Map<String, Object> responseBody = response.getBody();
+            if (responseBody == null || !responseBody.containsKey("members")) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND,
+                        "Không tìm thấy thông tin thành viên cho Group ID: " + groupId);
+            }
+
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> members = (List<Map<String, Object>>) responseBody.get("members");
+
+            if (members.isEmpty()) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND,
+                        "Không tìm thấy thông tin thành viên cho Group ID: " + groupId + ", hoặc nhóm không tồn tại.");
+            }
+
+>>>>>>> origin/main
             List<Integer> userIds = new ArrayList<>();
             for (Map<String, Object> member : members) {
                 Integer userId = (Integer) member.get("userId");
@@ -408,6 +592,7 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
                     userIds.add(userId);
                 }
             }
+<<<<<<< HEAD
             
             System.out.println("User IDs: " + userIds);
             return userIds;
@@ -416,6 +601,22 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
             System.err.println("Lỗi khi gọi Group Management Service: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Không thể lấy danh sách thành viên từ Group Management Service: " + e.getMessage());
+=======
+
+            System.out.println("User IDs: " + userIds);
+            return userIds;
+
+        } catch (Exception e) {
+            System.err.println("Lỗi khi gọi Group Management Service: " + e.getMessage());
+            e.printStackTrace();
+            if (e instanceof org.springframework.web.client.HttpClientErrorException.NotFound) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND,
+                        "Không tìm thấy Group ID: " + groupId);
+            }
+            throw new RuntimeException(
+                    "Không thể lấy danh sách thành viên từ Group Management Service: " + e.getMessage());
+>>>>>>> origin/main
         }
     }
 
@@ -428,11 +629,15 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
             costShareRepository.deleteAll(existingShares);
         }
     }
+<<<<<<< HEAD
+}
+
+=======
 
     private String getCurrentToken() {
         try {
-            org.springframework.web.context.request.ServletRequestAttributes attributes = 
-                (org.springframework.web.context.request.ServletRequestAttributes) org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+            org.springframework.web.context.request.ServletRequestAttributes attributes = (org.springframework.web.context.request.ServletRequestAttributes) org.springframework.web.context.request.RequestContextHolder
+                    .getRequestAttributes();
             if (attributes != null) {
                 jakarta.servlet.http.HttpServletRequest request = attributes.getRequest();
                 return request.getHeader("Authorization");
@@ -443,4 +648,4 @@ public class AutoCostSplitServiceImpl implements AutoCostSplitService {
         return null;
     }
 }
-
+>>>>>>> origin/main

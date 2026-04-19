@@ -4,7 +4,10 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+<<<<<<< HEAD
+=======
 import java.math.BigDecimal;
+>>>>>>> origin/main
 
 /**
  * DTO: Yêu cầu rút tiền từ quỹ (USER)
@@ -22,7 +25,11 @@ public class WithdrawRequestDto {
 
     @NotNull(message = "Số tiền không được để trống")
     @Positive(message = "Số tiền phải > 0")
+<<<<<<< HEAD
+    private Double amount;
+=======
     private BigDecimal amount;
+>>>>>>> origin/main
 
     @NotBlank(message = "Mục đích không được để trống")
     @Size(max = 255, message = "Mục đích không quá 255 ký tự")

@@ -1,0 +1,250 @@
+# ============================================
+# EV CO-OWNERSHIP RESERVATION SYSTEM TEST
+# ============================================
+# Test cho: Reservation Service (8086) & Reservation Admin Service (8087)
+# Base URLs:
+#   - Reservation Service: http://localhost:8086
+#   - Reservation Admin Service: http://localhost:8087
+# ============================================
+
+@BASE_URL_RES = http://localhost:8086
+@BASE_URL_ADMIN = http://localhost:8087
+@CONTENT_TYPE = application/json
+
+# ============================================
+# 1. RESERVATION SERVICE TESTS (Port 8086)
+# ============================================
+
+# ------------------------------------------
+# 1.1 Lấy danh sách tất cả reservations
+# ------------------------------------------
+### Get all reservations
+GET {{BASE_URL_RES}}/api/reservations
+Content-Type: {{CONTENT_TYPE}}
+
+# ------------------------------------------
+# 1.2 Lấy reservations theo vehicle ID
+# ------------------------------------------
+### Get reservations by vehicle ID
+GET {{BASE_URL_RES}}/api/vehicles/1/reservations
+Content-Type: {{CONTENT_TYPE}}
+
+# ------------------------------------------
+# 1.3 Lấy reservations theo user ID & vehicle ID
+# ------------------------------------------
+### Get user vehicle reservations
+GET {{BASE_URL_RES}}/api/users/1/vehicles/1/reservations
+Content-Type: {{CONTENT_TYPE}}
+
+# ------------------------------------------
+# 1.4 Lấy danh sách xe của user
+# ------------------------------------------
+### Get user vehicles
+GET {{BASE_URL_RES}}/api/users/1/vehicles
+Content-Type: {{CONTENT_TYPE}}
+
+# ------------------------------------------
+# 1.5 Lấy thông tin nhóm sở hữu xe
+# ------------------------------------------
+### Get vehicle group info
+GET {{BASE_URL_RES}}/api/vehicles/1/group
+Content-Type: {{CONTENT_TYPE}}
+
+# ------------------------------------------
+# 1.6 Kiểm tra availability (thời gian trống)
+# ------------------------------------------
+### Check availability
+GET {{BASE_URL_RES}}/api/availability?vehicleId=1&start=2026-03-21T08:00:00&end=2026-03-21T10:00:00
+Content-Type: {{CONTENT_TYPE}}
+
+# ------------------------------------------
+# 1.7 Tạo reservation mới
+# ------------------------------------------
+### Create new reservation
+POST {{BASE_URL_RES}}/api/reservations
+Content-Type: {{CONTENT_TYPE}}
+X-User-Id: 1
+
+{
+  "vehicleId": 1,
+  "userId": 1,
+  "startDatetime": "2026-03-21T08:00:00",
+  "endDatetime": "2026-03-21T10:00:00",
+  "purpose": "Đi làm"
+}
+
+# ------------------------------------------
+# 1.8 Cập nhật reservation
+# ------------------------------------------
+### Update reservation
+PUT {{BASE_URL_RES}}/api/reservations/1
+Content-Type: {{CONTENT_TYPE}}
+
+{
+  "startDatetime": "2026-03-21T09:00:00",
+  "endDatetime": "2026-03-21T11:00:00",
+  "purpose": "Đi công tác",
+  "status": "BOOKED"
+}
+
+# ------------------------------------------
+# 1.9 Cập nhật trạng thái reservation
+# ------------------------------------------
+### Update reservation status
+PUT {{BASE_URL_RES}}/api/reservations/1/status?status=IN_USE
+Content-Type: {{CONTENT_TYPE}}
+
+# ------------------------------------------
+# 1.10 Xóa reservation
+# ------------------------------------------
+### Delete reservation
+DELETE {{BASE_URL_RES}}/api/reservations/1
+Content-Type: {{CONTENT_TYPE}}
+
+# ------------------------------------------
+# 1.11 Lấy reservation theo ID
+# ------------------------------------------
+### Get reservation by ID
+GET {{BASE_URL_RES}}/api/reservations/1
+Content-Type: {{CONTENT_TYPE}}
+
+
+# ============================================
+# 2. RESERVATION ADMIN SERVICE TESTS (Port 8087)
+# ============================================
+
+# ------------------------------------------
+# 2.1 Lấy danh sách tất cả reservations (Admin)
+# ------------------------------------------
+### Admin: Get all reservations
+GET {{BASE_URL_ADMIN}}/api/admin/reservations
+Content-Type: {{CONTENT_TYPE}}
+
+# ------------------------------------------
+# 2.2 Lấy reservation theo ID (Admin)
+# ------------------------------------------
+### Admin: Get reservation by ID
+GET {{BASE_URL_ADMIN}}/api/admin/reservations/1
+Content-Type: {{CONTENT_TYPE}}
+
+# ------------------------------------------
+# 2.3 Cập nhật reservation (Admin)
+# ------------------------------------------
+### Admin: Update reservation
+PUT {{BASE_URL_ADMIN}}/api/admin/reservations/1
+Content-Type: {{CONTENT_TYPE}}
+X-Sync-Origin: admin-panel
+
+{
+  "status": "COMPLETED",
+  "startDatetime": "2026-03-21T08:00:00",
+  "endDatetime": "2026-03-21T10:00:00",
+  "vehicleId": 1,
+  "userId": 1
+}
+
+# ------------------------------------------
+# 2.4 Xóa reservation (Admin)
+# ------------------------------------------
+### Admin: Delete reservation
+DELETE {{BASE_URL_ADMIN}}/api/admin/reservations/1
+Content-Type: {{CONTENT_TYPE}}
+
+# ------------------------------------------
+# 2.5 Đồng bộ reservation từ Reservation Service
+# ------------------------------------------
+### Admin: Sync reservation
+POST {{BASE_URL_ADMIN}}/api/admin/reservations/sync
+Content-Type: {{CONTENT_TYPE}}
+
+{
+  "reservationId": 1,
+  "status": "BOOKED",
+  "startDatetime": "2026-03-21T08:00:00",
+  "endDatetime": "2026-03-21T10:00:00",
+  "vehicleId": 1,
+  "userId": 1
+}
+
+
+# ============================================
+# 3. RESERVATION ADMIN CONTROLLER (Port 8087)
+# ============================================
+# Endpoint: /api/admin/reservations/manage
+
+# ------------------------------------------
+# 3.1 Lấy danh sách lịch đặt xe (quản lý)
+# ------------------------------------------
+### Manage: Get all reservations
+GET {{BASE_URL_ADMIN}}/api/admin/reservations/manage
+Content-Type: {{CONTENT_TYPE}}
+
+# ------------------------------------------
+# 3.2 Tạo mới lịch đặt xe
+# ------------------------------------------
+### Manage: Create reservation
+POST {{BASE_URL_ADMIN}}/api/admin/reservations/manage
+Content-Type: {{CONTENT_TYPE}}
+
+{
+  "vehicleId": 1,
+  "userId": 1,
+  "startDatetime": "2026-03-22T08:00:00",
+  "endDatetime": "2026-03-22T12:00:00",
+  "status": "BOOKED"
+}
+
+# ------------------------------------------
+# 3.3 Cập nhật lịch đặt xe
+# ------------------------------------------
+### Manage: Update reservation
+PUT {{BASE_URL_ADMIN}}/api/admin/reservations/manage/1
+Content-Type: {{CONTENT_TYPE}}
+
+{
+  "startDatetime": "2026-03-22T09:00:00",
+  "endDatetime": "2026-03-22T13:00:00",
+  "status": "IN_USE"
+}
+
+# ------------------------------------------
+# 3.4 Xóa lịch đặt xe
+# ------------------------------------------
+### Manage: Delete reservation
+DELETE {{BASE_URL_ADMIN}}/api/admin/reservations/manage/1
+Content-Type: {{CONTENT_TYPE}}
+
+
+# ============================================
+# 4. TEST WORKFLOW - E2E RESERVATION FLOW
+# ============================================
+
+### E2E Test 1: Tạo và quản lý reservation
+# Bước 1: Kiểm tra vehicle 1 có ai đặt chưa
+# GET {{BASE_URL_RES}}/api/vehicles/1/reservations
+
+# Bước 2: Kiểm tra thời gian 9h-11h ngày mai có trống không
+# GET {{BASE_URL_RES}}/api/availability?vehicleId=1&start=2026-03-22T09:00:00&end=2026-03-22T11:00:00
+
+# Bước 3: Tạo reservation mới
+# POST {{BASE_URL_RES}}/api/reservations
+# {
+#   "vehicleId": 1,
+#   "userId": 1,
+#   "startDatetime": "2026-03-22T09:00:00",
+#   "endDatetime": "2026-03-22T11:00:00",
+#   "purpose": "Đi khám bệnh"
+# }
+
+# Bước 4: Xác nhận reservation đã tạo
+# GET {{BASE_URL_RES}}/api/vehicles/1/reservations
+
+# Bước 5: Admin cập nhật trạng thái thành IN_USE
+# PUT {{BASE_URL_ADMIN}}/api/admin/reservations/manage/1
+# {"status": "IN_USE"}
+
+# Bước 6: Sau khi xong, cập nhật COMPLETED
+# PUT {{BASE_URL_RES}}/api/reservations/1/status?status=COMPLETED
+
+# Bước 7: Xóa reservation (nếu cần)
+# DELETE {{BASE_URL_RES}}/api/reservations/1

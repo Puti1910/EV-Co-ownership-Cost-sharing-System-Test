@@ -7,8 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface GroupRepository extends JpaRepository<Group, Integer> {
-    List<Group> findByAdminId(Integer adminId);
+public interface GroupRepository extends JpaRepository<Group, Long> {
+    List<Group> findByAdminId(Long adminId);
     List<Group> findByStatus(Group.GroupStatus status);
-    List<Group> findByVehicleId(Integer vehicleId);
 }

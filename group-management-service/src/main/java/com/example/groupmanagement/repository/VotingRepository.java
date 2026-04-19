@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface VotingRepository extends JpaRepository<Voting, Integer> {
-    List<Voting> findByGroup_GroupId(Integer groupId);
-    Integer countByGroup_GroupId(Integer groupId);
+public interface VotingRepository extends JpaRepository<Voting, Long> {
+    List<Voting> findByGroup_GroupId(Long groupId);
+    Integer countByGroup_GroupId(Long groupId);
 }

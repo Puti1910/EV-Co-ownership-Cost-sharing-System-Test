@@ -73,6 +73,44 @@ public class AdminReservationService {
         }
     }
 
+<<<<<<< HEAD
+    public boolean createReservation(Long userId, Long vehicleId, String startDatetime, String endDatetime, String note, String status) {
+        try {
+            String url = adminReservationServiceUrl + "/api/admin/reservations/manage";
+            RestTemplate restTemplate = createRestTemplate();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            String token = resolveToken();
+            if (token != null) {
+                headers.set(HttpHeaders.AUTHORIZATION, token);
+            }
+
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("userId", userId);
+            payload.put("vehicleId", vehicleId);
+            payload.put("startDatetime", startDatetime);
+            payload.put("endDatetime", endDatetime);
+            payload.put("purpose", note);
+            payload.put("status", status);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    entity,
+                    new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            System.err.println("⚠️ Lỗi khi tạo đặt lịch: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+=======
+>>>>>>> origin/main
     public boolean updateReservation(Long id, Long userId, Long vehicleId, String startDatetime, String endDatetime, String note, String status) {
         try {
             String url = adminReservationServiceUrl + "/api/admin/reservations/" + id;

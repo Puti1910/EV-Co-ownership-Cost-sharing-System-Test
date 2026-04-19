@@ -2,6 +2,8 @@ package com.example.groupmanagement.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,7 +21,7 @@ public class LeaveRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "requestId")
-    private Integer requestId;
+    private Long requestId;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "groupId", nullable = false)
@@ -34,9 +36,11 @@ public class LeaveRequest {
     private GroupMember groupMember;
     
     @Column(name = "userId", nullable = false)
-    private Integer userId;
+    @NotNull(message = "userId không được để trống")
+    private Long userId;
     
     @Column(name = "reason", columnDefinition = "TEXT")
+    @Size(max = 255, message = "reason không được vượt quá 255 ký tự")
     private String reason;
     
     @Enumerated(EnumType.STRING)
@@ -50,7 +54,7 @@ public class LeaveRequest {
     private LocalDateTime processedAt;
     
     @Column(name = "processedBy")
-    private Integer processedBy; // Admin userId who processed the request
+    private Long processedBy; // Admin userId who processed the request
     
     @Column(name = "adminNote", columnDefinition = "TEXT")
     private String adminNote;
@@ -61,4 +65,3 @@ public class LeaveRequest {
         Rejected    // Bị từ chối
     }
 }
-

@@ -7,7 +7,11 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
+<<<<<<< HEAD
+@Table(name = "user_groups")
+=======
 @Table(name = "groups")
+>>>>>>> origin/main
 @Getter
 @Setter
 public class Group {

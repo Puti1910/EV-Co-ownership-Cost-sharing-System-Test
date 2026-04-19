@@ -27,9 +27,8 @@ public class Vehicle {
     private String vehicleType;
 
     @Column(name = "group_id")
-    private String groupId;
+    private Long groupId;
 
     @Column(name = "status")
     private String status = "AVAILABLE";
 }
-

@@ -12,7 +12,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.SimpleGrantedAuthority; // <-- THÊM IMPORT NÀY
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,7 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
-import java.util.List; // <-- THÊM IMPORT NÀY
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -30,7 +30,6 @@ public class SecurityConfig {
     @Autowired
     private UserRepository userRepository;
 
-    // (Bean PasswordEncoder, AuthenticationProvider, AuthenticationManager giữ nguyên)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -49,58 +48,59 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    /**
-     * CẬP NHẬT: "Dạy" Spring Security cách tìm user VÀ VAI TRÒ (ROLE)
-     */
     @Bean
     public UserDetailsService userDetailsService() {
         return email -> userRepository.findByEmail(email)
                 .map(user -> new org.springframework.security.core.userdetails.User(
                         user.getEmail(),
                         user.getPasswordHash(),
-                        // Thêm vai trò (role) của user vào (Rất quan trọng)
                         List.of(new SimpleGrantedAuthority(user.getRole().name()))
                 ))
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user với email: " + email));
     }
 
-    /**
-     * CẬP NHẬT: Chuỗi lọc bảo mật (Thêm bảo vệ cho API Admin)
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration conf = new CorsConfiguration();
-                    conf.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost:8083"));
+                    conf.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost:8083", "http://localhost:3000"));
                     conf.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     conf.setAllowedHeaders(List.of("*"));
                     conf.setAllowCredentials(true);
                     return conf;
                 }))
                 .authorizeHttpRequests(auth -> auth
-                        // API Public
+                        // Public API
                         .requestMatchers("/api/auth/users/register", "/api/auth/users/login", "/api/auth/users/refresh", "/api/auth/users/logout").permitAll()
+                        .requestMatchers("/api/auth/users/check/**").permitAll()
+                        
+                        // Swagger UI
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**").permitAll()
 
-                        // Swagger UI (cho phép truy cập không cần đăng nhập)
-                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs.yaml", "/webjars/**").permitAll()
+                        // Static content
+                        .requestMatchers("/uploads/**").permitAll()
 
-                        // Endpoint trung gian để nhận JWT và set cookie (public)
-                        .requestMatchers("/user/auth").permitAll()
-
-                        // Trang UI User (Yêu cầu đăng nhập, cả USER và ADMIN đều có thể truy cập)
-                        .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
-
-                        // API User (Yêu cầu đăng nhập, cả USER và ADMIN đều có thể gọi)
+                        // Protection for User/Admin
                         .requestMatchers("/api/auth/users/profile", "/api/auth/users/profile/**").hasAnyRole("USER", "ADMIN")
-
-                        // API ADMIN (CHỈ ROLE_ADMIN MỚI ĐƯỢC VÀO)
                         .requestMatchers("/api/auth/admin/**").hasRole("ADMIN")
 
-                        .anyRequest().authenticated() // Tất cả các API khác đều yêu cầu đăng nhập
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Token không hợp lệ hoặc đã hết hạn\"}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
+                            response.getWriter().write("{\"error\": \"Forbidden\", \"message\": \"Bạn không có quyền truy cập tài nguyên này (Cần ROLE_ADMIN)\"}");
+                        })
+                )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

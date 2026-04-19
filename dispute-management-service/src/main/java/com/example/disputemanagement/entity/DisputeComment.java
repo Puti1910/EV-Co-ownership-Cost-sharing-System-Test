@@ -2,9 +2,12 @@ package com.example.disputemanagement.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+<<<<<<< HEAD
+=======
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+>>>>>>> origin/main
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,21 +34,33 @@ public class DisputeComment {
     @lombok.EqualsAndHashCode.Exclude
     private Dispute dispute;
     
+<<<<<<< HEAD
+    @Column(name = "userId", nullable = false)
+    private Integer userId;
+    
+=======
     @NotNull(message = "User ID không được để trống")
     @Positive(message = "User ID phải > 0")
     @Column(name = "userId", nullable = false)
     private Integer userId;
     
     @NotNull(message = "User role không được để trống")
+>>>>>>> origin/main
     @Enumerated(EnumType.STRING)
     @Column(name = "userRole", nullable = false)
     private UserRole userRole;
     
+<<<<<<< HEAD
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    private String content;
+    
+=======
     @NotBlank(message = "Nội dung bình luận không được để trống")
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
     
     @NotNull(message = "Cờ internal không được để trống")
+>>>>>>> origin/main
     @Column(name = "isInternal", nullable = false)
     private Boolean isInternal;
     

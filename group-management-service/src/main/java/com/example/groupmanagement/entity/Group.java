@@ -20,16 +20,13 @@ public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "groupId")
-    private Integer groupId;
+    private Long groupId;
     
     @Column(name = "groupName", nullable = false, length = 100)
     private String groupName;
     
     @Column(name = "adminId")
-    private Integer adminId;
-    
-    @Column(name = "vehicleId")
-    private Integer vehicleId;
+    private Long adminId;
     
     @Column(name = "createdAt")
     private LocalDateTime createdAt;
@@ -40,7 +37,9 @@ public class Group {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
     }
     
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

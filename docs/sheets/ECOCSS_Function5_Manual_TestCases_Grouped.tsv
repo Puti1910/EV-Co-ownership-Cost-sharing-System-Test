@@ -1,0 +1,87 @@
+Test Case ID	Test Case Description	Test Case Procedure	Expected Results	Pre-conditions	Actual Result	Test Date	Tester	Note
+ReservationService Endpoints (port 8086)								
+Function __: get all reservations								
+TC_RV_001	Test GET /api/reservations - Empty list	"1. Đảm bảo DB booking không có reservation (hoặc môi trường test trống).
+2. Gửi GET request đến baseUrl8086/api/reservations."	200 OK với JSON array rỗng [] hoặc array không có phần tử.	ReservationService (8086) đang chạy; DB booking có thể trống.				
+TC_RV_002	Test GET /api/reservations - With data	"1. Chuẩn bị ít nhất 1 reservation trong DB booking.
+2. Gửi GET request đến baseUrl8086/api/reservations."	200 OK với JSON array; mỗi phần tử có reservationId, vehicleId, status (và các field bắt buộc khác).	DB booking có dữ liệu reservation.				
+Function __: Get reservation by id								
+TC_RV_003	Test GET /api/reservations/{id} - Valid ID	"1. Lấy reservationId tồn tại.
+2. Gửi GET baseUrl8086/api/reservations/{id}."	200 OK với object reservation; id khớp URL.	Reservation với id hợp lệ tồn tại.				
+TC_RV_004	Test GET /api/reservations/{id} - Not found	1. Gửi GET baseUrl8086/api/reservations/999999 (id không tồn tại).	404 Not Found (hoặc 400 tùy implementation).	Không có reservation với id đã chọn.				
+TC_RV_005	Test GET /api/reservations/{id} - Invalid ID (0 / negative)	1. Gửi GET baseUrl8086/api/reservations/0 hoặc /api/reservations/-1.	404 Not Found hoặc 400 Bad Request.	ID không hợp lệ theo quy ước API.				
+Function __: Create reservation								
+TC_RV_006	Test POST /api/reservations - Valid creation	"1. Chuẩn bị body JSON: vehicleId, userId, startDatetime, endDatetime, purpose, status (theo collection).
+2. Gửi POST baseUrl8086/api/reservations."	200 hoặc 201; response có reservationId; status BOOKED (hoặc đúng spec).	vehicleId, userId hợp lệ; slot không conflict.				
+TC_RV_007	Test POST /api/reservations - endDatetime <= startDatetime	1. Gửi POST với startDatetime = endDatetime hoặc end < start.	400 hoặc 422 với thông báo validation (thời gian không hợp lệ).	Service 8086 chạy.				
+TC_RV_008	Test POST /api/reservations - Invalid vehicleId / userId	1. Gửi POST với vehicleId=0 hoặc userId=0 (hoặc giá trị không hợp lệ).	400 hoặc 422 validation error.	Service 8086 chạy.				
+Function __: Update reservation								
+TC_RV_009	Test PUT /api/reservations/{id} - Valid update	"1. Có reservation tồn tại.
+2. Gửi PUT baseUrl8086/api/reservations/{id} với body cập nhật (thời gian/mục đích/status)."	200 OK; field trong response khớp body gửi lên.	Reservation id hợp lệ tồn tại.				
+TC_RV_010	Test PUT /api/reservations/{id} - Not found	1. Gửi PUT baseUrl8086/api/reservations/999999 với body hợp lệ.	404 Not Found.	Reservation không tồn tại.				
+Function __: Update reservation status								
+TC_RV_011	Test PUT /api/reservations/{id}/status - Valid status	"1. Có reservation.
+2. Gửi PUT với query ?status=IN_USE (hoặc BOOKED/COMPLETED/CANCELLED theo spec)."	200 OK; status trong response khớp giá trị hợp lệ đã gửi.	Reservation tồn tại; status enum hợp lệ.				
+TC_RV_012	Test PUT /api/reservations/{id}/status - Invalid status	1. Gửi PUT với ?status=INVALID hoặc status rỗng.	400 Bad Request hoặc 422 validation error.	Reservation có thể tồn tại hoặc không; kiểm tra validation status.				
+Function __: Delete reservation								
+TC_RV_013	Test DELETE /api/reservations/{id} - Valid delete	"1. Có reservation cần xóa.
+2. Gửi DELETE baseUrl8086/api/reservations/{id}."	200 OK hoặc 204 No Content; record bị xóa hoặc soft-delete theo spec.	Reservation tồn tại.				
+TC_RV_014	Test DELETE /api/reservations/{id} - Not found	1. Gửi DELETE baseUrl8086/api/reservations/999999.	404 Not Found.	Reservation không tồn tại.				
+Function __: Vehicle & user reservation queries								
+TC_RV_015	Test GET /api/vehicles/{vehicleId}/reservations - Valid vehicleId	"1. Chuẩn bị vehicleId có dữ liệu.
+2. Gửi GET baseUrl8086/api/vehicles/{vehicleId}/reservations."	200 OK; JSON array; các reservation thuộc vehicleId.	vehicleId hợp lệ.				
+TC_RV_016	Test GET /api/vehicles/{vehicleId}/reservations - Invalid vehicleId	1. Gửi GET với vehicleId=0 hoặc -1.	404 Not Found hoặc 400 (theo spec).	Service 8086 chạy.				
+TC_RV_017	Test GET /api/vehicles/{vehicleId}/group - Valid	1. Gửi GET baseUrl8086/api/vehicles/{vehicleId}/group (thêm Authorization/JWT nếu API yêu cầu).	200 OK; object có groupId, members (theo spec).	Group service sẵn sàng; vehicle liên kết group.				
+TC_RV_018	Test GET /api/vehicles/{vehicleId}/group - Invalid vehicleId	1. Gửi GET với vehicleId=0 hoặc không tồn tại.	404 Not Found hoặc 400.	Service 8086 chạy.				
+TC_RV_019	Test GET /api/users/{userId}/vehicles - Valid userId	"1. User có group/vehicle.
+2. Gửi GET baseUrl8086/api/users/{userId}/vehicles (JWT nếu cần)."	200 OK; JSON array vehicles.	userId hợp lệ; user có quan hệ đồng sở hữu.				
+TC_RV_020	Test GET /api/users/{userId}/vehicles - Invalid userId	1. Gửi GET với userId=0 hoặc -1.	404 Not Found hoặc 400.	Service 8086 chạy.				
+TC_RV_021	Test GET /api/users/{userId}/vehicles/{vehicleId}/reservations - Valid	1. Gửi GET baseUrl8086/api/users/{userId}/vehicles/{vehicleId}/reservations với cặp id hợp lệ.	200 OK; JSON array.	Có dữ liệu reservation cho cặp user+vehicle.				
+TC_RV_022	Test GET /api/users/{userId}/vehicles/{vehicleId}/reservations - Invalid vehicleId	1. Gửi GET với vehicleId=0.	404 Not Found hoặc 400.	userId có thể hợp lệ.				
+Function __: Check availability								
+TC_RV_023	Test GET /api/availability - Valid query	1. Gửi GET baseUrl8086/api/availability?vehicleId=...&start=...&end=... (ISO datetime).	200 OK; response boolean true/false (theo spec).	Query đầy đủ và hợp lệ.				
+TC_RV_024	Test GET /api/availability - Invalid time range	1. Gửi GET với end <= start hoặc format datetime sai.	400 hoặc 422 validation error.	Service 8086 chạy.				
+Function __: Reservation checkpoints (list, issue, scan, sign)								
+TC_RV_025	Test GET /api/reservations/{id}/checkpoints - List checkpoints	"1. Có reservation.
+2. Gửi GET baseUrl8086/api/reservations/{id}/checkpoints."	200 OK; JSON array (có thể rỗng).	reservationId hợp lệ.				
+TC_RV_026	Test POST /api/reservations/{id}/checkpoints - Issue checkpoint	1. Gửi POST với body: type, issuedBy, notes, validMinutes (theo API).	200 hoặc 201; checkpoint được tạo.	Reservation tồn tại.				
+TC_RV_027	Test POST /api/reservations/checkpoints/scan - Valid scan	1. Gửi POST baseUrl8086/api/reservations/checkpoints/scan với token hợp lệ, latitude, longitude.	200 hoặc 201; quét thành công theo spec.	Token checkpoint hợp lệ.				
+TC_RV_028	Test POST /api/reservations/checkpoints/{id}/sign - Valid sign	"1. Có checkpointId.
+2. Gửi POST .../checkpoints/{id}/sign với signerName, signerIdNumber, signatureData."	200 hoặc 201.	Checkpoint tồn tại.				
+TC_RV_029	Test POST /api/reservations/checkpoints/scan - Invalid / empty token	1. Gửi POST scan với token rỗng hoặc null.	400 validation error.	Service 8086 chạy.				
+Function __: Fairness								
+TC_RV_030	Test GET /api/fairness/vehicles/{vehicleId} - Summary	1. Gửi GET baseUrl8086/api/fairness/vehicles/{vehicleId}?rangeDays=30.	200 OK; object tóm tắt fairness.	vehicleId hợp lệ.				
+TC_RV_031	Test POST /api/fairness/vehicles/{vehicleId}/suggest - Suggest slot	1. Gửi POST body: userId, desiredStart, durationHours (theo spec).	200 hoặc 201; gợi ý slot hợp lệ.	vehicleId, userId hợp lệ.				
+ReservationAdminService Endpoints (port 8087)								
+Function __: Admin login								
+TC_AD_001	Test POST /api/admin/auth/login - Valid credentials	1. Gửi POST baseUrl8087/api/admin/auth/login với username, password đúng.	200 hoặc 201; response có token (JWT/bearer) theo spec.	Tài khoản admin tồn tại.				
+TC_AD_002	Test POST /api/admin/auth/login - Wrong password	1. Gửi POST với password sai.	401 Unauthorized hoặc 403 (theo spec).	Username tồn tại.				
+TC_AD_003	Test POST /api/admin/auth/login - Missing fields	1. Gửi POST với body thiếu username hoặc password hoặc {}.	400 Bad Request validation error.	Service 8087 chạy.				
+Function __: Get admin reservations (list & by id)								
+TC_AD_004	Test GET /api/admin/reservations - List DTO	1. Gửi GET baseUrl8087/api/admin/reservations (kèm header auth nếu cần).	200 OK; array DTO có vehicleName, userName (theo spec).	ReservationAdminService (8087) chạy.				
+TC_AD_005	Test GET /api/admin/reservations/{id} - Valid ID	1. Gửi GET với id tồn tại.	200 OK; object chi tiết admin.	Reservation tồn tại trong admin DB/view.				
+TC_AD_006	Test GET /api/admin/reservations/{id} - Not found	1. Gửi GET /api/admin/reservations/999999.	404 Not Found.	Id không tồn tại.				
+Function __: Update & delete admin reservation								
+TC_AD_007	Test PUT /api/admin/reservations/{id} - Valid update	1. Gửi PUT với body DTO hợp lệ (có thể thêm header X-Sync-Origin nếu spec có).	200 OK; dữ liệu cập nhật.	Id tồn tại.				
+TC_AD_008	Test DELETE /api/admin/reservations/{id} - Valid delete	1. Gửi DELETE với id tồn tại.	200 hoặc 204 No Content.	Reservation admin tồn tại.				
+TC_AD_009	Test DELETE /api/admin/reservations/{id} - Not found	1. Gửi DELETE /api/admin/reservations/999999.	404 Not Found.	Id không tồn tại.				
+Function __: Sync reservation from booking								
+TC_AD_010	Test POST /api/admin/reservations/sync - Valid payload	1. Gửi POST baseUrl8087/api/admin/reservations/sync với JSON: reservationId, vehicleId, userId, datetime, status (đầy đủ theo spec).	200 hoặc 201; đồng bộ thành công.	Payload đúng schema.				
+TC_AD_011	Test POST /api/admin/reservations/sync - Invalid payload	1. Gửi POST thiếu field bắt buộc hoặc id=0.	400 hoặc 422 validation error.	Service 8087 chạy.				
+Function __: Manage reservations								
+TC_AD_012	Test GET /api/admin/reservations/manage - List	1. Gửi GET baseUrl8087/api/admin/reservations/manage.	200 OK; array: id, vehicleName, bookedBy, startDate, endDate, status (theo spec).	Service 8087 chạy.				
+TC_AD_013	Test POST /api/admin/reservations/manage - Create	1. Gửi POST body hợp lệ (vehicleId, userId, thời gian...).	200 hoặc 201; message và id (theo spec).	vehicleId, userId hợp lệ.				
+TC_AD_014	Test PUT /api/admin/reservations/manage/{id} - Update	1. Gửi PUT với id tồn tại; body cập nhật start/end/status.	200 OK; message thành công.	Manage record tồn tại.				
+TC_AD_015	Test DELETE /api/admin/reservations/manage/{id} - Delete	1. Gửi DELETE với id tồn tại.	200 hoặc 204.	Manage record tồn tại.				
+Function __: Get admin vehicles								
+TC_AD_016	Test GET /api/admin/vehicles - List	1. Gửi GET baseUrl8087/api/admin/vehicles.	200 OK; JSON array vehicles cho UI admin.	Service 8087 chạy.				
+Function __: Proxy reservation APIs (qua Admin Service 8087)								
+TC_AD_017	Test GET /api/reservations (proxy) - All reservations	1. Gửi GET baseUrl8087/api/reservations (không dùng 8086).	200 OK; JSON array (proxy sang Reservation Service).	8087 và downstream 8086 hoạt động.				
+TC_AD_018	Test GET /api/reservations/{id} (proxy) - By id	1. Gửi GET baseUrl8087/api/reservations/{id} với id hợp lệ / không tồn tại.	200 OK hoặc 404 Not Found.	Proxy chain hoạt động.				
+TC_AD_019	Test POST /api/reservations (proxy) - Create	1. Gửi POST baseUrl8087/api/reservations với body hợp lệ.	200 hoặc 201.	Body giống luồng tạo trên booking service.				
+TC_AD_020	Test PUT /api/reservations/{id} (proxy) - Update	1. Gửi PUT baseUrl8087/api/reservations/{id}.	200 OK.	Id tồn tại trên service đích.				
+TC_AD_021	Test PUT /api/reservations/{id}/status (proxy) - Status	1. Gửi PUT với query status hợp lệ.	200 OK.	Id tồn tại.				
+TC_AD_022	Test DELETE /api/reservations/{id} (proxy) - Delete	1. Gửi DELETE baseUrl8087/api/reservations/{id}.	200 hoặc 204.	Id tồn tại.				
+Function __: Test user (debug)								
+TC_AD_023	Test GET /api/test/user/{userId} - Valid	1. Gửi GET baseUrl8087/api/test/user/{userId} với userId tồn tại.	200 OK; object user (tích hợp).	User service / dữ liệu test sẵn có.				
+TC_AD_024	Test GET /api/test/user/{userId} - Not found / invalid	1. Gửi GET với userId=999999 hoặc 0.	404 Not Found hoặc 400 (theo spec).	Service 8087 chạy.				

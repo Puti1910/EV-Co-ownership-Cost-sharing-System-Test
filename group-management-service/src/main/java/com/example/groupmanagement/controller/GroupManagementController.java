@@ -1,10 +1,12 @@
 package com.example.groupmanagement.controller;
 
 import com.example.groupmanagement.dto.CreateGroupRequestDto;
+import com.example.groupmanagement.dto.CreateVotingRequestDto;
 import com.example.groupmanagement.dto.GroupResponseDto;
 import com.example.groupmanagement.dto.AddGroupMemberRequestDto;
 import jakarta.validation.Valid;
 import com.example.groupmanagement.exception.ValidationException;
+import org.springframework.validation.BindingResult;
 import com.example.groupmanagement.util.GroupValidationUtil;
 import com.example.groupmanagement.until.MemberValidationUtil;
 import com.example.groupmanagement.service.UserValidationService;
@@ -837,13 +839,41 @@ public class GroupManagementController {
     }
 
     @PostMapping("/{groupId}/votes")
-    public Voting createVote(@PathVariable Integer groupId, @RequestBody Voting voting) {
-        Optional<Group> group = groupRepository.findById(groupId);
-        if (group.isPresent()) {
-            voting.setGroup(group.get());
-            return votingRepository.save(voting);
+    public ResponseEntity<?> createVote(
+            @PathVariable Integer groupId,
+            @Valid @RequestBody CreateVotingRequestDto requestDto,
+            BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            List<Map<String, Object>> errors = bindingResult.getFieldErrors().stream()
+                    .map(error -> Map.<String, Object>of(
+                            "field", error.getField(),
+                            "message", error.getDefaultMessage()))
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Validation error",
+                    "details", errors
+            ));
         }
-        return null;
+
+        Optional<Group> group = groupRepository.findById(groupId);
+        if (group.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "error", "Group not found",
+                    "message", "Nhóm ID " + groupId + " không tồn tại"
+            ));
+        }
+
+        Voting voting = new Voting();
+        voting.setGroup(group.get());
+        voting.setTopic(requestDto.getTopic().trim());
+        voting.setOptionA(requestDto.getOptionA());
+        voting.setOptionB(requestDto.getOptionB());
+        voting.setDeadline(requestDto.getDeadline());
+        voting.setStatus(Voting.VotingStatus.OPEN);
+
+        Voting saved = votingRepository.save(voting);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     // VotingResult endpoints

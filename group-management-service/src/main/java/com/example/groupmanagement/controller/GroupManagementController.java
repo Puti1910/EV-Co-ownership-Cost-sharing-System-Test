@@ -32,8 +32,13 @@ import org.slf4j.LoggerFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -45,7 +50,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.springframework.dao.DataIntegrityViolationException;
 import jakarta.persistence.PersistenceException;
 
 @RestController
@@ -84,6 +88,9 @@ public class GroupManagementController {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Value("${microservices.user-account.url:http://user-account-service:8081}")
+    private String userAccountServiceUrl;
 
     @Autowired
     private UserValidationService userValidationService;
@@ -2068,8 +2075,47 @@ public class GroupManagementController {
      * based on highest ownership percentages.
      */
     @PostMapping("/admin/recalculate-admins")
-    public ResponseEntity<Map<String, Object>> recalculateAdmins() {
+    public ResponseEntity<Map<String, Object>> recalculateAdmins(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            logger.warn("❌ [GroupManagementController] Missing or invalid Authorization header for recalculate-admins");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "success", false,
+                    "message", "Unauthorized: Token is required"
+            ));
+        }
+
         try {
+            String profileUrl = userAccountServiceUrl + "/api/auth/users/profile";
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.AUTHORIZATION, authorizationHeader);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+            ResponseEntity<Map> profileResponse = restTemplate.exchange(
+                    profileUrl,
+                    HttpMethod.GET,
+                    requestEntity,
+                    Map.class
+            );
+
+            if (!profileResponse.getStatusCode().is2xxSuccessful() || profileResponse.getBody() == null) {
+                logger.warn("❌ [GroupManagementController] Unable to validate user token for recalculate-admins");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "success", false,
+                        "message", "Unauthorized: Token không hợp lệ hoặc đã hết hạn"
+                ));
+            }
+
+            Object roleObj = profileResponse.getBody().get("role");
+            String role = roleObj != null ? roleObj.toString() : null;
+            if (role == null || !role.equals("ROLE_ADMIN")) {
+                logger.warn("❌ [GroupManagementController] Forbidden recalculate-admins for user role={}", role);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                        "success", false,
+                        "message", "Forbidden: Yêu cầu role ADMIN để thực hiện hành động này"
+                ));
+            }
+
             List<Group> allGroups = groupRepository.findAll();
             int updatedCount = 0;
 
@@ -2089,6 +2135,18 @@ public class GroupManagementController {
                     "totalGroups", allGroups.size(),
                     "updatedAdmins", updatedCount,
                     "message", "Đã rà soát và gán lại admin cho toàn bộ nhóm."
+            ));
+        } catch (HttpClientErrorException.Unauthorized e) {
+            logger.warn("❌ [GroupManagementController] Unauthorized token for recalculate-admins: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "success", false,
+                    "message", "Unauthorized: Token không hợp lệ hoặc đã hết hạn"
+            ));
+        } catch (HttpClientErrorException.Forbidden e) {
+            logger.warn("❌ [GroupManagementController] Forbidden request for recalculate-admins: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "success", false,
+                    "message", "Forbidden: Bạn không có quyền thực hiện hành động này"
             ));
         } catch (Exception e) {
             logger.error("❌ [GroupManagementController] Error recalculating admins: {}", e.getMessage());
